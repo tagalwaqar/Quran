@@ -1317,6 +1317,249 @@ async function saveSettings(){
 }
 
 route();
+ /* ================================================================
+   نظام الثيمات + الأرقام المتعددة (تحديث شامل)
+   ================================================================ */
+let THEME_PENDING = null;
+
+const THEME_BASE = {
+  '--gold-600-rgb':'169 133 47','--gold-500-rgb':'201 162 39','--gold-400-rgb':'224 196 104','--gold-100-rgb':'246 236 210',
+  '--cream-50-rgb':'251 248 240','--cream-100-rgb':'247 243 232','--cream-200-rgb':'239 231 210',
+  '--ink-rgb':'38 48 31','--gold':'#C9A227'
+};
+const THEMES = {
+  taqwa:  { name:'التقوى — الأخضر الكلاسيكي', pine:'#0F3D2C', v:{'--pine-900-rgb':'11 43 31','--pine-800-rgb':'15 61 44','--pine-700-rgb':'21 88 65','--pine-600-rgb':'28 107 79','--pine':'#0F3D2C'} },
+  fajr:   { name:'الفجر — التركواز الهادئ',   pine:'#0E4245', v:{'--pine-900-rgb':'10 46 48','--pine-800-rgb':'14 66 69','--pine-700-rgb':'19 90 94','--pine-600-rgb':'26 115 120','--pine':'#0E4245'} },
+  malik:  { name:'الملك — الكحلي الفاخر',     pine:'#102244', v:{'--pine-900-rgb':'11 24 48','--pine-800-rgb':'16 34 68','--pine-700-rgb':'22 48 99','--pine-600-rgb':'29 62 128','--pine':'#102244'} },
+  izz:    { name:'العز — العنابي الأصيل',     pine:'#3D141C', v:{'--pine-900-rgb':'43 15 20','--pine-800-rgb':'61 20 28','--pine-700-rgb':'88 32 43','--pine-600-rgb':'107 42 56','--pine':'#3D141C'} },
+  zaytoun:{ name:'الزيتون — الأخضر الزيتوني', pine:'#2C3710', v:{'--pine-900-rgb':'31 38 8','--pine-800-rgb':'44 55 16','--pine-700-rgb':'63 77 24','--pine-600-rgb':'82 99 32','--pine':'#2C3710'} },
+  layl:   { name:'الليل — الفحمي الرصين',     pine:'#222229', v:{'--pine-900-rgb':'23 23 27','--pine-800-rgb':'34 34 41','--pine-700-rgb':'51 51 61','--pine-600-rgb':'69 69 82','--pine':'#222229'} }
+};
+const currentThemeKey = () => (THEME_PENDING || (S.site && S.site.theme) || 'taqwa');
+function applyThemeVars(key){
+  const t = THEMES[key] || THEMES.taqwa;
+  const r = document.documentElement.style;
+  Object.entries(THEME_BASE).forEach(([k,v])=>r.setProperty(k,v));
+  Object.entries(t.v).forEach(([k,v])=>r.setProperty(k,v));
+}
+(function(){ const s=document.createElement('style'); s.textContent = [
+'.theme-swatch{display:flex;flex-direction:column;align-items:center;gap:.2rem;background:#fff;border:2px solid #EFE7D2;border-radius:1rem;padding:1rem .5rem;cursor:pointer;transition:.15s;font-size:.85rem;text-align:center}',
+'.theme-swatch:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}',
+'.theme-swatch.sel{box-shadow:0 0 0 3px rgba(201,162,39,.4)}'
+].join('\n'); document.head.appendChild(s); })();
+
+/* ---------- أرقام متعددة للإدارة والواتساب ---------- */
+function parsePhones(v){
+  const arr = Array.isArray(v) ? v : String(v||'').split(/\r?\n|,/);
+  return arr.map(x=>String(x).trim()).filter(Boolean).map(line=>{
+    let label='', num=line;
+    const m = line.match(/^(.*?)[:：]\s*(.+)$/);
+    if (m){ label=m[1].trim(); num=m[2].trim(); }
+    return {label, num, digits:num.replace(/\D/g,'')};
+  });
+}
+function waLink(d){ let x=String(d||''); if(/^01\d{9}$/.test(x)) x='2'+x; return 'https://wa.me/'+x; }
+const phonesVal = v => Array.isArray(v) ? v.join('\n') : (v||'');
+
+function contactCards(s){
+  const cards=[];
+  const ph=parsePhones(s.phone), wa=parsePhones(s.whatsapp);
+  if (ph.length) cards.push(`<div class="card p-6 text-center">
+    <span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">${ic('phone',22)}</span>
+    <p class="text-xs text-ink/50 mt-3">${ph.length>1?'هواتف الإدارة':'هاتف الإدارة'}</p>
+    <div class="mt-1 space-y-1.5">${ph.map(p=>`<a href="tel:${p.digits}" class="font-semibold text-pine-800 hover:underline block">${p.label?esc(p.label)+' · ':''}<span dir="ltr">${esc(p.num)}</span></a>`).join('')}</div>
+  </div>`);
+  if (wa.length) cards.push(`<div class="card p-6 text-center">
+    <span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">${ic('chat',22)}</span>
+    <p class="text-xs text-ink/50 mt-3">واتساب</p>
+    <div class="mt-1 space-y-1.5">${wa.map(p=>`<a href="${waLink(p.digits)}" target="_blank" rel="noopener" class="font-semibold text-pine-800 hover:underline block">${p.label?esc(p.label)+' · ':''}<span dir="ltr">${esc(p.num)}</span></a>`).join('')}</div>
+  </div>`);
+  if (s.address) cards.push(`<div class="card p-6 text-center">
+    <span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">${ic('pin',22)}</span>
+    <p class="text-xs text-ink/50 mt-3">العنوان</p>
+    <p class="font-semibold text-pine-800 mt-1 leading-relaxed">${esc(s.address)}</p>
+  </div>`);
+  if (!cards.length) cards.push(`<div class="card p-6 text-center">
+    <span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">${ic('chat',22)}</span>
+    <p class="text-xs text-ink/50 mt-3">التواصل</p>
+    <p class="font-semibold text-pine-800 mt-1 leading-relaxed">تُعلن قنوات التواصل عبر صفحات الجهات المنظمة</p>
+  </div>`);
+  return cards.join('');
+}
+
+function renderRegister(pre){
+  const preLevel = pre ? (+pre || null) : null;
+  const s = S.site, cfg = S.config;
+  const ph = parsePhones(s.phone);
+  let body;
+  if (!cfg.registration_open || !cfg.age_ref_date){
+    body = `<section class="max-w-xl mx-auto px-4 py-16">
+      <div class="card border-t-4 border-t-gold-500 p-8 text-center">
+        <span class="w-16 h-16 rounded-full bg-gold-100 text-gold-600 inline-flex items-center justify-center">${ic('cal',30)}</span>
+        <h1 class="font-amiri text-2xl text-pine-800 mt-4">${cfg.registration_open?'التسجيل لم يُفتح بعد':'التسجيل مغلق حاليًا'}</h1>
+        <p class="text-ink/65 mt-3 leading-loose">${cfg.registration_open
+          ? 'يلزم قبل فتح التسجيل النهائي أن تعتمد إدارة المسابقة «تاريخ احتساب العمر» الذي تُضبط به شروط الأهلية لكل مستوى، ويُفتح التسجيل فور اعتماده.'
+          : 'أوقفت إدارة المسابقة استقبال التسجيلات مؤقتًا بقرار منها، وسيُعلن عن موعد الفتح عبر القنوات الرسمية.'}</p>
+        ${ph.length?`<p class="text-sm mt-3 leading-relaxed">للاستفسار: ${ph.map(p=>`<a class="link" href="tel:${p.digits}"><span dir="ltr">${esc(p.num)}</span></a>`).join(' · ')}</p>`:''}
+        <a href="#/" class="btn btn-outline mt-6">العودة للرئيسية</a>
+      </div></section>`;
+  } else { body = regFormHtml(s,cfg,preLevel); }
+  app.innerHTML = pubShell(`
+  <section class="bg-cream-50 border-b border-cream-200 py-10 text-center">
+    <p class="text-xs text-ink/50 mb-2"><a href="#/" class="link">الرئيسية</a> / التسجيل</p>
+    <h1 class="font-amiri text-3xl text-pine-800">التسجيل في المسابقة</h1>
+    <p class="text-sm text-ink/60 mt-1">املأ الاستمارة بدقة — الحقول المعلَّمة بـ <span class="text-red-700">*</span> إلزامية</p>
+  </section>${body}`);
+  if (cfg.registration_open && cfg.age_ref_date) wireRegForm(preLevel);
+}
+
+/* ---------- لوحة الإعدادات: الشعار + الثيمات + الأرقام ---------- */
+function paintThemes(){
+  const g=$('#themeGrid'); if(!g) return;
+  const cur=currentThemeKey();
+  g.innerHTML=Object.entries(THEMES).map(([k,t])=>`
+    <button type="button" data-theme="${k}" class="theme-swatch ${cur===k?'sel':''}" style="${cur===k?`border-color:${t.pine}`:''}">
+      <span class="flex gap-1.5 justify-center mb-1.5">
+        <i style="background:${t.pine}" class="w-7 h-7 rounded-full border border-white/60"></i>
+        <i style="background:#C9A227" class="w-7 h-7 rounded-full border border-white/60"></i>
+        <i style="background:#F7F3E8" class="w-7 h-7 rounded-full border border-cream-200"></i>
+      </span>
+      <b style="color:${t.pine}">${esc(t.name)}</b>
+      ${cur===k?`<span class="text-[10px] font-semibold" style="color:${t.pine}">✓ المفعّل</span>`:''}
+    </button>`).join('');
+}
+
+function renderSettingsTab(){
+  const s=S.site, c=S.config;
+  const hasHttp=location.protocol.startsWith('http');
+  const regLink=hasHttp?location.origin+location.pathname.replace(/[^/]*$/,'')+'#/register':'(سيظهر الرابط هنا بعد نشر المنصة على استضافة)';
+  $('#dashMain').innerHTML=`
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
+    <h2 class="font-amiri text-2xl text-pine-800">الإعدادات العامة</h2>
+    <button id="saveSettings" class="btn btn-primary btn-sm">${ic('check')} حفظ ونشر</button>
+  </div>
+  <div class="card p-5 mb-5">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">شعار المنصة</h3>
+    <div class="flex items-center gap-4 flex-wrap">
+      <div id="logoPrevWrap" class="w-20 h-20 rounded-xl bg-white border border-cream-200 flex items-center justify-center overflow-hidden shrink-0">
+        ${s.logo?`<img src="${s.logo}" class="w-full h-full object-contain">`:`<span class="block w-3/4 h-3/4">${MUSHAF_SVG}</span>`}
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <button type="button" id="logoBtn" class="btn btn-outline btn-sm">${ic('upload',14)} رفع شعار</button>
+        ${s.logo?`<button type="button" id="logoDel" class="btn btn-outline btn-sm" style="color:#991B1B;border-color:#991B1B">${ic('trash',14)} حذف الشعار</button>`:''}
+        <input type="file" id="logoFile" accept="image/*" class="hidden">
+      </div>
+    </div>
+    <p class="text-xs text-ink/55 mt-3 leading-loose">يفضَّل صورة PNG بخلفية شفافة. بعد الرفع اضغط «حفظ ونشر» لتثبيته.</p>
+  </div>
+  <div class="card p-5 mb-5">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">ثيم المنصة — الألوان العامة</h3>
+    <div id="themeGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+    <p class="text-xs text-ink/55 mt-3 leading-loose">الضغط على أي ثيم يعرضه فورًا للمعاينة على المنصة كلها. اختر ما يناسبكم ثم اضغط «حفظ ونشر» بالأسفل ليظهر لجميع الزوار. (ألوان بطاقات المستويات تُضبط بشكل منفصل من تبويب «المستويات والأعمار»).</p>
+  </div>
+  <div class="card p-5 mb-5">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">ضبط التسجيل وتاريخ احتساب العمر</h3>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div>
+        <label class="label">تاريخ احتساب العمر (مرجع الأهلية) <span class="text-red-700">*</span></label>
+        <input id="st_ref" type="date" class="input" value="${esc(c.age_ref_date||'')}">
+        <p class="text-xs text-ink/55 mt-1.5 leading-loose">${c.age_ref_date?`يُحتسب عمر كل متسابق حتى ${fmtDate(c.age_ref_date)} — عدّله متى قررت اللجنة، وينعكس فورًا على التحقق في الواجهة وقاعدة البيانات.`
+          :'<b class="text-red-800">التسجيل النهائي متوقف حتى تحديد هذا التاريخ.</b> اختر التاريخ الذي تُحتسب عنده الأعمار (مثال: تاريخ أول الاختبارات أو الإعلان).'}</p>
+      </div>
+      <div>
+        <label class="label">حالة استقبال التسجيلات</label>
+        <label class="check !mt-0"><input type="checkbox" id="st_open" ${c.registration_open?'checked':''}><span>فتح التسجيل أمام المتسابقين</span></label>
+        <p class="text-xs text-ink/55 mt-1.5 leading-loose">إغلاق التسجيل يُخفي الاستمارة في الواجهة ويرفض أي طلب مباشر على قاعدة البيانات في آن واحد.</p>
+      </div>
+    </div>
+  </div>
+  <div class="card p-5 mb-5">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">هوية المنصة والتواصل</h3>
+    <div class="grid md:grid-cols-2 gap-5">
+      ${stIn('st_org','اسم الجهة المنظمة',s.org_name)}
+      ${stIn('st_partner','الجهة المتعاونة',s.partner)}
+      ${stIn('st_season','الموسم',s.season)}
+      ${stIn('st_title','عنوان المسابقة',s.title)}
+      <div class="md:col-span-2">${stIn('st_ayah','الآية أعلى العنوان',s.ayah)}</div>
+      <div class="md:col-span-2"><label class="label">العبارة الترحيبية</label><textarea id="st_welcome" rows="3" class="input">${esc(s.welcome)}</textarea></div>
+      <div class="md:col-span-2">
+        <label class="label">هواتف الإدارة — رقم واحد في كل سطر</label>
+        <textarea id="st_phone" rows="3" class="input" placeholder="01012345678&#10;أ. محمود: 01098765432">${esc(phonesVal(s.phone))}</textarea>
+        <p class="text-xs text-ink/50 mt-1.5">يمكنك كتابة اسم المسؤول قبل الرقم هكذا: أ. محمود: 01098765432 — ويظهر الاسم بجوار الرقم في الموقع.</p>
+      </div>
+      <div class="md:col-span-2">
+        <label class="label">أرقام واتساب — رقم واحد في كل سطر</label>
+        <textarea id="st_wa" rows="3" class="input" placeholder="01012345678&#10;201112223334">${esc(phonesVal(s.whatsapp))}</textarea>
+        <p class="text-xs text-ink/50 mt-1.5">يكفي كتابة الرقم العادي (01xxxxxxxxx) والمنصة تحوّله تلقائيًا لصيغة الواتساب الدولية عند الضغط عليه.</p>
+      </div>
+      <div class="md:col-span-2">${stIn('st_addr','العنوان / مكتب الاستفسار',s.address)}</div>
+    </div>
+  </div>
+  <div class="card p-5 mb-5">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">نصوص الشروط والخصوصية</h3>
+    <p class="text-xs text-ink/55 mb-3">كل سطر في «الشروط» يظهر فقرة مستقلة في صفحة الشروط.</p>
+    <div class="space-y-5">
+      <div><label class="label">شروط المسابقة</label><textarea id="st_terms" rows="9" class="input leading-loose">${esc(s.terms)}</textarea></div>
+      <div><label class="label">سياسة الخصوصية</label><textarea id="st_privacy" rows="5" class="input leading-loose">${esc(s.privacy)}</textarea></div>
+    </div>
+  </div>
+  <div class="card p-5">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">رابط التسجيل العام (للمشاركة في واتساب وفيسبوك)</h3>
+    <div class="link-out">${esc(regLink)}</div>
+    <div class="flex gap-2 flex-wrap mt-3">
+      <button id="copyRegLink" class="btn btn-outline btn-sm">${ic('copy')} نسخ الرابط</button>
+      <button id="copyInvite" class="btn btn-outline btn-sm">${ic('chat')} نسخ نص دعوة جاهز</button>
+    </div>
+  </div>
+  <button id="saveSettings" class="btn btn-primary mt-5">${ic('check')} حفظ ونشر</button>`;
+  paintThemes();
+}
+
+async function saveSettings(){
+  const btns=$$('#saveSettings');
+  btns.forEach(b=>{b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ الحفظ…';});
+  const site={...S.site,
+    theme: THEME_PENDING || S.site.theme || 'taqwa',
+    org_name:$('#st_org').value.trim()||S.site.org_name, partner:$('#st_partner').value.trim(),
+    season:$('#st_season').value.trim()||S.site.season, title:$('#st_title').value.trim()||S.site.title,
+    ayah:$('#st_ayah').value.trim(), welcome:$('#st_welcome').value.trim(),
+    phone:$('#st_phone').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),
+    whatsapp:$('#st_wa').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),
+    address:$('#st_addr').value.trim(),
+    terms:$('#st_terms').value.trim()||SITE_DEFAULTS.terms, privacy:$('#st_privacy').value.trim()||SITE_DEFAULTS.privacy};
+  const config={registration_open:$('#st_open').checked, age_ref_date:$('#st_ref').value||null};
+  try{
+    const {error}=await sb.from('app_settings').upsert([{key:'site',value:site},{key:'config',value:config}],{onConflict:'key'});
+    if(error)throw error;
+    S.site=site; S.config=config; THEME_PENDING=null;
+    let msg='تم حفظ الإعدادات (الثيم والأرقام والشعار) ونشرها فورًا لجميع الزوار';
+    if(config.registration_open&&!config.age_ref_date) msg+=' — تنبيه: يظل التسجيل موقوفًا حتى تحديد تاريخ احتساب العمر';
+    toast(msg, config.registration_open&&!config.age_ref_date?'':'ok');
+    renderSettingsTab();
+  }catch(e){
+    toast('تعذّر الحفظ: '+e.message,'err');
+    btns.forEach(b=>{b.disabled=false;b.innerHTML=ic('check')+' حفظ ونشر';});
+  }
+}
+
+/* اختيار الثيم بالضغط (معاينة فورية) */
+document.addEventListener('click', e=>{
+  const sw = e.target.closest('[data-theme]');
+  if (sw){
+    THEME_PENDING = sw.dataset.theme;
+    applyThemeVars(THEME_PENDING);
+    paintThemes();
+    toast('تمت المعاينة — اضغط «حفظ ونشر» بالأسفل لتثبيته لجميع الزوار','ok');
+  }
+});
+
+/* تطبيق الثيم المحفوظ عند فتح الموقع من أي جهاز */
+(async function bootTheme(){
+  const wait = ms => new Promise(r=>setTimeout(r,ms));
+  let n=0; while (S.site===null && n<40){ await wait(100); n++; }
+  applyThemeVars(currentThemeKey());
+  route();
+})(); 
 </script>
 </body>
 </html>
