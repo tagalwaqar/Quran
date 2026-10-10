@@ -130,15 +130,48 @@ const SUPABASE_ANON_KEY = 'sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
 const sb = (SUPABASE_URL.startsWith('https://') && !SUPABASE_ANON_KEY.includes('PASTE'))
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-/* ---------- اللوجو الافتراضي (مصحف مفتوح) ---------- */
-const MUSHAF_SVG = `<svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-<g fill="none" stroke="#C9A227" stroke-width="1.6">
-<path d="M32 17c-4.5-4-12-5-16-3v17c4-2 11.5-1 16 3 4.5-4 12-5 16-3V14c-4-2-11.5-1-16 3z"/>
-<path d="M32 17v17"/>
-<path d="M20 21.5c3.3-1 7.5-.8 10.5 1M20 26.5c3.3-1 7.5-.8 10.5 1M33.5 22.5c3-1.8 7.2-2 10.5-1M33.5 27.5c3-1.8 7.2-2 10.5-1" stroke-width="1" opacity=".55"/>
-<path d="M25 45l7-7 7 7-7 7z" fill="#C9A227" stroke="none"/>
-</g></svg>`;
-
+/* ---------- اللوجو الافتراضي (شعار المنصة: مسجد ومصحف) ---------- */
+const MUSHAF_SVG = `<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<circle cx="60" cy="60" r="57" fill="#0F3D2C" stroke="#C9A227" stroke-width="2.5"/>
+<circle cx="60" cy="60" r="52" fill="none" stroke="#C9A227" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/>
+<g transform="translate(51.4 6.9) scale(0.72)"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#E0C468"/></g>
+<path d="M69 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#E0C468"/>
+<g fill="#C9A227">
+<line x1="38" y1="15" x2="38" y2="23.5" stroke="#C9A227" stroke-width="1"/>
+<rect x="35" y="24" width="6" height="8" rx="2"/>
+<rect x="37" y="26.5" width="2" height="4" rx="1" fill="#0F3D2C"/>
+<circle cx="38" cy="33.5" r="1"/>
+<line x1="82" y1="15" x2="82" y2="23.5" stroke="#C9A227" stroke-width="1"/>
+<rect x="79" y="24" width="6" height="8" rx="2"/>
+<rect x="81" y="26.5" width="2" height="4" rx="1" fill="#0F3D2C"/>
+<circle cx="82" cy="33.5" r="1"/>
+</g>
+<g fill="#C9A227">
+<path d="M60 30C49 40 47.5 48 47.5 54h25C72.5 48 71 40 60 30z"/>
+<rect x="45.5" y="54" width="29" height="3" rx="1"/>
+<rect x="52" y="57" width="16" height="18" rx="1"/>
+<rect x="35.5" y="50" width="3.5" height="27" rx="1"/>
+<rect x="34.75" y="57" width="5" height="2.5" rx="1"/>
+<circle cx="37.25" cy="48" r="2.6"/>
+<path d="M35.5 46.5h3.5l-1.75-4z"/>
+<rect x="81" y="50" width="3.5" height="27" rx="1"/>
+<rect x="80.25" y="57" width="5" height="2.5" rx="1"/>
+<circle cx="82.75" cy="48" r="2.6"/>
+<path d="M81 46.5h3.5l-1.75-4z"/>
+</g>
+<path d="M57 75v-7q3-5 6 0v7z" fill="#0F3D2C"/>
+<rect x="53.5" y="61" width="2" height="4" rx="1" fill="#0F3D2C"/>
+<rect x="64.5" y="61" width="2" height="4" rx="1" fill="#0F3D2C"/>
+<path d="M32 86c8-4.5 19-4.5 28 0 9-4.5 20-4.5 28 0v7c-8-4.5-19-4.5-28 0-9-4.5-20-4.5-28 0z" fill="#E0C468"/>
+<path d="M60 86v7" stroke="#0F3D2C" stroke-width="1.3"/>
+<g fill="#C9A227">
+<rect x="58.2" y="99.2" width="3.6" height="3.6" transform="rotate(45 60 101)"/>
+<rect x="48" y="99.9" width="2.2" height="2.2" transform="rotate(45 49.1 101)"/>
+<rect x="69.8" y="99.9" width="2.2" height="2.2" transform="rotate(45 70.9 101)"/>
+<line x1="31" y1="101" x2="45" y2="101" stroke="#C9A227" stroke-width="1"/>
+<line x1="75" y1="101" x2="89" y2="101" stroke="#C9A227" stroke-width="1"/>
+</g>
+</svg>`;
 /* ---------- ألوان المستويات ---------- */
 const LEVEL_COLORS = ['#0F3D2C','#0E7490','#1E40AF','#B45309','#86198F'];
 const lvColor = (l,i) => (l && l.color) || LEVEL_COLORS[(i||0) % LEVEL_COLORS.length];
