@@ -17,12 +17,13 @@
 <script>
 tailwind.config = {
   theme: { extend: {
-    colors: {
-      pine:  { 900:'#0B2B1F', 800:'#0F3D2C', 700:'#155841', 600:'#1C6B4F' },
-      gold:  { 600:'#A9852F', 500:'#C9A227', 400:'#E0C468', 100:'#F6ECD2' },
-      cream: { 50:'#FBF8F0', 100:'#F7F3E8', 200:'#EFE7D2' },
-      ink: '#26301F'
-    },
+     colors: {
+      pine:  { 900:'rgb(var(--pine-900-rgb, 11 43 31) / <alpha-value>)', 800:'rgb(var(--pine-800-rgb, 15 61 44) / <alpha-value>)', 700:'rgb(var(--pine-700-rgb, 21 88 65) / <alpha-value>)', 600:'rgb(var(--pine-600-rgb, 28 107 79) / <alpha-value>)' },
+      gold:  { 600:'rgb(var(--gold-600-rgb, 169 133 47) / <alpha-value>)', 500:'rgb(var(--gold-500-rgb, 201 162 39) / <alpha-value>)', 400:'rgb(var(--gold-400-rgb, 224 196 104) / <alpha-value>)', 100:'rgb(var(--gold-100-rgb, 246 236 210) / <alpha-value>)' },
+      cream: { 50:'rgb(var(--cream-50-rgb, 251 248 240) / <alpha-value>)', 100:'rgb(var(--cream-100-rgb, 247 243 232) / <alpha-value>)', 200:'rgb(var(--cream-200-rgb, 239 231 210) / <alpha-value>)' },
+      ink: 'rgb(var(--ink-rgb, 38 48 31) / <alpha-value>)'
+    }, 
+
     fontFamily: { amiri:['Amiri','serif'], sans:['"IBM Plex Sans Arabic"','Tahoma','sans-serif'] }
   }}
 };
