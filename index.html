@@ -78,6 +78,7 @@ html{scroll-behavior:smooth}
 .overlay{position:fixed;inset:0;background:rgba(11,43,31,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fin .2s}
 @keyframes fin{from{opacity:0}}
 .modal{background:#F7F3E8;border-radius:1rem;border-top:4px solid var(--gold);max-width:32rem;width:100%;max-height:85vh;overflow-y:auto;padding:1.6rem;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.modal video{width:100%;max-height:60vh;border-radius:.8rem;background:#000;display:block}
 .m-head{font-family:Amiri,serif;font-size:1.35rem;color:var(--pine);margin-bottom:.6rem}
 .m-body{font-size:.93rem;color:#3B442F;line-height:1.9}
 .m-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.3rem;flex-wrap:wrap}
@@ -132,7 +133,8 @@ html{scroll-behavior:smooth}
 <script>
 /* ================================================================
    منصة التسجيل — المسابقة الكبرى لحفظ القرآن الكريم
-   النسخة ٤: + لجنة اختبار من ممتحنَين + إسناد جماعي للمستوى + QR
+   النسخة ٥: + رفع ورقة الامتحان وفيديو الامتحان لكل متسابق
+   (تخزين آمن في Supabase Storage — متاح للإدارة فقط)
    ================================================================ */
 
 const SUPABASE_URL      = 'https://ctgrlgdughobzxvqmwnn.supabase.co';
@@ -140,6 +142,39 @@ const SUPABASE_ANON_KEY = 'sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
 
 const sb = (SUPABASE_URL.startsWith('https://') && !SUPABASE_ANON_KEY.includes('PASTE'))
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+/* ---------- مخزن ملفات الامتحانات ---------- */
+const EXAMS_BUCKET = 'exams';
+let EX_UPLOAD = null; // {id, kind} أثناء اختيار ملف
+
+async function uploadExamFile(regId, kind, file, oldPath){
+  const ext = (file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8) || 'bin';
+  const path = `${regId}/${kind}-${Date.now()}.${ext}`;
+  const { error } = await sb.storage.from(EXAMS_BUCKET).upload(path, file, { cacheControl:'3600' });
+  if (error) throw error;
+  if (oldPath){ try{ await sb.storage.from(EXAMS_BUCKET).remove([oldPath]); }catch(e){} }
+  return path;
+}
+async function getSignedUrl(path){
+  const { data, error } = await sb.storage.from(EXAMS_BUCKET).createSignedUrl(path, 3600);
+  if (error) throw error;
+  return data.signedUrl;
+}
+async function openExamFile(path, kind){
+  try{
+    const url = await getSignedUrl(path);
+    if (kind==='video'){
+      modal(`<div class="m-head">فيديو الامتحان</div>
+        <div class="text-center"><video controls playsinline preload="metadata" src="${esc(url)}"></video></div>
+        <div class="m-actions">
+          <a class="btn btn-outline btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic('dl',14)} فتح/تحميل في تبويب جديد</a>
+          <button class="btn btn-outline btn-sm" data-close>إغلاق</button>
+        </div>`);
+    } else {
+      window.open(url,'_blank','noopener');
+    }
+  }catch(err){ toast('تعذر فتح الملف: '+(err.message||''),'err'); }
+}
 
 /* ---------- اللوجو الافتراضي (مسجد ومصحف) ---------- */
 const MUSHAF_SVG = `<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -368,7 +403,8 @@ const I = {
   file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
   edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
   refresh:'<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2-9.4L23 10"/>',
-  qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2M14 19h2M18 18h3v3h-3z"/>'
+  qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2M14 19h2M18 18h3v3h-3z"/>',
+  video:'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>'
 };
 const ic = (n,s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 inline-block align-middle" aria-hidden="true">${I[n]||''}</svg>`;
 const app = $('#app'), layer = $('#layer');
@@ -1001,7 +1037,7 @@ const committeeStr = r => [exName(r.examiner_id), exName(r.examiner_id_2)].filte
 function rowHtml(r){
   return `<tr class="border-t border-cream-200 hover:bg-cream-50/60">
     <td data-l="الرقم" class="p-3"><span class="font-bold text-gold-600 text-xs whitespace-nowrap">${esc(r.reg_no)}</span></td>
-    <td data-l="المتسابق" class="p-3"><b class="block">${esc(r.full_name)}</b><small class="text-ink/50">${r.age!=null?arNum(r.age)+' عامًا':''}${r.national_id?` · <span dir="ltr">${esc(r.national_id)}</span>`:''}</small></td>
+    <td data-l="المتسابق" class="p-3"><b class="block">${esc(r.full_name)}</b><small class="text-ink/50">${r.age!=null?arNum(r.age)+' عامًا':''}${r.national_id?` · <span dir="ltr">${esc(r.national_id)}</span>`:''}${r.paper_path?' · 📄':''}${r.video_path?' · 🎬':''}</small></td>
     <td data-l="المستوى" class="p-3"><span class="inline-block w-2 h-2 rounded-full me-1.5 align-middle" style="background:${lvColorById(r.level_id)}"></span>${esc(r.level_name)}</td>
     <td data-l="الهاتف" class="p-3"><span dir="ltr" class="block text-start">${esc(r.guardian_phone)}</span></td>
     <td data-l="الحالة" class="p-3"><select class="st st-${r.status} js-status" data-id="${r.id}">${Object.entries(STATUS).map(([k,v])=>`<option value="${k}" ${r.status===k?'selected':''}>${v}</option>`).join('')}</select></td>
@@ -1092,6 +1128,27 @@ function openDetail(id){
       </dl>
       <div class="mt-6 pt-5 border-t border-cream-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-white border border-cream-200 rounded-xl p-3">
+            <label class="label !text-[13px]">📄 ورقة الامتحان (صورة أو PDF — حتى ١٥ ميجا)</label>
+            <div class="flex gap-2 flex-wrap items-center">
+              <button type="button" class="btn btn-outline btn-sm js-exup" data-id="${r.id}" data-kind="paper">${ic('upload',13)} ${r.paper_path?'استبدال الورقة':'رفع الورقة'}</button>
+              ${r.paper_path?`
+              <button type="button" class="btn btn-primary btn-sm js-exview" data-path="${esc(r.paper_path)}" data-kind="paper">${ic('eye',13)} عرض</button>
+              <button type="button" class="btn btn-outline btn-sm js-exdel" data-id="${r.id}" data-kind="paper" data-path="${esc(r.paper_path)}" style="color:#991B1B;border-color:#991B1B">${ic('trash',13)}</button>`:''}
+            </div>
+          </div>
+          <div class="bg-white border border-cream-200 rounded-xl p-3">
+            <label class="label !text-[13px]">🎬 فيديو الامتحان (حتى ١٠٠ ميجا)</label>
+            <div class="flex gap-2 flex-wrap items-center">
+              <button type="button" class="btn btn-outline btn-sm js-exup" data-id="${r.id}" data-kind="video">${ic('upload',13)} ${r.video_path?'استبدال الفيديو':'رفع الفيديو'}</button>
+              ${r.video_path?`
+              <button type="button" class="btn btn-primary btn-sm js-exview" data-path="${esc(r.video_path)}" data-kind="video">${ic('video',13)} تشغيل</button>
+              <button type="button" class="btn btn-outline btn-sm js-exdel" data-id="${r.id}" data-kind="video" data-path="${esc(r.video_path)}" style="color:#991B1B;border-color:#991B1B">${ic('trash',13)}</button>`:''}
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-ink/50 leading-loose">الملفات محفوظة بشكل خاص ولا تُفتح إلا من حسابك — وفيديوهات صغيرة الحجم أنسب للرفع من الموبايل.</p>
+        <div class="grid md:grid-cols-2 gap-4">
           <div><label class="label">الرقم القومي</label><input id="dNid" dir="ltr" inputmode="numeric" maxlength="14" class="input" value="${esc(r.national_id||'')}"></div>
           <div><label class="label">الممتحن الأول (لجنة الاختبار)</label><select id="dExm" class="input">${exOpts(r.examiner_id)}</select></div>
           <div><label class="label">الممتحن الثاني (لجنة الاختبار)</label><select id="dExm2" class="input">${exOpts(r.examiner_id_2)}</select></div>
@@ -1103,7 +1160,6 @@ function openDetail(id){
             <option value="fail" ${r.result_status==='fail'?'selected':''}>راسب</option>
           </select></div>
         </div>
-        <p class="text-xs text-ink/50">تُعرض أسماء ممتحني مستوى المتسابق إن وُجدوا، وإلا فجميع الممتحنين — وتظهر اللجنة للمتسابق في بوابة المتابعة.</p>
         <div><label class="label">سبب الرفض (إلزامي عند رفض الطلب — يظهر للمتسابق)</label><textarea id="dRej" rows="2" class="input" placeholder="مثال: تجاوز الحد العمري للمستوى المختار">${esc(r.rejection_reason||'')}</textarea></div>
         <div><label class="label">ملاحظات الإدارة (لا يراها المتسابق)</label><textarea id="dNote" rows="2" class="input" placeholder="ملاحظة داخلية…">${esc(r.admin_notes||'')}</textarea></div>
         <div class="flex gap-2 flex-wrap items-center">
@@ -1119,9 +1175,9 @@ function openDetail(id){
 function exportCsv(){
   const rows=filteredRegs();
   if(!rows.length) return toast('لا توجد نتائج للتصدير','err');
-  const H=['رقم التسجيل','تاريخ التقديم','الاسم الرباعي','الرقم القومي','تاريخ الميلاد','العمر','المستوى','مقدار الحفظ','المحافظة','المركز/المدينة','القرية/المنطقة','مركز التحفيظ/المحفظ','اسم ولي الأمر','هاتف ولي الأمر','ملاحظات المتسابق','الحالة','سبب الرفض','الممتحن الأول','الممتحن الثاني','درجة الشفوي','درجة التحريري','النتيجة النهائية','ملاحظات الإدارة'];
+  const H=['رقم التسجيل','تاريخ التقديم','الاسم الرباعي','الرقم القومي','تاريخ الميلاد','العمر','المستوى','مقدار الحفظ','المحافظة','المركز/المدينة','القرية/المنطقة','مركز التحفيظ/المحفظ','اسم ولي الأمر','هاتف ولي الأمر','ملاحظات المتسابق','الحالة','سبب الرفض','الممتحن الأول','الممتحن الثاني','درجة الشفوي','درجة التحريري','النتيجة النهائية','ورقة الامتحان','فيديو الامتحان','ملاحظات الإدارة'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const line=r=>[r.reg_no,r.created_at,r.full_name,r.national_id,r.birth_date,r.age,r.level_name,r.memorized,r.governorate,r.city,r.village,r.center_name,r.guardian_name,r.guardian_phone,r.notes,STATUS[r.status],r.rejection_reason,exName(r.examiner_id),exName(r.examiner_id_2),r.oral_score,r.written_score,RESULT_AR[r.result_status]||'',r.admin_notes].map(q).join(',');
+  const line=r=>[r.reg_no,r.created_at,r.full_name,r.national_id,r.birth_date,r.age,r.level_name,r.memorized,r.governorate,r.city,r.village,r.center_name,r.guardian_name,r.guardian_phone,r.notes,STATUS[r.status],r.rejection_reason,exName(r.examiner_id),exName(r.examiner_id_2),r.oral_score,r.written_score,RESULT_AR[r.result_status]||'',r.paper_path?'مرفوعة':'',r.video_path?'مرفوع':'',r.admin_notes].map(q).join(',');
   const csv='\uFEFF'+[H.map(q).join(','),...rows.map(line)].join('\r\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -1474,6 +1530,34 @@ document.addEventListener('click', async e=>{
   if (btn.classList.contains('js-exdel')){ readExDom(); A.examiners.splice(+btn.dataset.i,1); paintExaminers(); return; }
   if (btn.id==='saveExaminers'){ saveExaminers(); return; }
 
+  /* رفع / عرض / حذف ملفات الامتحان */
+  if (btn.classList.contains('js-exup')){
+    EX_UPLOAD = { id: btn.dataset.id, kind: btn.dataset.kind };
+    const inp = btn.dataset.kind==='paper' ? $('#exFilePaper') : $('#exFileVideo');
+    if (inp) inp.click();
+    return;
+  }
+  if (btn.classList.contains('js-exview')){ openExamFile(btn.dataset.path, btn.dataset.kind); return; }
+  if (btn.classList.contains('js-exdel')){
+    const id=btn.dataset.id, kind=btn.dataset.kind, path=btn.dataset.path;
+    const label = kind==='paper' ? 'ورقة الامتحان' : 'فيديو الامتحان';
+    modal(`<div class="m-head">حذف ${esc(label)}</div>
+      <div class="m-body">سيتم حذف ${esc(label)} نهائيًا من التخزين. هل أنت متأكد؟</div>
+      <div class="m-actions"><button class="btn btn-danger" id="exDelOk">${ic('trash',15)} حذف</button><button class="btn btn-outline" data-close>إلغاء</button></div>`);
+    $('#exDelOk').onclick=async()=>{
+      const b=$('#exDelOk'); b.disabled=true; b.innerHTML='<span class="spin"></span> جارٍ الحذف…';
+      try{
+        try{ await sb.storage.from(EXAMS_BUCKET).remove([path]); }catch(e2){}
+        const patch={}; patch[kind==='paper'?'paper_path':'video_path']=null;
+        const {error}=await sb.from('registrations').update(patch).eq('id',id);
+        if(error)throw error;
+        const r=A.regs.find(x=>x.id===id); if(r)Object.assign(r,patch);
+        toast('تم الحذف','ok'); closeLayer(); openDetail(id);
+      }catch(err){ toast('تعذّر الحذف: '+err.message,'err'); b.disabled=false; }
+    };
+    return;
+  }
+
   if (btn.id==='refreshRegs'){
     btn.disabled=true;
     try{ await loadRegs(); await loadExaminers().catch(()=>{}); renderDash(); toast('تم التحديث','ok'); }catch(err){ toast(err.message,'err'); btn.disabled=false; }
@@ -1514,11 +1598,13 @@ document.addEventListener('click', async e=>{
     const id=btn.dataset.id, r=A.regs.find(x=>x.id===id)||{};
     closeLayer();
     modal(`<div class="m-head">حذف التسجيل نهائيًا</div>
-      <div class="m-body">هل أنت متأكد من حذف تسجيل <b>${esc(r.full_name||'')}</b> رقم <b>${esc(r.reg_no||'')}</b>؟ لا يمكن التراجع.</div>
+      <div class="m-body">هل أنت متأكد من حذف تسجيل <b>${esc(r.full_name||'')}</b> رقم <b>${esc(r.reg_no||'')}</b>؟ سيتم حذف ورقة وفيديو الامتحان المرتبطين به أيضًا، ولا يمكن التراجع.</div>
       <div class="m-actions"><button class="btn btn-danger" id="mDelOk">${ic('trash',15)} حذف نهائي</button><button class="btn btn-outline" data-close>إلغاء</button></div>`);
     $('#mDelOk').onclick=async()=>{
       const b=$('#mDelOk'); b.disabled=true; b.innerHTML='<span class="spin"></span> جارٍ الحذف…';
       try{
+        const files=[r.paper_path, r.video_path].filter(Boolean);
+        if (files.length){ try{ await sb.storage.from(EXAMS_BUCKET).remove(files); }catch(e2){} }
         const {error}=await sb.from('registrations').delete().eq('id',id);
         if(error)throw error;
         A.regs=A.regs.filter(x=>x.id!==id);
@@ -1592,6 +1678,35 @@ document.addEventListener('change', async e=>{
     try{ readLevelsDom(); S.levels[i].image=await pickImage(lvf.files[0],640,false); paintLevels(); toast('تم تجهيز الصورة — اضغط «حفظ المستويات» لتثبيتها','ok'); }
     catch(err){ toast((err&&err.message)||'تعذر قراءة الصورة','err'); }
     lvf.value=''; return;
+  }
+  /* رفع ورقة/فيديو الامتحان */
+  if (t.id==='exFilePaper' || t.id==='exFileVideo'){
+    const f=t.files && t.files[0];
+    const up=EX_UPLOAD;
+    if (f && up && up.id){
+      const isPaper = t.id==='exFilePaper';
+      const max = isPaper ? 15*1024*1024 : 100*1024*1024;
+      if (f.size > max){
+        toast(isPaper ? 'حجم الورقة أكبر من 15 ميجا — صوّرها مضغوطة أو استخدم PDF' : 'حجم الفيديو أكبر من 100 ميجا','err');
+      } else {
+        toast(isPaper ? 'جارٍ رفع الورقة…' : 'جارٍ رفع الفيديو — قد يستغرق عدة دقائق حسب حجمه وسرعة النت');
+        try{
+          const r=A.regs.find(x=>x.id===up.id)||{};
+          const oldPath = isPaper ? r.paper_path : r.video_path;
+          const path = await uploadExamFile(up.id, up.kind, f, oldPath);
+          const patch={}; patch[isPaper?'paper_path':'video_path']=path;
+          const {error}=await sb.from('registrations').update(patch).eq('id',up.id);
+          if(error)throw error;
+          Object.assign(r,patch);
+          toast('تم رفع '+(isPaper?'الورقة':'الفيديو')+' بنجاح','ok');
+          openDetail(up.id);
+        }catch(err){
+          toast('تعذّر الرفع: '+(err.message||''),'err');
+        }
+      }
+    }
+    EX_UPLOAD=null;
+    t.value=''; return;
   }
 });
 if (sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_OUT'&&(location.hash||'').includes('admin')) renderAdmin(); });
