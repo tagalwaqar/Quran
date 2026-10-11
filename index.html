@@ -103,6 +103,8 @@ html{scroll-behavior:smooth}
 .theme-swatch{display:flex;flex-direction:column;align-items:center;gap:.2rem;background:#fff;border:2px solid #EFE7D2;border-radius:1rem;padding:1rem .5rem;cursor:pointer;transition:.15s;font-size:.85rem;text-align:center}
 .theme-swatch:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
 .theme-swatch.sel{box-shadow:0 0 0 3px rgba(201,162,39,.4)}
+.qr-box{display:inline-block;background:#fff;border:1px solid #EFE7D2;border-radius:.8rem;padding:.6rem;line-height:0}
+.qr-box img{max-width:100%;height:auto;display:block}
 @media (max-width:767px){
  .rtable,.rtable tbody,.rtable tr,.rtable td{display:block}
  .rtable thead{display:none}
@@ -112,6 +114,12 @@ html{scroll-behavior:smooth}
  .rtable td:last-child::before{content:''}
  .rtable td:last-child{border-bottom:none}
 }
+@media print{
+ body>#app,body>#toasts{display:none!important}
+ #layer .overlay{position:static;background:#fff;padding:0;display:block;animation:none}
+ #layer .modal{box-shadow:none;border:1px solid #EFE7D2;max-width:100%}
+ #layer .m-actions{display:none!important}
+}
 </style>
 </head>
 <body class="bg-cream-100 font-sans text-ink antialiased">
@@ -120,12 +128,11 @@ html{scroll-behavior:smooth}
 <div id="layer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
 /* ================================================================
    منصة التسجيل — المسابقة الكبرى لحفظ القرآن الكريم
-   النسخة النهائية الموحدة — كل المزايا في ملف واحد:
-   ثيمات + شعار + أرقام متعددة + مستويات ملونة بصور +
-   رقم قومي + متابعة الطلب + أسباب رفض + مشايخ + نتائج
+   النسخة ٤: + لجنة اختبار من ممتحنَين + إسناد جماعي للمستوى + QR
    ================================================================ */
 
 const SUPABASE_URL      = 'https://ctgrlgdughobzxvqmwnn.supabase.co';
@@ -229,6 +236,66 @@ function pickImage(file, maxW, png){
   });
 }
 
+/* ---------- أدوات QR ---------- */
+function qrImgTag(text, cell, margin){
+  if (typeof qrcode !== 'function') return '';
+  try{
+    const q = qrcode(0, 'M');
+    q.addData(text);
+    q.make();
+    return q.createImgTag(cell, margin);
+  }catch(e){ return ''; }
+}
+function downloadQrPng(text, name){
+  if (typeof qrcode !== 'function') return toast('مكتبة QR غير محمّلة','err');
+  try{
+    const q = qrcode(0,'M'); q.addData(text); q.make();
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const c = document.createElement('canvas');
+        c.width = img.width||480; c.height = img.height||480;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+        ctx.drawImage(img,0,0);
+        const a = document.createElement('a');
+        a.href = c.toDataURL('image/png');
+        a.download = name;
+        a.click();
+        toast('تم تحميل صورة QR بصيغة PNG','ok');
+      }catch(err){ toast('تعذر إنشاء الصورة — يمكن تصوير الشاشة','err'); }
+    };
+    img.onerror = ()=>toast('تعذر إنشاء الصورة','err');
+    img.src = q.createDataURL(10, 20);
+  }catch(e){ toast('تعذر إنشاء QR','err'); }
+}
+function siteBase(){ return location.protocol.startsWith('http') ? location.origin+location.pathname.replace(/[^/]*$/,'') : ''; }
+function openQrModal(){
+  const base = siteBase();
+  if(!base) return toast('الرابط متاح بعد نشر المنصة على استضافة','err');
+  const link = base+'#/register';
+  const tag = qrImgTag(link, 8, 16);
+  const inv = `المسابقة الكبرى لحفظ القرآن الكريم — موسم ${S.site.season}\n${S.site.org_name}\n${S.site.partner}\nخمسة مستويات تناسب مقدار الحفظ والعمر — التسجيل عبر الرابط:\n${link}`;
+  modal(`
+    <div class="m-head">رمز QR — الدعوة للتسجيل</div>
+    <div class="m-body text-center">
+      ${tag?`<div class="flex justify-center"><span class="qr-box">${tag}</span></div>`:`<p>تعذر إنشاء الرمز — انسخ الرابط بالأسفل.</p>`}
+      <div class="link-out mt-3">${esc(link)}</div>
+      <p class="text-xs text-ink/55 mt-2 leading-loose">امسح الرمز بكاميرا الهاتف ليفتح صفحة التسجيل مباشرة — مناسب للطباعة على الملصقات واللافتات، أو مشاركته صورةً في واتساب وفيسبوك.</p>
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-primary btn-sm" id="qrDl">${ic('dl',15)} تحميل PNG</button>
+      <button class="btn btn-outline btn-sm" id="qrCopy">${ic('copy',15)} نسخ الرابط</button>
+      <button class="btn btn-outline btn-sm" id="qrWa">${ic('chat',15)} مشاركة واتساب</button>
+      <button class="btn btn-outline btn-sm" id="qrPrint">${ic('file',15)} طباعة</button>
+      <button class="btn btn-outline btn-sm" data-close>إغلاق</button>
+    </div>`);
+  $('#qrDl').onclick = ()=>downloadQrPng(link,'qr-التسجيل-المسابقة.png');
+  $('#qrCopy').onclick = ()=>copyText(link,'تم نسخ رابط التسجيل');
+  $('#qrWa').onclick = ()=>window.open('https://wa.me/?text='+encodeURIComponent(inv),'_blank');
+  $('#qrPrint').onclick = ()=>window.print();
+}
+
 /* ---------- ثوابت ---------- */
 const GOVS = ['كفر الشيخ','القاهرة','الإسكندرية','الجيزة','القليوبية','الدقهلية','الشرقية','دمياط','بورسعيد','الإسماعيلية','السويس','الغربية','المنوفية','البحيرة','الفيوم','بني سويف','المنيا','أسيوط','سوهاج','قنا','الأقصر','أسوان','البحر الأحمر','مطروح','شمال سيناء','جنوب سيناء','الوادي الجديد'];
 const STATUS = { pending:'قيد المراجعة', approved:'مقبول', rejected:'مرفوض' };
@@ -300,7 +367,8 @@ const I = {
   cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
   edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
-  refresh:'<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2-9.4L23 10"/>'
+  refresh:'<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2-9.4L23 10"/>',
+  qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2M14 19h2M18 18h3v3h-3z"/>'
 };
 const ic = (n,s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 inline-block align-middle" aria-hidden="true">${I[n]||''}</svg>`;
 const app = $('#app'), layer = $('#layer');
@@ -557,7 +625,7 @@ function renderTrack(){
       <label class="label">الرقم القومي للمتسابق <span class="text-red-700">*</span></label>
       <input id="trkNid" dir="ltr" inputmode="numeric" maxlength="14" class="input !text-lg tracking-widest" placeholder="١٤ رقمًا">
       <button id="trkGo" class="btn btn-primary w-full !py-3 mt-4">${ic('search')} استعلام</button>
-      <p class="text-xs text-ink/55 mt-3 leading-loose text-center">تظهر حالة الطلب وسبب الرفض إن وُجد، ودرجات الاختبار الشفوي والتحريري عند اعتمادها من اللجنة.</p>
+      <p class="text-xs text-ink/55 mt-3 leading-loose text-center">تظهر حالة الطلب وسبب الرفض إن وُجد، ولجنة الاختبار والدرجات عند اعتمادها.</p>
       <div id="trkOut" class="mt-6"></div>
     </div>
   </section>`);
@@ -581,6 +649,7 @@ async function doTrack(){
       out.innerHTML = `<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3 leading-loose">${ic('alert',16)} لا يوجد طلب تسجيل بهذا الرقم القومي — تأكد من الرقم، أو تواصل مع إدارة المسابقة.</p>`;
     } else {
       const hasScores = data.oral_score!=null || data.written_score!=null || data.result_status;
+      const comm=[data.examiner_1_name, data.examiner_2_name].filter(Boolean).join(' و ');
       out.innerHTML = `
       <div class="bg-cream-100 border border-cream-200 rounded-xl p-5 text-sm space-y-1.5">
         <p>المتسابق: <b>${esc(data.full_name)}</b></p>
@@ -597,7 +666,7 @@ async function doTrack(){
         <b class="text-red-800">${ic('alert',15)} سبب رفض الطلب:</b>
         <p class="text-red-900 mt-1">${esc(data.rejection_reason)}</p>
       </div>`:''}
-      ${data.examiner_name?`<p class="text-xs text-ink/55 mt-3">${ic('users',14)} اللجنة الممتحنة: ${esc(data.examiner_name)}</p>`:''}
+      ${comm?`<p class="text-xs text-ink/55 mt-3">${ic('users',14)} لجنة الاختبار: ${esc(comm)}</p>`:''}
       <div class="mt-5 pt-4 border-t border-cream-200">
         <p class="font-amiri text-lg text-pine-800 mb-2">نتيجة الاختبارات</p>
         ${hasScores?`
@@ -901,7 +970,7 @@ function renderDash(){
       </div>
       <nav class="flex md:flex-col gap-1.5 flex-wrap">
         ${navBtn('regs','users','التسجيلات',A.regs.length)}
-        ${navBtn('examiners','users','المشايخ الممتحنين')}
+        ${navBtn('examiners','users','المشايخ واللجان')}
         ${navBtn('levels','file','المستويات والأعمار')}
         ${navBtn('settings','sliders','الإعدادات العامة')}
       </nav>
@@ -928,6 +997,7 @@ function filteredRegs(){
   });
 }
 const exName = id => { const x=(A.examiners||[]).find(y=>y.id===id); return x?x.name:''; };
+const committeeStr = r => [exName(r.examiner_id), exName(r.examiner_id_2)].filter(Boolean).join(' و ');
 function rowHtml(r){
   return `<tr class="border-t border-cream-200 hover:bg-cream-50/60">
     <td data-l="الرقم" class="p-3"><span class="font-bold text-gold-600 text-xs whitespace-nowrap">${esc(r.reg_no)}</span></td>
@@ -992,7 +1062,9 @@ function paintRows(){
 function openDetail(id){
   const r=A.regs.find(x=>x.id===id); if(!r)return;
   const exs=A.examiners||[];
-  const exOpts=`<option value="">— بدون —</option>`+exs.map(x=>`<option value="${x.id}" ${r.examiner_id===x.id?'selected':''}>${esc(x.name)}${x.level_id?` — ${esc((S.levels.find(l=>l.id===x.level_id)||{}).name||'')}`:''}</option>`).join('');
+  const poolExs=exs.filter(x=>!x.level_id||x.level_id===r.level_id);
+  const pool=poolExs.length?poolExs:exs;
+  const exOpts=sel=>`<option value="">— بدون —</option>`+pool.map(x=>`<option value="${x.id}" ${sel===x.id?'selected':''}>${esc(x.name)}</option>`).join('');
   const rows=[
     ['رقم التسجيل',esc(r.reg_no)],
     ['الحالة',`<span class="tag tag-${r.status}">${STATUS[r.status]}</span>`],
@@ -1004,6 +1076,7 @@ function openDetail(id){
     ['مركز التحفيظ/المحفظ',esc(r.center_name||'')],
     ['اسم ولي الأمر',esc(r.guardian_name)],
     ['هاتف ولي الأمر',`<span dir="ltr">${esc(r.guardian_phone)}</span>`],
+    ['لجنة الاختبار',committeeStr(r)],
     ['ملاحظات المتسابق',esc(r.notes||'')],['تاريخ التقديم',fmtDateTime(r.created_at)]
   ];
   layer.innerHTML=`
@@ -1020,7 +1093,8 @@ function openDetail(id){
       <div class="mt-6 pt-5 border-t border-cream-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div><label class="label">الرقم القومي</label><input id="dNid" dir="ltr" inputmode="numeric" maxlength="14" class="input" value="${esc(r.national_id||'')}"></div>
-          <div><label class="label">الشيخ الممتحن</label><select id="dExm" class="input">${exOpts}</select></div>
+          <div><label class="label">الممتحن الأول (لجنة الاختبار)</label><select id="dExm" class="input">${exOpts(r.examiner_id)}</select></div>
+          <div><label class="label">الممتحن الثاني (لجنة الاختبار)</label><select id="dExm2" class="input">${exOpts(r.examiner_id_2)}</select></div>
           <div><label class="label">درجة الاختبار الشفوي</label><input id="dOral" type="number" step="any" min="0" class="input" value="${r.oral_score!=null?esc(r.oral_score):''}"></div>
           <div><label class="label">درجة الاختبار التحريري</label><input id="dWritten" type="number" step="any" min="0" class="input" value="${r.written_score!=null?esc(r.written_score):''}"></div>
           <div><label class="label">النتيجة النهائية (تظهر في بوابة الاستعلام)</label><select id="dRes" class="input">
@@ -1029,7 +1103,8 @@ function openDetail(id){
             <option value="fail" ${r.result_status==='fail'?'selected':''}>راسب</option>
           </select></div>
         </div>
-        <div><label class="label">سبب الرفض (إلزامي عند رفض الطلب — يظهر للمتسابق في بوابة المتابعة)</label><textarea id="dRej" rows="2" class="input" placeholder="مثال: تجاوز الحد العمري للمستوى المختار">${esc(r.rejection_reason||'')}</textarea></div>
+        <p class="text-xs text-ink/50">تُعرض أسماء ممتحني مستوى المتسابق إن وُجدوا، وإلا فجميع الممتحنين — وتظهر اللجنة للمتسابق في بوابة المتابعة.</p>
+        <div><label class="label">سبب الرفض (إلزامي عند رفض الطلب — يظهر للمتسابق)</label><textarea id="dRej" rows="2" class="input" placeholder="مثال: تجاوز الحد العمري للمستوى المختار">${esc(r.rejection_reason||'')}</textarea></div>
         <div><label class="label">ملاحظات الإدارة (لا يراها المتسابق)</label><textarea id="dNote" rows="2" class="input" placeholder="ملاحظة داخلية…">${esc(r.admin_notes||'')}</textarea></div>
         <div class="flex gap-2 flex-wrap items-center">
           <button class="btn btn-primary btn-sm" id="dSave" data-id="${r.id}">${ic('check',15)} حفظ التفاصيل والحالة</button>
@@ -1044,9 +1119,9 @@ function openDetail(id){
 function exportCsv(){
   const rows=filteredRegs();
   if(!rows.length) return toast('لا توجد نتائج للتصدير','err');
-  const H=['رقم التسجيل','تاريخ التقديم','الاسم الرباعي','الرقم القومي','تاريخ الميلاد','العمر','المستوى','مقدار الحفظ','المحافظة','المركز/المدينة','القرية/المنطقة','مركز التحفيظ/المحفظ','اسم ولي الأمر','هاتف ولي الأمر','ملاحظات المتسابق','الحالة','سبب الرفض','الشيخ الممتحن','درجة الشفوي','درجة التحريري','النتيجة النهائية','ملاحظات الإدارة'];
+  const H=['رقم التسجيل','تاريخ التقديم','الاسم الرباعي','الرقم القومي','تاريخ الميلاد','العمر','المستوى','مقدار الحفظ','المحافظة','المركز/المدينة','القرية/المنطقة','مركز التحفيظ/المحفظ','اسم ولي الأمر','هاتف ولي الأمر','ملاحظات المتسابق','الحالة','سبب الرفض','الممتحن الأول','الممتحن الثاني','درجة الشفوي','درجة التحريري','النتيجة النهائية','ملاحظات الإدارة'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const line=r=>[r.reg_no,r.created_at,r.full_name,r.national_id,r.birth_date,r.age,r.level_name,r.memorized,r.governorate,r.city,r.village,r.center_name,r.guardian_name,r.guardian_phone,r.notes,STATUS[r.status],r.rejection_reason,exName(r.examiner_id),r.oral_score,r.written_score,RESULT_AR[r.result_status]||'',r.admin_notes].map(q).join(',');
+  const line=r=>[r.reg_no,r.created_at,r.full_name,r.national_id,r.birth_date,r.age,r.level_name,r.memorized,r.governorate,r.city,r.village,r.center_name,r.guardian_name,r.guardian_phone,r.notes,STATUS[r.status],r.rejection_reason,exName(r.examiner_id),exName(r.examiner_id_2),r.oral_score,r.written_score,RESULT_AR[r.result_status]||'',r.admin_notes].map(q).join(',');
   const csv='\uFEFF'+[H.map(q).join(','),...rows.map(line)].join('\r\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -1055,7 +1130,7 @@ function exportCsv(){
   toast('تم تنزيل الملف — يفتح مباشرة في Excel بترميز عربي سليم','ok');
 }
 
-/* ----- تبويب المشايخ الممتحنين ----- */
+/* ----- تبويب المشايخ واللجان ----- */
 function readExDom(){
   $$('.ex-k').forEach(el=>{ const i=+el.dataset.i; const k=el.dataset.k; A.examiners[i][k] = (k==='level_id') ? (+el.value||null) : el.value.trim(); });
 }
@@ -1072,16 +1147,61 @@ function paintExaminers(){
     <button class="ibtn ibtn-red js-exdel" data-i="${i}" title="حذف">${ic('trash',15)}</button>
   </div>`).join('');
 }
+function fillAsgExs(){
+  const lv=+($('#asgLv')?.value)||0;
+  const pool=(A.examiners||[]).filter(x=>!lv || !x.level_id || x.level_id===lv);
+  const list=pool.length?pool:(A.examiners||[]);
+  const opts=`<option value="">— اختر —</option>`+list.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+  if($('#asgEx1'))$('#asgEx1').innerHTML=opts;
+  if($('#asgEx2'))$('#asgEx2').innerHTML=opts;
+}
 function renderExaminersTab(){
   $('#dashMain').innerHTML=`
   <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
-    <h2 class="font-amiri text-2xl text-pine-800">المشايخ الممتحنين</h2>
+    <h2 class="font-amiri text-2xl text-pine-800">المشايخ واللجان</h2>
     <button id="addExaminer" class="btn btn-outline btn-sm">${ic('plus')} إضافة شيخ ممتحن</button>
   </div>
-  <p class="text-xs text-ink/55 mb-4 leading-loose">أضف المشايخ الممتحنين وحدد المستوى التابع له كل منهم. يُسنَد الشيخ للمتسابق من شاشة تفاصيل التسجيل (زر العين)، ويظهر اسمه للمتسابق في بوابة المتابعة.</p>
+  <p class="text-xs text-ink/55 mb-4 leading-loose">أضف المشايخ الممتحنين وحدد المستوى التابع له كل منهم. لجنة الاختبار لكل متسابق تتكون من <b>ممتحنين اثنين</b> — أسندها فرديًا من شاشة تفاصيل المتسابق (زر العين)، أو جماعيًا لأحد المستويات من الأداة بالأسفل.</p>
   <div id="exBox" class="space-y-2.5"></div>
-  <button id="saveExaminers" class="btn btn-primary mt-5">${ic('check')} حفظ المشايخ</button>`;
+  <button id="saveExaminers" class="btn btn-primary mt-5">${ic('check')} حفظ المشايخ</button>
+  <div class="card p-5 mt-6 border-t-4 border-t-gold-500">
+    <h3 class="font-amiri text-xl text-pine-800 mb-3">إسناد لجنة اختبار لمستوى كامل</h3>
+    <p class="text-xs text-ink/55 mb-3 leading-loose">اختر المستوى وممتحنين اثنين ليُسنَدا تلقائيًا لكل متسابقي هذا المستوى (يمكن تعديل أي متسابق بعدها فرديًا). احفظ المشايخ أولًا.</p>
+    <div class="grid md:grid-cols-3 gap-3">
+      <select id="asgLv" class="input"><option value="">اختر المستوى…</option>${S.levels.map(l=>`<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select>
+      <select id="asgEx1" class="input"></select>
+      <select id="asgEx2" class="input"></select>
+    </div>
+    <label class="check"><input type="checkbox" id="asgOnly" checked><span>تجاوز المتسابقين الذين لديهم لجنة معينة بالفعل</span></label>
+    <button id="asgGo" class="btn btn-primary btn-sm mt-3">${ic('check',15)} تطبيق على متسابقي المستوى</button>
+  </div>`;
   paintExaminers();
+  fillAsgExs();
+  $('#asgLv').addEventListener('change', fillAsgExs);
+  $('#asgGo').onclick = doAssignCommittee;
+}
+async function doAssignCommittee(){
+  const lv=+$('#asgLv').value, e1=+$('#asgEx1').value, e2=+$('#asgEx2').value;
+  if(!lv) return toast('اختر المستوى','err');
+  if(!e1||!e2) return toast('اختر ممتحنَين اثنين للجنة','err');
+  if(e1===e2) return toast('لا يمكن اختيار الشيخ نفسه مرتين في اللجنة','err');
+  const only=$('#asgOnly').checked;
+  const affected=A.regs.filter(r=>r.level_id===lv && r.status!=='rejected' && (!only || (!r.examiner_id && !r.examiner_id_2)));
+  if(!affected.length) return toast('لا يوجد متسابقون مطابقون في هذا المستوى','err');
+  const lvName=(S.levels.find(l=>l.id===lv)||{}).name||'المستوى';
+  modal(`<div class="m-head">تأكيد الإسناد الجماعي</div>
+    <div class="m-body">سيتم إسناد لجنة الاختبار (<b>${esc(exName(e1))}</b> و<b>${esc(exName(e2))}</b>) إلى <b>${arNum(affected.length)}</b> متسابقًا في ${esc(lvName)}${only?' — مع تجاوز من لديه لجنة معينة بالفعل':''}. هل تريد المتابعة؟</div>
+    <div class="m-actions"><button class="btn btn-primary" id="asgOk">تأكيد الإسناد</button><button class="btn btn-outline" data-close>إلغاء</button></div>`);
+  $('#asgOk').onclick=async()=>{
+    const b=$('#asgOk'); b.disabled=true; b.innerHTML='<span class="spin"></span> جارٍ الإسناد…';
+    try{
+      const {data,error}=await sb.rpc('assign_committee_to_level',{p_level_id:lv,p_ex1:e1,p_ex2:e2,p_only_missing:only});
+      if(error)throw error;
+      await loadRegs();
+      closeLayer(); renderDash();
+      toast('تم إسناد اللجنة إلى '+arNum(data??affected.length)+' متسابقًا','ok');
+    }catch(err){ toast('تعذّر الإسناد: '+err.message,'err'); b.disabled=false; }
+  };
 }
 async function saveExaminers(){
   readExDom();
@@ -1193,8 +1313,11 @@ function paintThemes(){
 }
 function renderSettingsTab(){
   const s=S.site, c=S.config;
-  const hasHttp=location.protocol.startsWith('http');
-  const regLink=hasHttp?location.origin+location.pathname.replace(/[^/]*$/,'')+'#/register':'(سيظهر الرابط هنا بعد نشر المنصة)';
+  const base=siteBase();
+  const regLink=base?base+'#/register':'(سيظهر الرابط هنا بعد نشر المنصة على استضافة)';
+  const trkLink=base?base+'#/track':'';
+  const regQr=base?qrImgTag(regLink,4,8):'';
+  const trkQr=base?qrImgTag(trkLink,4,8):'';
   $('#dashMain').innerHTML=`
   <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
     <h2 class="font-amiri text-2xl text-pine-800">الإعدادات العامة</h2>
@@ -1217,7 +1340,7 @@ function renderSettingsTab(){
   <div class="card p-5 mb-5">
     <h3 class="font-amiri text-xl text-pine-800 mb-4">ثيم المنصة — الألوان العامة</h3>
     <div id="themeGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-    <p class="text-xs text-ink/55 mt-3 leading-loose">الضغط على أي ثيم يعرضه فورًا للمعاينة على المنصة كلها. اختر ما يناسبكم ثم اضغط «حفظ ونشر» ليظهر لجميع الزوار. (ألوان بطاقات المستويات تُضبط من تبويب «المستويات والأعمار»).</p>
+    <p class="text-xs text-ink/55 mt-3 leading-loose">الضغط على أي ثيم يعرضه فورًا للمعاينة. اختر ما يناسبكم ثم اضغط «حفظ ونشر» ليظهر لجميع الزوار. (ألوان بطاقات المستويات تُضبط من تبويب «المستويات والأعمار»).</p>
   </div>
   <div class="card p-5 mb-5">
     <h3 class="font-amiri text-xl text-pine-800 mb-4">ضبط التسجيل وتاريخ احتساب العمر</h3>
@@ -1266,12 +1389,21 @@ function renderSettingsTab(){
     </div>
   </div>
   <div class="card p-5">
-    <h3 class="font-amiri text-xl text-pine-800 mb-4">روابط عامة</h3>
-    <p class="text-xs text-ink/55 mb-1.5">رابط التسجيل (للمشاركة في واتساب وفيسبوك):</p>
-    <div class="link-out">${esc(regLink)}</div>
-    <p class="text-xs text-ink/55 mt-3 mb-1.5">رابط بوابة المتابعة والنتيجة (يُرسل مع إعلان النتائج):</p>
-    <div class="link-out">${esc(hasHttp?location.origin+location.pathname.replace(/[^/]*$/,'')+'#/track':'—')}</div>
-    <div class="flex gap-2 flex-wrap mt-3">
+    <h3 class="font-amiri text-xl text-pine-800 mb-4">روابط عامة وأكواد QR</h3>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="text-center">
+        <p class="text-xs text-ink/55 mb-1.5">رابط التسجيل (للدعوة والمشاركة):</p>
+        <div class="link-out">${esc(regLink)}</div>
+        ${regQr?`<div class="mt-3"><span class="qr-box">${regQr}</span></div>`:''}
+      </div>
+      <div class="text-center">
+        <p class="text-xs text-ink/55 mb-1.5">رابط بوابة المتابعة والنتيجة:</p>
+        <div class="link-out">${esc(trkLink||'—')}</div>
+        ${trkQr?`<div class="mt-3"><span class="qr-box">${trkQr}</span></div>`:''}
+      </div>
+    </div>
+    <div class="flex gap-2 flex-wrap mt-4">
+      <button id="qrModalBtn" class="btn btn-primary btn-sm">${ic('qr',15)} QR كبير للطباعة والمشاركة</button>
       <button id="copyRegLink" class="btn btn-outline btn-sm">${ic('copy')} نسخ رابط التسجيل</button>
       <button id="copyTrackLink" class="btn btn-outline btn-sm">${ic('copy')} نسخ رابط المتابعة</button>
       <button id="copyInvite" class="btn btn-outline btn-sm">${ic('chat')} نسخ نص دعوة جاهز</button>
@@ -1279,6 +1411,7 @@ function renderSettingsTab(){
   </div>
   <button id="saveSettings" class="btn btn-primary mt-5">${ic('check')} حفظ ونشر</button>`;
   paintThemes();
+  $('#qrModalBtn').onclick = openQrModal;
 }
 async function saveSettings(){
   const btns=$$('#saveSettings');
@@ -1354,6 +1487,8 @@ document.addEventListener('click', async e=>{
     const st=$('#dStatus').value;
     const rej=$('#dRej').value.trim();
     if (st==='rejected' && !rej){ toast('اكتب سبب الرفض قبل الحفظ','err'); return; }
+    const ex1=+$('#dExm').value||null, ex2=+$('#dExm2').value||null;
+    if (ex1&&ex2&&ex1===ex2){ toast('اختر شيخين مختلفين للجنة الاختبار','err'); return; }
     btn.disabled=true; btn.innerHTML='<span class="spin"></span> جارٍ الحفظ…';
     try{
       const patch={
@@ -1361,7 +1496,8 @@ document.addEventListener('click', async e=>{
         rejection_reason: st==='rejected' ? rej : null,
         admin_notes: $('#dNote').value.trim(),
         national_id: $('#dNid').value.replace(/\D/g,'') || null,
-        examiner_id: +$('#dExm').value || null,
+        examiner_id: ex1,
+        examiner_id_2: ex2,
         oral_score: $('#dOral').value==='' ? null : +$('#dOral').value,
         written_score: $('#dWritten').value==='' ? null : +$('#dWritten').value,
         result_status: $('#dRes').value || null
@@ -1399,7 +1535,7 @@ document.addEventListener('click', async e=>{
   if (btn.id==='saveLevels'){ saveLevels(); return; }
   if (btn.id==='saveSettings'){ saveSettings(); return; }
 
-  const base = location.protocol.startsWith('http') ? location.origin+location.pathname.replace(/[^/]*$/,'') : '';
+  const base = siteBase();
   if (btn.id==='copyRegLink'||btn.id==='copyTrackLink'||btn.id==='copyInvite'){
     if(!base) return toast('الروابط متاحة بعد نشر المنصة على استضافة','err');
     if(btn.id==='copyRegLink') return copyText(base+'#/register','تم نسخ رابط التسجيل');
