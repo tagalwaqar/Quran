@@ -274,9 +274,9 @@ return`<section class="max-w-3xl mx-auto px-4 py-10"><div class="card overflow-h
  ${F('memorized','مقدار الحفظ الحالي','<input id="memorized" class="input" placeholder="مثال: خمسة أجزاء وأوائل السادس">',true,'md:col-span-2')}
 </div></div>
 <div class="mb-9"><h3 class="form-sec-h">ثانيًا: محل الإقامة وبيانات ولي الأمر</h3><div class="grid md:grid-cols-2 gap-5">
- ${F('governorate','المحافظة',`<select id="governorate" class="input"><option value="">اختر المحافظة…</option>${govOpts}</select>`)}
- ${F('city','المركز / المدينة','<input id="city" class="input" placeholder="مثال: قلين">')}
- ${F('village','القرية / المنطقة','<input id="village" class="input" placeholder="مثال: كفر يوسف حنس">')}
+  ${F('governorate','المحافظة','<input id="governorate" class="input !bg-cream-100 font-bold text-pine-800" readonly value="كفر الشيخ">')}
+ ${F('city','المركز / المدينة','<input id="city" class="input !bg-cream-100 font-bold text-pine-800" readonly value="قلين">')}
+ ${F('village','القرية / المنطقة',`<select id="village" class="input"><option value="">اختر القرية…</option><option>كفر يوسف حنس</option><option>الخبي</option><option>عواض</option><option>حصة الغنيمي</option><option>كفر يوسف داود</option><option>الزغبي</option></select>`)}
  ${F('guardian_name','اسم ولي الأمر','<input id="guardian_name" class="input" placeholder="الاسم كاملًا">')}
  ${F('guardian_phone','رقم هاتف ولي الأمر','<input id="guardian_phone" type="tel" dir="ltr" class="input" placeholder="01012345678">')}
  ${F('center_name','اسم المحفظ أو مركز التحفيظ (إن وجد)','<input id="center_name" class="input" placeholder="إن كان المتسابق ملتحقًا بكتاب أو مركز">',false)}
