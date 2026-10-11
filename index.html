@@ -559,29 +559,41 @@ const lvf=t.closest('.js-lvimgfile');if(lvf&&lvf.files&&lvf.files[0]){const i=+l
 try{readLevelsDom();S.levels[i].image=await pickImage(lvf.files[0],640,false);paintLevels();toast('تم تجهيز الصورة — اضغط «حفظ المستويات»','ok');}catch(err){toast((err&&err.message)||'تعذر قراءة الصورة','err');}lvf.value='';return;}});
 sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'&&(location.hash||'').includes('admin'))renderAdmin();});
 
-/* ---------- مشغل القرآن الكريم — الشيخ محمود خليل الحصري ---------- */
+/* ---------- مشغل القرآن الكريم — بصوت الشيخ محمود خليل الحصري (mp3quran) ---------- */
 (function(){
 const QCP_SURAHS=["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
-const QCP_URL=n=>'https://cdn.islamic.network/quran/audio-surah/128/ar.husary/'+n+'.mp3';
-const qcpEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const qcpAr=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const QCP_SOURCES=[
+n=>'https://server8.mp3quran.net/hsary/'+String(n).padStart(3,'0')+'.mp3',
+n=>'https://download.quranicaudio.com/quran/mahmoud_khalil_al-husary/'+String(n).padStart(3,'0')+'.mp3',
+n=>'https://cdn.islamic.network/quran/audio-surah/128/ar.husary/'+n+'.mp3'
+];
+let QCP_TRY=0,current=0;
 const wrap=document.createElement('div');
-wrap.innerHTML=`<button class="qcp-btn" id="qcpBtn" title="الاستماع للقرآن الكريم" aria-label="تشغيل القرآن الكريم"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></button>
-<div class="qcp-panel" id="qcpPanel"><div class="qcp-head"><div><h3>القرآن الكريم</h3><small>بصوت الشيخ محمود خليل الحصري</small></div><button class="qcp-close" id="qcpClose" aria-label="إغلاق">✕</button></div><div class="qcp-now" id="qcpNow"><b id="qcpNowName"></b></div><div id="qcpAudioWrap"></div><input class="qcp-search" id="qcpSearch" type="search" placeholder="ابحث عن سورة…"><div class="qcp-list" id="qcpList"></div><p class="qcp-note">التلاوة تُبَث من مصدر مجاني عام وتحتاج إنترنت — وتستمر أثناء تصفحك المنصة وتنتقل تلقائيًا للسورة التالية.</p></div>`;
+wrap.innerHTML='<button class="qcp-btn" id="qcpBtn" title="الاستماع للقرآن الكريم"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></button>'
++'<div class="qcp-panel" id="qcpPanel"><div class="qcp-head"><div><h3>القرآن الكريم</h3><small>بصوت الشيخ محمود خليل الحصري</small></div><button class="qcp-close" id="qcpClose">✕</button></div><div class="qcp-now" id="qcpNow"><b id="qcpNowName"></b></div><div id="qcpAudioWrap"></div><input class="qcp-search" id="qcpSearch" type="search" placeholder="ابحث عن سورة…"><div class="qcp-list" id="qcpList"></div><p class="qcp-note">التلاوة تُبَث من مصدر مجاني عام وتحتاج إنترنت — وتستمر أثناء تصفحك وتنتقل تلقائيًا للسورة التالية.</p></div>';
 document.body.appendChild(wrap);
 const audio=document.createElement('audio');audio.controls=true;audio.preload='metadata';audio.className='qcp-audio';document.getElementById('qcpAudioWrap').appendChild(audio);
-const listEl=document.getElementById('qcpList');let current=0;
-function renderList(filter){const f=(filter||'').trim();listEl.innerHTML=QCP_SURAHS.map((name,i)=>{if(f&&!name.includes(f))return'';return`<button class="qcp-item ${current===i+1?'active':''}" data-n="${i+1}"><span class="qcp-num">${qcpAr(i+1)}</span><span>سورة ${qcpEsc(name)}</span></button>`;}).join('');}
-function play(n){current=n;audio.src=QCP_URL(n);audio.play().catch(()=>{});document.getElementById('qcpNow').classList.add('show');document.getElementById('qcpNowName').textContent='◄ الآن: سورة '+QCP_SURAHS[n-1]+' — الشيخ الحصري';renderList(document.getElementById('qcpSearch').value);}
-audio.addEventListener('ended',()=>{if(current<114)play(current+1);});
-audio.addEventListener('error',()=>{document.getElementById('qcpNowName').textContent='تعذر تشغيل التلاوة — تحقق من الإنترنت وجرّب مرة أخرى';});
-audio.addEventListener('playing',()=>document.getElementById('qcpBtn').classList.add('playing'));
+const listEl=document.getElementById('qcpList');
+function renderList(filter){const f=(filter||'').trim();listEl.innerHTML=QCP_SURAHS.map((name,i)=>{if(f&&!name.includes(f))return'';return '<button class="qcp-item '+(current===i+1?'active':'')+'" data-n="'+(i+1)+'"><span class="qcp-num">'+arNum(i+1)+'</span><span>سورة '+name+'</span></button>';}).join('');}
+function play(n){current=n;tryNext(0);}
+function tryNext(idx){
+if(idx>=QCP_SOURCES.length){document.getElementById('qcpNowName').textContent='تعذر تشغيل التلاوة — تحقق من الإنترنت';return;}
+QCP_TRY=idx;
+audio.src=QCP_SOURCES[idx](current);
+document.getElementById('qcpNow').classList.add('show');
+document.getElementById('qcpNowName').textContent='جارٍ التشغيل: سورة '+QCP_SURAHS[current-1]+' — الشيخ الحصري';
+audio.play().catch(()=>{});
+}
+audio.addEventListener('playing',()=>{document.getElementById('qcpNowName').textContent='◄ الآن: سورة '+QCP_SURAHS[current-1]+' — الشيخ الحصري';document.getElementById('qcpBtn').classList.add('playing');});
 audio.addEventListener('pause',()=>document.getElementById('qcpBtn').classList.remove('playing'));
+audio.addEventListener('ended',()=>{if(current<114)play(current+1);});
+audio.addEventListener('error',()=>{if(audio.src&&audio.src!==''){tryNext(QCP_TRY+1);}});
 document.getElementById('qcpBtn').addEventListener('click',()=>{const p=document.getElementById('qcpPanel');p.classList.toggle('open');if(p.classList.contains('open')&&!listEl.children.length)renderList('');});
 document.getElementById('qcpClose').addEventListener('click',()=>document.getElementById('qcpPanel').classList.remove('open'));
 document.getElementById('qcpSearch').addEventListener('input',e=>renderList(e.target.value));
 listEl.addEventListener('click',e=>{const b=e.target.closest('.qcp-item');if(b)play(+b.dataset.n);});
 })();
+/* نهاية مشغل القرآن — لو مش شايف السطر ده آخر اللصقة يبقى اتقص: امسح وانسخ تاني */
 
 /* انطلاق التطبيق */
 (async function(){try{await loadPublic();}catch(e){}applyThemeVars(currentThemeKey());route();})();
