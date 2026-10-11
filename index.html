@@ -1819,6 +1819,584 @@ if (sb) sb.auth.onAuthStateChange(ev=>{ if(ev==='SIGNED_OUT'&&(location.hash||''
   applyThemeVars(currentThemeKey());
   route();
 })();
+  /* ============================================================
+   تحديث ٧: مرفقات التقديم + مشاركة ملفات الامتحان مع المتسابق
+   ============================================================ */
+(function(){
+const APPB = 'applications', EXB = 'exams';
+let REGF = { photo:null, doc:null, urls:{} };
+let EXUP = null;
+
+const st2 = document.createElement('style');
+st2.textContent = `
+.committee-card{position:relative;border-radius:1rem;padding:1rem 1.15rem;border:1.5px solid rgba(201,162,39,.55);background:rgb(var(--pine-800-rgb,15 61 44));overflow:hidden}
+.committee-card::before{content:'';position:absolute;inset:0;opacity:.08;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84'%3E%3Cg fill='none' stroke='%23C9A227'%3E%3Crect x='22' y='22' width='40' height='40'/%3E%3Crect x='22' y='22' width='40' height='40' transform='rotate(45 42 42)'/%3E%3C/g%3E%3C/svg%3E")}
+.examiner-name{font-family:Amiri,serif;font-size:1.5rem;line-height:1.8;color:#E0C468;font-weight:700;position:relative;padding-inline-start:.35rem}
+.drawer-sec-h{display:flex;align-items:center;gap:.5rem;font-family:Amiri,serif;font-size:1.05rem;font-weight:700;color:rgb(var(--pine-800-rgb,15 61 44));margin-bottom:.85rem;padding-bottom:.45rem;border-bottom:1px solid #EFE7D2}
+.dl2{display:grid;grid-template-columns:auto 1fr;gap:.5rem 1rem;font-size:.85rem}
+.dl2 dt{color:#5C6350;font-weight:500;white-space:nowrap}
+.dl2 dt::after{content:':'}
+.dl2 dd{font-weight:600;word-break:break-word}
+.file-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:#fff;border:1px solid #EFE7D2;border-radius:1rem;padding:.7rem .8rem}
+.modal video{width:100%;max-height:60vh;border-radius:.8rem;background:#000;display:block}
+`;
+document.head.appendChild(st2);
+
+const exNameL = id => { const x=(A.examiners||[]).find(y=>y.id===id); return x?x.name:''; };
+const commStr = r => [exNameL(r.examiner_id), exNameL(r.examiner_id_2)].filter(Boolean).join(' و ');
+
+function compressImg(file, maxDim){
+  return new Promise((res, rej)=>{
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = ()=>{ try{
+      const sc = Math.min(1, maxDim/(img.naturalWidth||maxDim));
+      const w = Math.max(1,Math.round(img.naturalWidth*sc)), h = Math.max(1,Math.round(img.naturalHeight*sc));
+      const c = document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      c.toBlob(b=> b?res(b):rej(new Error('تعذر ضغط الصورة')),'image/jpeg',.8);
+    }catch(e){URL.revokeObjectURL(url);rej(e);} };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('ملف صورة غير صالح'));};
+    img.src=url;
+  });
+}
+async function uploadApp(kind, blob){
+  const tok = (crypto.randomUUID?crypto.randomUUID():('t'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+  const isPdf = (blob instanceof File) && /\.pdf$/i.test(blob.name||'');
+  const path = tok+'/'+kind+'.'+(isPdf?'pdf':'jpg');
+  const { error } = await sb.storage.from(APPB).upload(path, blob, { contentType: isPdf?'application/pdf':'image/jpeg' });
+  if(error) throw error;
+  return path;
+}
+async function uploadExam(regId, kind, file, oldPath){
+  const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8)||'bin';
+  const path=regId+'/'+kind+'-'+Date.now()+'.'+ext;
+  const {error}=await sb.storage.from(EXB).upload(path,file,{cacheControl:'3600'});
+  if(error) throw error;
+  if(oldPath){ try{ await sb.storage.from(EXB).remove([oldPath]); }catch(e){} }
+  return path;
+}
+async function adminUrl(path, bucket){
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 3600);
+  if(error) throw error;
+  return data.signedUrl;
+}
+async function openAdminFile(path, bucket, kind){
+  try{
+    const url = await adminUrl(path, bucket);
+    if(kind==='video'){
+      modal(`<div class="m-head">فيديو الامتحان</div><div class="text-center"><video controls playsinline preload="metadata" src="${esc(url)}"></video></div>
+        <div class="m-actions"><a class="btn btn-outline btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic('dl',14)} فتح في تبويب جديد</a><button class="btn btn-outline btn-sm" data-close>إغلاق</button></div>`);
+    } else window.open(url,'_blank','noopener');
+  }catch(err){ toast('تعذر فتح الملف: '+(err.message||''),'err'); }
+}
+async function openSharedExam(path, kind){
+  let url = null;
+  try{
+    const { data, error } = await sb.storage.from(EXB).createSignedUrl(path, 1800);
+    if(!error && data && data.signedUrl) url = data.signedUrl;
+  }catch(e){}
+  if(!url){
+    try{
+      const { data:blob, error } = await sb.storage.from(EXB).download(path);
+      if(error) throw error;
+      url = URL.createObjectURL(blob);
+    }catch(err){ toast('تعذر فتح الملف — حاول مرة أخرى','err'); return; }
+  }
+  if(kind==='video'){
+    modal(`<div class="m-head">فيديو الامتحان</div><div class="text-center"><video controls playsinline preload="metadata" src="${esc(url)}"></video></div>
+      <div class="m-actions"><button class="btn btn-outline btn-sm" data-close>إغلاق</button></div>`);
+  } else window.open(url,'_blank','noopener');
+}
+
+/* ---------- استمارة التسجيل: نسخة بالمرفقات ---------- */
+function regFormHtml(s,cfg,preLevel){
+  const govOpts = GOVS.map(g=>`<option>${g}</option>`).join('');
+  const lvOpts  = S.levels.map(l=>`<option value="${l.id}" ${preLevel===l.id?'selected':''}>${esc(l.name)} — ${esc(l.desc)} (حتى ${arNum(l.max_age)} عامًا)</option>`).join('');
+  const F = (k,label,inner,req=true,cls='') => `<div class="field ${cls}" data-f="${k}"><label class="label">${label}${req?' <span class="text-red-700">*</span>':''}</label>${inner}<p class="err hidden text-xs text-red-700 mt-1.5"></p></div>`;
+  const U = (k,label,btnId,fileId,hint,accept) => `
+  <div class="field md:col-span-2" data-f="${k}">
+    <label class="label">${label} <span class="text-red-700">*</span></label>
+    <input type="file" id="${fileId}" accept="${accept}" class="hidden">
+    <button type="button" id="${btnId}" class="btn btn-outline w-full !py-2.5">${ic('upload',15)} اختيار الملف…</button>
+    <div id="${fileId}Prev" class="hidden mt-2 flex items-center gap-3 bg-white border border-cream-200 rounded-xl p-2.5">
+      <img id="${fileId}Img" class="w-14 h-14 rounded-lg object-cover border border-cream-200 hidden" alt="">
+      <span id="${fileId}Ico" class="w-14 h-14 rounded-lg bg-gold-100/70 text-gold-600 hidden items-center justify-center shrink-0">${ic('file',22)}</span>
+      <div class="min-w-0"><p id="${fileId}Name" class="text-sm font-bold text-pine-800 truncate"></p><p class="text-[11px] text-pine-600 font-semibold">✓ تم اختيار الملف</p></div>
+    </div>
+    <p class="text-xs text-ink/50 mt-1.5">${hint}</p>
+    <p class="err hidden text-xs text-red-700 mt-1.5"></p>
+  </div>`;
+  return `<section class="max-w-3xl mx-auto px-4 py-10">
+  <div class="card overflow-hidden">
+    <div class="bg-pine-800 text-cream-50 px-6 py-4 flex items-center justify-between flex-wrap gap-2">
+      <h2 class="font-amiri text-xl">استمارة التسجيل</h2>
+      <span class="text-gold-400 text-sm font-semibold">موسم ${esc(s.season)}</span>
+    </div>
+    <form id="regForm" class="p-5 md:p-8" novalidate>
+      <div class="mb-9">
+        <h3 class="form-sec-h">أولًا: بيانات المتسابق والمشاركة</h3>
+        <div class="grid md:grid-cols-2 gap-5">
+          ${F('full_name','الاسم الرباعي للمتسابق','<input id="full_name" class="input" placeholder="مثال: محمد أحمد إبراهيم عبد الرحمن">',true,'md:col-span-2')}
+          ${F('birth_date','تاريخ الميلاد','<input id="birth_date" type="date" class="input" max="'+todayISO()+'">')}
+          <div class="field" data-f="age">
+            <label class="label">العمر المحسوب تلقائيًا <span class="text-red-700">*</span></label>
+            <input class="input !bg-cream-100 font-bold text-pine-800" id="age_display" readonly placeholder="يظهر بعد إدخال تاريخ الميلاد">
+            <p class="text-xs text-ink/50 mt-1.5">وفق تاريخ الاحتساب المعتمد: ${fmtDate(cfg.age_ref_date)}</p>
+          </div>
+          ${F('national_id','الرقم القومي للمتسابق','<input id="national_id" class="input" dir="ltr" inputmode="numeric" maxlength="14" placeholder="14 رقمًا"><p class="text-xs text-ink/50 mt-1.5">يُستخدم لمتابعة طلبك والاستعلام عن النتيجة — لا يظهر لأي زائر.</p>',true,'md:col-span-2')}
+          ${U('photo','الصورة الشخصية للمتسابق','regPhotoBtn','regPhoto','صورة واضحة حديثة للمتسابق — تُضغط تلقائيًا لحجم صغير','image/*')}
+          ${U('birthdoc','صورة شهادة الميلاد أو البطاقة','regDocBtn','regDoc','صورة الشهادة أو البطاقة، أو ملف PDF — حتى ١٠ ميجا','image/*,.pdf,application/pdf')}
+          ${F('level_id','مستوى المسابقة',`<select id="level_id" class="input"><option value="">اختر المستوى…</option>${lvOpts}</select><div id="elig" class="elig"></div>`,true,'md:col-span-2')}
+          ${F('memorized','مقدار الحفظ الحالي','<input id="memorized" class="input" placeholder="مثال: خمسة أجزاء وأوائل السادس">',true,'md:col-span-2')}
+        </div>
+      </div>
+      <div class="mb-9">
+        <h3 class="form-sec-h">ثانيًا: محل الإقامة وبيانات ولي الأمر</h3>
+        <div class="grid md:grid-cols-2 gap-5">
+          ${F('governorate','المحافظة',`<select id="governorate" class="input"><option value="">اختر المحافظة…</option>${govOpts}</select>`)}
+          ${F('city','المركز / المدينة','<input id="city" class="input" placeholder="مثال: قلين">')}
+          ${F('village','القرية / المنطقة','<input id="village" class="input" placeholder="مثال: كفر يوسف حنس">')}
+          ${F('guardian_name','اسم ولي الأمر','<input id="guardian_name" class="input" placeholder="الاسم كاملًا">')}
+          ${F('guardian_phone','رقم هاتف ولي الأمر','<input id="guardian_phone" type="tel" dir="ltr" class="input" placeholder="01012345678">')}
+          ${F('center_name','اسم المحفظ أو مركز التحفيظ (إن وجد)','<input id="center_name" class="input" placeholder="إن كان المتسابق ملتحقًا بكتاب أو مركز">',false)}
+        </div>
+      </div>
+      <div>
+        <h3 class="form-sec-h">ثالثًا: ملاحظات والإقرارات</h3>
+        ${F('notes','ملاحظات (اختيارية)','<textarea id="notes" rows="3" class="input" placeholder="أي معلومات تود إبلاغها للإدارة"></textarea>',false)}
+        <label class="check"><input type="checkbox" id="agree1"><span>أُقرّ بصحة جميع البيانات المدخلة وأتحمل مسئوليتها.</span></label>
+        <div class="field" data-f="agree1"><p class="err hidden text-xs text-red-700 mt-1.5"></p></div>
+        <label class="check"><input type="checkbox" id="agree2"><span>أوافق على <button type="button" class="link" id="openPrivacy">سياسة الخصوصية</button> واستخدام البيانات لغرض تنظيم المسابقة فقط.</span></label>
+        <div class="field" data-f="agree2"><p class="err hidden text-xs text-red-700 mt-1.5"></p></div>
+      </div>
+      <div id="formErr" class="hidden mt-5 text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl px-4 py-3 leading-loose"></div>
+      <button id="submitBtn" type="submit" class="btn btn-primary w-full !py-3.5 !text-base mt-6">${ic('check')} إرسال طلب التسجيل</button>
+      <p class="text-xs text-ink/50 text-center mt-3">استلام الطلب لا يعني القبول النهائي في المسابقة؛ تُراجع اللجنة البيانات ثم يتم التواصل معكم.</p>
+    </form>
+  </div></section>`;
+}
+
+function wireRegForm(preLevel){
+  REGF = { photo:null, doc:null, urls:{} };
+  const nid = $('#national_id');
+  const paintErrsL = errs => $$('#regForm .field').forEach(f=>{
+    const p=f.querySelector('.err');
+    if(errs[f.dataset.f]){f.classList.add('invalid'); if(p){p.textContent=errs[f.dataset.f];p.classList.remove('hidden');}}
+    else {f.classList.remove('invalid'); if(p)p.classList.add('hidden');}
+  });
+  const updateAge=()=>{const el=$('#age_display');if(!el)return;const a=calcAge($('#birth_date').value,S.config.age_ref_date);el.value=(a==null||a<0)?'':(arNum(a)+' عامًا');};
+  const updateElig=()=>{const box=$('#elig');if(!box)return;const b=$('#birth_date').value,lid=+$('#level_id').value;box.className='elig';box.innerHTML='';if(!b||!lid)return;const age=calcAge(b,S.config.age_ref_date),lv=S.levels.find(l=>l.id===lid);if(age==null||!lv)return;
+    if(age<=lv.max_age){box.className='elig good';box.innerHTML=ic('check',15)+` مؤهل — العمر المحسوب ${arNum(age)} عامًا والحد الأقصى للمستوى ${arNum(lv.max_age)} عامًا`;}
+    else{box.className='elig bad';box.innerHTML=ic('alert',15)+` العمر ${arNum(age)} عامًا يتجاوز الحد الأقصى للمستوى «${esc(lv.name)}» (${arNum(lv.max_age)} عامًا) — اختر مستوى آخر`;}};
+  nid.addEventListener('input', ()=>{
+    nid.value = nid.value.replace(/\D/g,'').slice(0,14);
+    const v = nid.value;
+    if (v.length===14 && /^[23]/.test(v)){
+      const yy=+v.slice(1,3), mm=+v.slice(3,5), dd=+v.slice(5,7);
+      const year=(v[0]==='2'?1900:2000)+yy;
+      if(mm>=1&&mm<=12&&dd>=1&&dd<=31 && !$('#birth_date').value){
+        $('#birth_date').value=`${year}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+        updateAge();updateElig();toast('تم تعبئة تاريخ الميلاد تلقائيًا من الرقم القومي — تأكد منه');
+      }
+    }
+  });
+  $('#birth_date').addEventListener('change',()=>{updateAge();updateElig();});
+  $('#level_id').addEventListener('change',updateElig);
+  if (preLevel){updateAge();updateElig();}
+
+  const showPrev=(fid,name,isPdf,blob)=>{
+    const box=$('#'+fid+'Prev'); if(!box)return;
+    box.classList.remove('hidden');
+    const im=$('#'+fid+'Img'), ico=$('#'+fid+'Ico');
+    if(isPdf){ im.classList.add('hidden'); ico.classList.remove('hidden'); ico.classList.add('flex'); }
+    else { ico.classList.add('hidden'); ico.classList.remove('flex'); im.classList.remove('hidden'); if(REGF.urls[fid]) im.src=REGF.urls[fid]; }
+    $('#'+fid+'Name').textContent=name;
+  };
+  $('#regPhotoBtn').addEventListener('click',()=>$('#regPhoto').click());
+  $('#regDocBtn').addEventListener('click',()=>$('#regDoc').click());
+  $('#regPhoto').addEventListener('change', async e=>{
+    const f=e.target.files&&e.target.files[0]; if(!f)return;
+    try{
+      REGF.photo=await compressImg(f,1200);
+      if(REGF.urls.regPhoto) URL.revokeObjectURL(REGF.urls.regPhoto);
+      REGF.urls.regPhoto=URL.createObjectURL(REGF.photo);
+      showPrev('regPhoto','الصورة الشخصية',false);
+    }catch(err){ toast(err.message||'تعذر قراءة الصورة','err'); }
+    e.target.value='';
+  });
+  $('#regDoc').addEventListener('change', async e=>{
+    const f=e.target.files&&e.target.files[0]; if(!f)return;
+    if(f.type==='application/pdf' || /\.pdf$/i.test(f.name||'')){
+      if(f.size>10*1024*1024){ toast('حجم ملف PDF أكبر من ١٠ ميجا','err'); e.target.value=''; return; }
+      REGF.doc=f; showPrev('regDoc',f.name,true);
+    } else {
+      try{
+        REGF.doc=await compressImg(f,1600);
+        if(REGF.urls.regDoc) URL.revokeObjectURL(REGF.urls.regDoc);
+        REGF.urls.regDoc=URL.createObjectURL(REGF.doc);
+        showPrev('regDoc','شهادة الميلاد / البطاقة',false);
+      }catch(err){ toast(err.message||'تعذر قراءة الملف','err'); }
+    }
+    e.target.value='';
+  });
+
+  $('#regForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const v=id=>(($('#'+id)||{}).value||'').trim();
+    const errs={};
+    if(!v('full_name')) errs.full_name='هذا الحقل مطلوب';
+    else if(v('full_name').split(/\s+/).length<4) errs.full_name='اكتب الاسم رباعيًا (أربع كلمات على الأقل)';
+    if(!v('birth_date')) errs.birth_date='هذا الحقل مطلوب';
+    else if(v('birth_date')>todayISO()) errs.birth_date='تاريخ الميلاد لا يمكن أن يكون في المستقبل';
+    if(!v('national_id')) errs.national_id='الرقم القومي مطلوب';
+    else if(!/^[23]\d{13}$/.test(v('national_id'))) errs.national_id='الرقم القومي ١٤ رقمًا ويبدأ بـ ٢ أو ٣';
+    else { const mm=+v('national_id').slice(3,5), dd=+v('national_id').slice(5,7); if(mm<1||mm>12||dd<1||dd>31) errs.national_id='الرقم القومي غير صالح — تحقق من الأرقام'; }
+    if(!REGF.photo) errs.photo='اختر الصورة الشخصية للمتسابق';
+    if(!REGF.doc) errs.birthdoc='اختر صورة شهادة الميلاد أو البطاقة';
+    if(!v('level_id')) errs.level_id='اختر مستوى المشاركة';
+    else { const lv=S.levels.find(l=>l.id===+v('level_id')), age=calcAge(v('birth_date'),S.config.age_ref_date);
+      if(lv&&age!=null&&age>lv.max_age) errs.level_id=`العمر المحسوب (${arNum(age)} عامًا) يتجاوز الحد الأقصى للمستوى «${lv.name}» (${arNum(lv.max_age)} عامًا) — اختر مستوى آخر`; }
+    if(!v('memorized')) errs.memorized='اذكر مقدار ما حفظه المتسابق حتى الآن';
+    if(!v('governorate')) errs.governorate='اختر المحافظة';
+    if(!v('city')) errs.city='هذا الحقل مطلوب';
+    if(!v('village')) errs.village='هذا الحقل مطلوب';
+    if(!v('guardian_name')) errs.guardian_name='هذا الحقل مطلوب';
+    if(!/^01[0125]\d{8}$/.test(v('guardian_phone'))) errs.guardian_phone='أدخل رقمًا مصريًا صحيحًا (11 رقمًا يبدأ بـ 010 أو 011 أو 012 أو 015)';
+    if(!$('#agree1').checked) errs.agree1='يلزم الإقرار بصحة البيانات لإتمام التسجيل';
+    if(!$('#agree2').checked) errs.agree2='يلزم الموافقة على سياسة الخصوصية';
+    paintErrsL(errs); $('#formErr').classList.add('hidden');
+    if(Object.keys(errs).length){
+      const first=$('#regForm .field.invalid');
+      if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+      toast('يرجى مراجعة الحقول المحددة بالأحمر','err'); return;
+    }
+    const btn=$('#submitBtn'), old=btn.innerHTML;
+    btn.disabled=true; btn.innerHTML='<span class="spin"></span> جارٍ رفع الملفات وإرسال الطلب…';
+    try{
+      const photoPath=await uploadApp('photo',REGF.photo);
+      const docPath=await uploadApp('doc',REGF.doc);
+      const payload={full_name:v('full_name'),birth_date:v('birth_date'),national_id:v('national_id'),level_id:+v('level_id'),memorized:v('memorized'),governorate:v('governorate'),city:v('city'),village:v('village'),center_name:v('center_name')||null,guardian_name:v('guardian_name'),guardian_phone:v('guardian_phone'),notes:v('notes')||null,photo_path:photoPath,birthdoc_path:docPath};
+      const {data,error}=await sb.rpc('register_participant',{r:payload});
+      if(error)throw error;
+      window.scrollTo({top:0});
+      renderRegSuccess({full_name:payload.full_name,level_id:payload.level_id},data);
+      toast('تم استلام طلب التسجيل بنجاح','ok');
+    }catch(err){
+      const box=$('#formErr');
+      box.textContent='تعذّر إتمام التسجيل: '+(err.message||'خطأ غير متوقع — حاول مرة أخرى');
+      box.classList.remove('hidden'); box.scrollIntoView({behavior:'smooth',block:'center'});
+      toast('تعذّر إتمام التسجيل','err');
+      btn.disabled=false; btn.innerHTML=old;
+    }
+  });
+}
+
+/* ---------- شاشة تفاصيل المتسابق (بالمرفقات والمشاركة) ---------- */
+function openDetail(id){
+  const r=A.regs.find(x=>x.id===id); if(!r)return;
+  const exs=A.examiners||[];
+  const poolExs=exs.filter(x=>!x.level_id||x.level_id===r.level_id);
+  const pool=poolExs.length?poolExs:exs;
+  const exOpts=sel=>`<option value="">— بدون —</option>`+pool.map(x=>`<option value="${x.id}" ${sel===x.id?'selected':''}>${esc(x.name)}</option>`).join('');
+  const ex1=exNameL(r.examiner_id), ex2=exNameL(r.examiner_id_2);
+  const docIsPdf=/\.pdf$/i.test(r.birthdoc_path||'');
+  layer.innerHTML=`
+  <div class="overlay" data-close></div>
+  <aside class="drawer" style="width:min(560px,100%)">
+    <div class="bg-pine-800 text-cream-50 p-5 sticky top-0 z-10 shadow-md">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h3 class="font-amiri text-2xl leading-snug">${esc(r.full_name)}</h3>
+          <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+            <span class="text-gold-400 text-sm font-bold">${esc(r.reg_no)}</span>
+            <span class="tag tag-${r.status}">${STATUS[r.status]}</span>
+            ${r.result_status==='pass'?'<span class="tag tag-approved">ناجح</span>':r.result_status==='fail'?'<span class="tag tag-rejected">راسب</span>':''}
+          </div>
+        </div>
+        <button class="ibtn !bg-transparent !border-white/30 !text-cream-50 shrink-0" data-close>${ic('x')}</button>
+      </div>
+    </div>
+    <div class="p-4 md:p-5 space-y-4">
+      <div class="committee-card">
+        <p class="text-gold-400/85 text-[11px] font-bold tracking-wide mb-2 flex items-center gap-1.5 relative">${ic('users',14)} لجنة الاختبار ${r.level_name?`— ${esc(r.level_name)}`:''}</p>
+        ${(ex1||ex2)?`<div class="space-y-1 relative">${ex1?`<p class="examiner-name">✦ ${esc(ex1)}</p>`:''}${ex2?`<p class="examiner-name">✦ ${esc(ex2)}</p>`:''}</div>`
+        :`<p class="text-cream-50/55 text-xs leading-relaxed relative">لم تُسند لجنة لهذا المتسابق بعد — أسندها من «الاختبار والنتيجة» بالأسفل.</p>`}
+      </div>
+
+      <div class="card p-4">
+        <p class="drawer-sec-h">${ic('file',15)} بيانات المتسابق</p>
+        <dl class="dl2">
+          <dt>تاريخ الميلاد</dt><dd>${fmtDate(r.birth_date)}</dd>
+          <dt>العمر المحسوب</dt><dd>${r.age!=null?arNum(r.age)+' عامًا':'—'}</dd>
+          <dt>الرقم القومي</dt><dd><span dir="ltr">${esc(r.national_id||'—')}</span></dd>
+          <dt>المستوى</dt><dd><span class="inline-block w-2.5 h-2.5 rounded-full me-1.5 align-middle" style="background:${lvColorById(r.level_id)}"></span>${esc(r.level_name)}</dd>
+          <dt>مقدار الحفظ</dt><dd>${esc(r.memorized)}</dd>
+          <dt>تاريخ التقديم</dt><dd>${fmtDateTime(r.created_at)}</dd>
+          <dt>ملاحظات المتسابق</dt><dd>${esc(r.notes||'—')}</dd>
+        </dl>
+      </div>
+
+      <div class="card p-4">
+        <p class="drawer-sec-h">${ic('upload',15)} مرفقات التقديم (رفعها ولي الأمر عند التسجيل)</p>
+        <div class="space-y-2.5">
+          <div class="file-row">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img id="adPhotoImg" class="w-11 h-11 rounded-lg object-cover border border-cream-200 hidden shrink-0" alt="">
+              <span class="w-11 h-11 rounded-lg bg-gold-100/70 text-gold-600 items-center justify-center shrink-0 ${r.photo_path?'flex':'hidden'}">${ic('users',20)}</span>
+              <div class="min-w-0"><p class="text-sm font-bold text-pine-800">الصورة الشخصية</p>
+              <p class="text-[11px] ${r.photo_path?'text-pine-600 font-semibold':'text-ink/45'}">${r.photo_path?'✓ مرفوعة':'غير مرفوعة'}</p></div>
+            </div>
+            ${r.photo_path?`<button type="button" class="btn btn-primary btn-sm !px-2.5 aview2" data-path="${esc(r.photo_path)}" title="عرض">${ic('eye',13)}</button>`:''}
+          </div>
+          <div class="file-row">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-11 h-11 rounded-lg bg-gold-100/70 text-gold-600 flex items-center justify-center shrink-0">${docIsPdf?ic('file',20):ic('file',20)}</span>
+              <div class="min-w-0"><p class="text-sm font-bold text-pine-800">شهادة الميلاد / البطاقة</p>
+              <p class="text-[11px] ${r.birthdoc_path?'text-pine-600 font-semibold':'text-ink/45'}">${r.birthdoc_path?(docIsPdf?'✓ ملف PDF مرفوع':'✓ مرفوعة'):'غير مرفوعة'}</p></div>
+            </div>
+            ${r.birthdoc_path?`<button type="button" class="btn btn-primary btn-sm !px-2.5 aview2" data-path="${esc(r.birthdoc_path)}" title="عرض">${ic('eye',13)}</button>`:''}
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4">
+        <p class="drawer-sec-h">${ic('video',15)} ملفات الامتحان</p>
+        <div class="space-y-2.5">
+          <div class="file-row">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-lg bg-gold-100/70 text-gold-600 flex items-center justify-center shrink-0">${ic('file',18)}</span>
+              <div class="min-w-0"><p class="text-sm font-bold text-pine-800">ورقة الامتحان</p>
+              <p class="text-[11px] ${r.paper_path?'text-pine-600 font-semibold':'text-ink/45'}">${r.paper_path?'✓ مرفوعة':'غير مرفوعة — صورة أو PDF حتى ١٥ ميجا'}</p></div>
+            </div>
+            <div class="flex gap-1.5 shrink-0">
+              <button type="button" class="btn btn-outline btn-sm !px-2.5 xup2" data-id="${r.id}" data-kind="paper" title="رفع/استبدال">${ic('upload',13)}</button>
+              ${r.paper_path?`<button type="button" class="btn btn-primary btn-sm !px-2.5 xview2" data-path="${esc(r.paper_path)}" data-kind="paper" title="عرض">${ic('eye',13)}</button>
+              <button type="button" class="btn btn-outline btn-sm !px-2.5 xdel2" data-id="${r.id}" data-kind="paper" data-path="${esc(r.paper_path)}" style="color:#991B1B;border-color:#991B1B" title="حذف">${ic('trash',13)}</button>`:''}
+            </div>
+          </div>
+          <div class="file-row">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-lg bg-gold-100/70 text-gold-600 flex items-center justify-center shrink-0">${ic('video',18)}</span>
+              <div class="min-w-0"><p class="text-sm font-bold text-pine-800">فيديو الامتحان</p>
+              <p class="text-[11px] ${r.video_path?'text-pine-600 font-semibold':'text-ink/45'}">${r.video_path?'✓ مرفوع':'غير مرفوع — حتى ١٠٠ ميجا'}</p></div>
+            </div>
+            <div class="flex gap-1.5 shrink-0">
+              <button type="button" class="btn btn-outline btn-sm !px-2.5 xup2" data-id="${r.id}" data-kind="video" title="رفع/استبدال">${ic('upload',13)}</button>
+              ${r.video_path?`<button type="button" class="btn btn-primary btn-sm !px-2.5 xview2" data-path="${esc(r.video_path)}" data-kind="video" title="تشغيل">${ic('video',13)}</button>
+              <button type="button" class="btn btn-outline btn-sm !px-2.5 xdel2" data-id="${r.id}" data-kind="video" data-path="${esc(r.video_path)}" style="color:#991B1B;border-color:#991B1B" title="حذف">${ic('trash',13)}</button>`:''}
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="dShare" ${r.share_exams?'checked':''}><span><b>السماح للمتسابق بالاطلاع على ورقة الامتحان والفيديو</b> — عند التفعيل تظهر له أزرار المشاهدة في بوابة المتابعة بالرقم القومي، وتبقى مغلوبة عنه عند الإلغاء.</span></label>
+        </div>
+        <input type="file" id="xfilePaper2" accept="image/*,.pdf,application/pdf" class="hidden">
+        <input type="file" id="xfileVideo2" accept="video/*" class="hidden">
+      </div>
+
+      <div class="card p-4">
+        <p class="drawer-sec-h">${ic('edit',15)} الاختبار والنتيجة</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2"><label class="label !text-xs !mb-1">الممتحن الأول</label><select id="dExm" class="input !py-2">${exOpts(r.examiner_id)}</select></div>
+          <div class="col-span-2"><label class="label !text-xs !mb-1">الممتحن الثاني</label><select id="dExm2" class="input !py-2">${exOpts(r.examiner_id_2)}</select></div>
+          <div><label class="label !text-xs !mb-1">درجة الشفوي</label><input id="dOral" type="number" step="any" min="0" class="input !py-2" value="${r.oral_score!=null?esc(r.oral_score):''}" placeholder="مثال: 45"></div>
+          <div><label class="label !text-xs !mb-1">درجة التحريري</label><input id="dWritten" type="number" step="any" min="0" class="input !py-2" value="${r.written_score!=null?esc(r.written_score):''}" placeholder="مثال: 40"></div>
+          <div class="col-span-2"><label class="label !text-xs !mb-1">النتيجة النهائية (تظهر في بوابة الاستعلام)</label>
+            <select id="dRes" class="input !py-2"><option value="">غير محددة</option><option value="pass" ${r.result_status==='pass'?'selected':''}>ناجح</option><option value="fail" ${r.result_status==='fail'?'selected':''}>راسب</option></select></div>
+        </div>
+      </div>
+
+      <div class="card p-4">
+        <p class="drawer-sec-h">${ic('sliders',15)} الحالة والإدارة</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="label !text-xs !mb-1">حالة الطلب</label><select id="dStatus" class="st st-${r.status} !w-full">${Object.entries(STATUS).map(([k,v2])=>`<option value="${k}" ${r.status===k?'selected':''}>${v2}</option>`).join('')}</select></div>
+          <div><label class="label !text-xs !mb-1">تعديل الرقم القومي</label><input id="dNid" dir="ltr" inputmode="numeric" maxlength="14" class="input !py-2" value="${esc(r.national_id||'')}"></div>
+        </div>
+        <div class="mt-3"><label class="label !text-xs !mb-1">سبب الرفض (إلزامي عند الرفض — يظهر للمتسابق)</label><textarea id="dRej" rows="2" class="input" placeholder="مثال: تجاوز الحد العمري للمستوى المختار">${esc(r.rejection_reason||'')}</textarea></div>
+        <div class="mt-3"><label class="label !text-xs !mb-1">ملاحظات الإدارة (لا يراها المتسابق)</label><textarea id="dNote" rows="2" class="input" placeholder="ملاحظة داخلية…">${esc(r.admin_notes||'')}</textarea></div>
+      </div>
+
+      <div class="flex gap-2 flex-wrap pb-3">
+        <button class="btn btn-primary flex-1 !py-3" id="dSaveAll" data-id="${r.id}">${ic('check',16)} حفظ كل التفاصيل</button>
+        <button class="btn btn-danger delreg2" data-id="${r.id}">${ic('trash',16)} حذف</button>
+      </div>
+    </div>
+  </aside>`;
+  document.body.style.overflow='hidden';
+  (async()=>{ try{ if(r.photo_path){ const u=await adminUrl(r.photo_path, APPB); const im=$('#adPhotoImg'); if(im){im.src=u;im.classList.remove('hidden');} } }catch(e){} })();
+  (async()=>{ try{ if(r.birthdoc_path && !docIsPdf){ const u=await adminUrl(r.birthdoc_path, APPB); const ico=document.querySelector('.file-row span.flex'); if(ico){ const im=document.createElement('img'); im.src=u; im.className='w-11 h-11 rounded-lg object-cover border border-cream-200 shrink-0'; ico.replaceWith(im); } } }catch(e){} })();
+}
+
+/* ---------- بوابة المتابعة (مع الملفات المسموح بها) ---------- */
+async function doTrack(){
+  const nid=$('#trkNid').value.trim();
+  const out=$('#trkOut'), btn=$('#trkGo');
+  if(!/^[23]\d{13}$/.test(nid)){
+    out.innerHTML=`<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3 leading-loose">${ic('alert',16)} أدخل رقمًا قوميًا صحيحًا — ١٤ رقمًا يبدأ بـ ٢ أو ٣.</p>`;
+    return;
+  }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> جارٍ الاستعلام…';
+  try{
+    const {data,error}=await sb.rpc('lookup_application',{p_national_id:nid});
+    if(error)throw error;
+    if(!data){
+      out.innerHTML=`<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3 leading-loose">${ic('alert',16)} لا يوجد طلب تسجيل بهذا الرقم القومي — تأكد من الرقم، أو تواصل مع إدارة المسابقة.</p>`;
+    } else {
+      const hasScores=data.oral_score!=null||data.written_score!=null||data.result_status;
+      const comm=[data.examiner_1_name,data.examiner_2_name].filter(Boolean).join(' و ');
+      out.innerHTML=`
+      <div class="bg-cream-100 border border-cream-200 rounded-xl p-5 text-sm space-y-1.5">
+        <p>المتسابق: <b>${esc(data.full_name)}</b></p>
+        <p>رقم التسجيل: <b class="text-gold-600">${esc(data.reg_no)}</b></p>
+        <p>المستوى: <b>${esc(data.level_name)}</b></p>
+        <p>تاريخ التقديم: ${fmtDateTime(data.created_at)}</p>
+      </div>
+      <div class="mt-3 flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-ink/55">حالة الطلب:</span>
+        <span class="tag tag-${esc(data.status)}">${STATUS[data.status]||esc(data.status)}</span>
+      </div>
+      ${data.status==='rejected'&&data.rejection_reason?`
+      <div class="mt-3 bg-red-50 border border-red-300 rounded-xl p-4 leading-loose">
+        <b class="text-red-800">${ic('alert',15)} سبب رفض الطلب:</b>
+        <p class="text-red-900 mt-1">${esc(data.rejection_reason)}</p>
+      </div>`:''}
+      ${comm?`
+      <div class="mt-3 rounded-xl px-4 py-3 border border-gold-500/45 bg-gold-100/40 flex items-center gap-2.5 flex-wrap">
+        ${ic('users',16)}<span class="text-xs text-ink/55">لجنة الاختبار:</span>
+        <span class="font-amiri text-xl font-bold text-gold-600 leading-snug">${esc(comm)}</span>
+      </div>`:''}
+      <div class="mt-5 pt-4 border-t border-cream-200">
+        <p class="font-amiri text-lg text-pine-800 mb-2">نتيجة الاختبارات</p>
+        ${hasScores?`
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-white border border-cream-200 rounded-xl p-3"><small class="text-xs text-ink/55 block">الشفوي</small><b class="font-amiri text-xl text-pine-800">${data.oral_score!=null?arNum(data.oral_score):'—'}</b></div>
+          <div class="bg-white border border-cream-200 rounded-xl p-3"><small class="text-xs text-ink/55 block">التحريري</small><b class="font-amiri text-xl text-pine-800">${data.written_score!=null?arNum(data.written_score):'—'}</b></div>
+          <div class="bg-white border border-cream-200 rounded-xl p-3"><small class="text-xs text-ink/55 block">النتيجة</small>
+            ${data.result_status==='pass'?'<span class="tag tag-approved">ناجح</span>':data.result_status==='fail'?'<span class="tag tag-rejected">راسب</span>':'<b class="font-amiri text-xl text-pine-800">—</b>'}
+          </div>
+        </div>`:`<p class="text-sm text-ink/60 leading-loose">لم تُعتمد النتائج بعد — تظهر الدرجات هنا فور إدخالها واعتمادها من لجنة التحكيم.</p>`}
+      </div>
+      ${data.share_exams&&(data.paper_path||data.video_path)?`
+      <div class="mt-4 pt-4 border-t border-cream-200">
+        <p class="font-amiri text-lg text-pine-800 mb-1">ملفات الامتحان</p>
+        <p class="text-xs text-ink/55 mb-2 leading-loose">أتاحت إدارة المسابقة لكم الاطلاع على ملفات اختبار المتسابق:</p>
+        <div class="flex gap-2 flex-wrap">
+          ${data.paper_path?`<button class="btn btn-primary btn-sm" data-shpath="${esc(data.paper_path)}" data-shkind="paper">📄 عرض ورقة الامتحان</button>`:''}
+          ${data.video_path?`<button class="btn btn-primary btn-sm" data-shpath="${esc(data.video_path)}" data-shkind="video">🎬 تشغيل فيديو الامتحان</button>`:''}
+        </div>
+      </div>`:''}`;
+      out.querySelectorAll('[data-shpath]').forEach(b=>b.addEventListener('click',()=>openSharedExam(b.dataset.shpath,b.dataset.shkind)));
+    }
+  }catch(err){
+    out.innerHTML=`<p class="text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl px-4 py-3 leading-loose">تعذر الاستعلام: ${esc(err.message||'حاول مرة أخرى')}</p>`;
+  }finally{
+    btn.disabled=false; btn.innerHTML=ic('search')+' استعلام';
+  }
+}
+
+/* ---------- تصدير CSV بالأعمدة الجديدة ---------- */
+function exportCsv(){
+  const rows=filteredRegs();
+  if(!rows.length) return toast('لا توجد نتائج للتصدير','err');
+  const H=['رقم التسجيل','تاريخ التقديم','الاسم الرباعي','الرقم القومي','تاريخ الميلاد','العمر','المستوى','مقدار الحفظ','المحافظة','المركز/المدينة','القرية/المنطقة','مركز التحفيظ/المحفظ','اسم ولي الأمر','هاتف ولي الأمر','ملاحظات المتسابق','الحالة','سبب الرفض','الممتحن الأول','الممتحن الثاني','درجة الشفوي','درجة التحريري','النتيجة النهائية','ورقة الامتحان','فيديو الامتحان','مشاركة الملفات للمتسابق','ملاحظات الإدارة'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const line=r=>[r.reg_no,r.created_at,r.full_name,r.national_id,r.birth_date,r.age,r.level_name,r.memorized,r.governorate,r.city,r.village,r.center_name,r.guardian_name,r.guardian_phone,r.notes,STATUS[r.status],r.rejection_reason,exNameL(r.examiner_id),exNameL(r.examiner_id_2),r.oral_score,r.written_score,RESULT_AR[r.result_status]||'',r.paper_path?'مرفوعة':'',r.video_path?'مرفوع':'',r.share_exams?'مسموح':'ممنوع',r.admin_notes].map(q).join(',');
+  const csv='\uFEFF'+[H.map(q).join(','),...rows.map(line)].join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='تسجيلات-المسابقة-'+todayISO()+'.csv';
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  toast('تم تنزيل الملف — يفتح مباشرة في Excel بترميز عربي سليم','ok');
+}
+
+/* ---------- مستمعو الأحداث الجدد ---------- */
+document.addEventListener('click', async e=>{
+  const btn=e.target.closest('button'); if(!btn)return;
+  if(btn.classList.contains('aview2')){ openAdminFile(btn.dataset.path, APPB, 'file'); return; }
+  if(btn.classList.contains('xup2')){ EXUP={id:btn.dataset.id,kind:btn.dataset.kind}; const inp=btn.dataset.kind==='paper'?$('#xfilePaper2'):$('#xfileVideo2'); if(inp)inp.click(); return; }
+  if(btn.classList.contains('xview2')){ openAdminFile(btn.dataset.path, EXB, btn.dataset.kind); return; }
+  if(btn.classList.contains('xdel2')){
+    const id=btn.dataset.id, kind=btn.dataset.kind, path=btn.dataset.path;
+    const label=kind==='paper'?'ورقة الامتحان':'فيديو الامتحان';
+    modal(`<div class="m-head">حذف ${esc(label)}</div><div class="m-body">سيتم حذف ${esc(label)} نهائيًا. هل أنت متأكد؟</div>
+      <div class="m-actions"><button class="btn btn-danger" id="xDelOk">${ic('trash',15)} حذف</button><button class="btn btn-outline" data-close>إلغاء</button></div>`);
+    $('#xDelOk').onclick=async()=>{
+      const b=$('#xDelOk'); b.disabled=true; b.innerHTML='<span class="spin"></span> جارٍ…';
+      try{
+        try{ await sb.storage.from(EXB).remove([path]); }catch(e2){}
+        const patch={}; patch[kind==='paper'?'paper_path':'video_path']=null;
+        const {error}=await sb.from('registrations').update(patch).eq('id',id);
+        if(error)throw error;
+        const r=A.regs.find(x=>x.id===id); if(r)Object.assign(r,patch);
+        toast('تم الحذف','ok'); closeLayer(); openDetail(id);
+      }catch(err){ toast('تعذّر الحذف: '+err.message,'err'); b.disabled=false; }
+    };
+    return;
+  }
+  if(btn.id==='dSaveAll'){
+    const id=btn.dataset.id;
+    const st=$('#dStatus').value, rej=$('#dRej').value.trim();
+    if(st==='rejected'&&!rej){ toast('اكتب سبب الرفض قبل الحفظ','err'); return; }
+    const ex1=+$('#dExm').value||null, ex2=+$('#dExm2').value||null;
+    if(ex1&&ex2&&ex1===ex2){ toast('اختر شيخين مختلفين للجنة','err'); return; }
+    btn.disabled=true; btn.innerHTML='<span class="spin"></span> جارٍ الحفظ…';
+    try{
+      const patch={status:st,rejection_reason:st==='rejected'?rej:null,admin_notes:$('#dNote').value.trim(),national_id:$('#dNid').value.replace(/\D/g,'')||null,examiner_id:ex1,examiner_id_2:ex2,oral_score:$('#dOral').value===''?null:+$('#dOral').value,written_score:$('#dWritten').value===''?null:+$('#dWritten').value,result_status:$('#dRes').value||null,share_exams:$('#dShare').checked};
+      const {error}=await sb.from('registrations').update(patch).eq('id',id);
+      if(error)throw error;
+      const r=A.regs.find(x=>x.id===id); if(r)Object.assign(r,patch);
+      toast('تم حفظ التفاصيل — تعكس بوابة المتابعة التغييرات فورًا','ok'); closeLayer(); renderTab();
+    }catch(err){ toast('تعذّر الحفظ: '+err.message,'err'); btn.disabled=false; btn.innerHTML=ic('check',16)+' حفظ كل التفاصيل'; }
+    return;
+  }
+  if(btn.classList.contains('delreg2')){
+    const id=btn.dataset.id, r=A.regs.find(x=>x.id===id)||{};
+    closeLayer();
+    modal(`<div class="m-head">حذف التسجيل نهائيًا</div>
+      <div class="m-body">هل أنت متأكد من حذف تسجيل <b>${esc(r.full_name||'')}</b> رقم <b>${esc(r.reg_no||'')}</b>؟ سيتم حذف كل ملفاته (المرفقات وملفات الامتحان)، ولا يمكن التراجع.</div>
+      <div class="m-actions"><button class="btn btn-danger" id="mDelOk2">${ic('trash',15)} حذف نهائي</button><button class="btn btn-outline" data-close>إلغاء</button></div>`);
+    $('#mDelOk2').onclick=async()=>{
+      const b=$('#mDelOk2'); b.disabled=true; b.innerHTML='<span class="spin"></span> جارٍ الحذف…';
+      try{
+        const exF=[r.paper_path,r.video_path].filter(Boolean);
+        if(exF.length){ try{ await sb.storage.from(EXB).remove(exF); }catch(e2){} }
+        const apF=[r.photo_path,r.birthdoc_path].filter(Boolean);
+        if(apF.length){ try{ await sb.storage.from(APPB).remove(apF); }catch(e3){} }
+        const {error}=await sb.from('registrations').delete().eq('id',id);
+        if(error)throw error;
+        A.regs=A.regs.filter(x=>x.id!==id);
+        toast('تم الحذف نهائيًا','ok'); closeLayer(); renderDash();
+      }catch(err){ toast('تعذّر الحذف: '+err.message,'err'); b.disabled=false; }
+    };
+    return;
+  }
+});
+document.addEventListener('change', async e=>{
+  const t=e.target; if(!t)return;
+  if(t.id==='xfilePaper2'||t.id==='xfileVideo2'){
+    const f=t.files&&t.files[0], up=EXUP;
+    if(f&&up&&up.id){
+      const isPaper=t.id==='xfilePaper2';
+      const max=isPaper?15*1024*1024:100*1024*1024;
+      if(f.size>max){ toast(isPaper?'حجم الورقة أكبر من ١٥ ميجا':'حجم الفيديو أكبر من ١٠٠ ميجا','err'); }
+      else{
+        toast(isPaper?'جارٍ رفع الورقة…':'جارٍ رفع الفيديو — قد يستغرق عدة دقائق');
+        try{
+          const r=A.regs.find(x=>x.id===up.id)||{};
+          const oldPath=isPaper?r.paper_path:r.video_path;
+          const path=await uploadExam(up.id,up.kind,f,oldPath);
+          const patch={}; patch[isPaper?'paper_path':'video_path']=path;
+          const {error}=await sb.from('registrations').update(patch).eq('id',up.id);
+          if(error)throw error;
+          Object.assign(r,patch);
+          toast('تم الرفع بنجاح','ok'); openDetail(up.id);
+        }catch(err){ toast('تعذّر الرفع: '+(err.message||''),'err'); }
+      }
+    }
+    EXUP=null; t.value='';
+  }
+});
+})();
+/* ===== نهاية تحديث ٧ — لو مش شايف السطر ده آخر حاجة لصقتها يبقى الكود اتقص ويلزم تعيد نسخه ===== */
 </script>
 </body>
 </html>
