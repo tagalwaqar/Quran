@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مشكاة القرآن — منصة تعليم القرآن الكريم</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='18' fill='%23556B2F' transform='rotate(45 16 16)'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23C9A227' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{pine:{900:'#0B2B1F',800:'#0F3D2C',700:'#155841'},gold:{600:'#A9852F',500:'#C9A227',400:'#E0C468',100:'#F6ECD2'},cream:{50:'#FBF8F0',100:'#F7F3E8',200:'#EFE7D2'},olive:{700:'#3F5222',600:'#556B2F',500:'#6B8E23'},ink:'#26301F'},fontFamily:{amiri:['Amiri','serif'],sans:['"IBM Plex Sans Arabic"','Tahoma','sans-serif']}}}};
+</script>
+<style type="text/tailwindcss">
+@layer components{
+.btn{@apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-lg px-5 py-2.5 border border-transparent cursor-pointer select-none transition;}
+.btn:disabled{@apply opacity-50 cursor-not-allowed;}
+.btn-primary{@apply bg-pine-800 text-cream-50 hover:bg-pine-700;}
+.btn-gold{@apply bg-gold-500 text-pine-900 hover:bg-gold-400;}
+.btn-outline{@apply bg-transparent text-pine-800 border-pine-800 hover:bg-pine-800 hover:text-cream-50;}
+.btn-outline-light{@apply bg-transparent text-cream-50 border-cream-50/40 hover:border-gold-400 hover:text-gold-400;}
+.btn-danger{@apply bg-red-800 text-white hover:bg-red-900;}
+.btn-sm{@apply px-3.5 py-1.5 text-xs rounded-md;}
+.input{@apply w-full bg-white border border-cream-200 rounded-lg px-3.5 py-2.5 text-sm outline-none transition focus:border-olive-600 focus:ring-2 focus:ring-olive-600/15;}
+.label{@apply block text-sm font-semibold mb-1.5;}
+.card{@apply bg-cream-50 border border-cream-200 rounded-2xl;}
+}
+</style>
+<style>
+:root{--gold:#C9A227;--olive:#556B2F}
+html{scroll-behavior:smooth}
+.pat-gold{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84'%3E%3Cg fill='none' stroke='%23C9A227'%3E%3Crect x='22' y='22' width='40' height='40'/%3E%3Crect x='22' y='22' width='40' height='40' transform='rotate(45 42 42)'/%3E%3C/g%3E%3C/svg%3E");opacity:.08}
+/* أسماء مميزة */
+.tn{font-family:Amiri,serif;font-weight:700;color:#A9852F;font-size:1.45rem;line-height:1.7}
+.sn{font-weight:800;color:#556B2F}
+/* بطاقات المسارات: ذهبي في بيج + زيتوني */
+.track-a{background:#F5E9C9;border:2px solid #C9A227;color:#7A5C14}
+.track-b{background:#556B2F;border:2px solid #8F9F5F;color:#F5F0DC}
+.track-a .t-ic,.track-b .t-ic{font-size:2.2rem;display:block}
+.track-a .t-nm{font-family:Amiri,serif;font-weight:700;font-size:1.15rem;color:#8A6D1C;margin-top:.6rem}
+.track-b .t-nm{font-family:Amiri,serif;font-weight:700;font-size:1.15rem;color:#E0C468;margin-top:.6rem}
+#toasts{position:fixed;bottom:1rem;inset-inline-start:1rem;z-index:200;display:flex;flex-direction:column;gap:.5rem}
+.toast{display:flex;gap:.55rem;align-items:center;background:#0F3D2C;color:#F7F3E8;padding:.7rem 1.05rem;border-radius:.7rem;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.88rem;max-width:min(420px,90vw);opacity:0;transform:translateY(10px);transition:.3s}
+.toast.show{opacity:1;transform:none}.toast.err{background:#7F1D1D}.toast.ok{background:#14532D}
+.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:rot .7s linear infinite}
+.spin.dark{border-color:rgba(85,107,47,.3);border-top-color:var(--olive)}
+@keyframes rot{to{transform:rotate(360deg)}}
+.tag{display:inline-block;padding:.15rem .8rem;border-radius:9999px;font-size:.78rem;font-weight:700}
+.tag-pending{background:#FBF3D9;color:#8A6D1C}.tag-approved{background:#EAF5EE;color:#14532D}.tag-completed{background:#E3EBD3;color:#3F5222}.tag-stopped{background:#FBEDEC;color:#991B1B}
+.chip2{border:1px solid #EFE7D2;border-radius:9999px;padding:.3rem .75rem;font-size:.78rem;background:#fff;cursor:pointer;color:#5C6350;transition:.12s}
+.chip2.on{background:#0F3D2C;color:#E0C468;border-color:var(--gold)}
+.side-link{display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:.6rem;color:#D9D2B4;font-size:.9rem;font-weight:500;cursor:pointer;text-align:start}
+.side-link:hover{background:rgba(255,255,255,.08);color:#fff}
+.side-link.active{background:rgba(201,162,39,.18);color:#E0C468;box-shadow:-3px 0 0 var(--gold)}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(520px,100%);background:#F7F3E8;z-index:90;overflow-y:auto;box-shadow:0 0 44px rgba(0,0,0,.3)}
+.overlay{position:fixed;inset:0;background:rgba(11,43,31,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:1rem}
+.m-head{font-family:Amiri,serif;font-size:1.3rem;color:#0F3D2C;margin-bottom:.6rem}
+.m-body{font-size:.93rem;color:#3B442F;line-height:1.9}
+.m-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.3rem;flex-wrap:wrap}
+@media(max-width:767px){.rtable,.rtable tbody,.rtable tr,.rtable td{display:block}.rtable thead{display:none}.rtable tr{background:#FBF8F0;border:1px solid #EFE7D2;border-radius:.8rem;margin-bottom:.75rem}.rtable td{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px dashed #EFE7D2;padding:.55rem .5rem;text-align:start}.rtable td::before{content:attr(data-l);color:#8a8f7e;font-size:.72rem;flex-shrink:0}.rtable td:last-child{border-bottom:none}}
+</style>
+</head>
+<body class="bg-cream-100 font-sans text-ink antialiased">
+<div id="app"></div><div id="toasts"></div><div id="layer"></div>
+<script>
+/* ═══ مشكاة القرآن — منصة تعليم القرآن الكريم ═══ */
+const SUPABASE_URL='https://ctgrlgdughobzxvqmwnn.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const TRACKS=['تعليم القرآن الكريم','حفظ القرآن الكريم','تجويد القرآن الكريم','مراجعة القرآن الكريم'];
+const TRACK_IC=['📖','🧠','🎵','🔄'];
+const DAYS=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
+const SLOTS=['بعد الفجر','9 صباحًا','10 صباحًا','11 صباحًا','بعد الظهر','4 عصرًا','5 عصرًا','6 مساءً','7 مساءً','8 مساءً','9 مساءً'];
+const MST={pending:'قيد المراجعة',approved:'مقبول',completed:'مكتمل',stopped:'متوقف'};
+const LVL=['مبتدئ','متوسط','متقدم'];
+const SITE={org:'بيت مال المسلمين بكفر يوسف حنس',season:'2026–2027',title:'مشكاة القرآن'};
+let TEACHERS=null,STUDS=null,TAB='teachers',Q='';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const arNum=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const fmtDT=iso=>{if(!iso)return'';try{return new Date(iso).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'});}catch(e){return iso;}};
+function toast(m,t){const e=document.createElement('div');e.className='toast '+(t||'');e.innerHTML='<span>'+esc(m)+'</span>';$('#toasts').appendChild(e);requestAnimationFrame(()=>e.classList.add('show'));setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),350);},4200);}
+function modal(h){$('#layer').innerHTML='<div class="overlay" data-close><div class="card !bg-cream-50 p-6 max-w-lg w-full border-t-4 border-t-gold-500">'+h+'</div></div>';}
+function closeL(){$('#layer').innerHTML='';}
+
+/* ---------- القالب العام ---------- */
+function shell(c){return'<header class="bg-pine-900 text-cream-50 sticky top-0 z-40 shadow-md"><div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3"><a href="#/" class="flex items-center gap-3 min-w-0"><span class="w-11 h-11 shrink-0 rounded-xl bg-gold-100 text-olive-700 font-amiri text-2xl font-bold flex items-center justify-center">م</span><span class="min-w-0"><b class="font-amiri block leading-tight">مشكاة القرآن</b><small class="block text-[11px] text-cream-50/60 truncate">منصة تعليم القرآن الكريم — '+esc(SITE.season)+'</small></span></a><nav class="flex items-center gap-2 shrink-0"><a href="#/track" class="btn btn-outline-light btn-sm hidden sm:inline-flex">متابعتي</a><a href="#/join" class="btn btn-gold btn-sm">التسجيل</a><a href="#/admin" class="btn btn-outline-light btn-sm">الإدارة</a></nav></div><div style="height:6px;background:linear-gradient(90deg,#A9852F,#E0C468,#6B8E23)"></div></header>'+c+'<footer class="bg-pine-900 text-cream-50/70 text-center py-8 border-t-2 border-gold-500/60"><p class="font-amiri text-xl text-cream-50">مشكاة القرآن</p><p class="text-sm mt-1">'+esc(SITE.org)+'</p><p class="text-xs mt-3"><a href="index.html" class="text-gold-400/90 hover:text-gold-400 underline decoration-gold-500">العودة إلى منصة المسابقة الكبرى</a></p><p class="text-xs mt-2 text-cream-50/50">موسم '+esc(SITE.season)+'</p></footer>';}
+
+/* ---------- الرئيسية ---------- */
+function home(){const cards=TRACKS.map((t,i)=>{const cls=i%2===0?'track-a':'track-b';return'<a href="#/join/'+(i+1)+'" class="'+cls+' rounded-2xl p-6 text-center block transition hover:-translate-y-1 hover:shadow-xl"><span class="t-ic">'+TRACK_IC[i]+'</span><p class="t-nm">'+t+'</p><p class="text-xs mt-2 opacity-75">سجّل واحجز موعدك مع معلمك</p></a>';}).join('');
+app.innerHTML=shell('<section class="relative bg-pine-900 text-cream-50 overflow-hidden"><div class="pat-gold absolute inset-0 pointer-events-none"></div><div class="relative max-w-4xl mx-auto px-4 py-16 text-center"><p class="font-amiri text-gold-400 text-xl md:text-2xl leading-loose">«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»</p><h1 class="font-amiri text-4xl md:text-6xl mt-6">مشكاة القرآن</h1><p class="text-cream-50/70 mt-3">منصة تعليم القرآن الكريم — تعلّم واحفظ وجوّد وراجع مع نخبة من المشايخ والمعلمات</p><div class="mt-8 flex flex-wrap gap-3 justify-center"><a href="#/join" class="btn btn-gold !px-8 !py-3 !text-base">سجّل الآن واحجز موعدك</a><a href="#/track" class="btn btn-outline-light !px-6 !py-3 !text-base">متابعة حفظي ومستواي</a></div></div></section><section class="max-w-5xl mx-auto px-4 py-14"><div class="text-center"><div class="flex items-center justify-center gap-3"><i class="h-px w-16 bg-gold-500"></i><span class="w-2.5 h-2.5 bg-gold-500 rotate-45 inline-block"></span><i class="h-px w-16 bg-gold-500"></i></div><h2 class="font-amiri text-3xl text-pine-800 mt-3">مسارات التعليم</h2></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">'+cards+'</div><div class="card p-6 mt-10 max-w-3xl mx-auto"><h3 class="font-amiri text-xl text-pine-800 mb-4 text-center">كيف تعمل المنصة؟</h3><div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-sm"><div class="p-3"><span class="text-2xl block">📝</span><b class="text-olive-700">سجّل بياناتك</b></div><div class="p-3"><span class="text-2xl block">👨‍🏫</span><b class="text-olive-700">اختر معلمك</b></div><div class="p-3"><span class="text-2xl block">🗓️</span><b class="text-olive-700">احجز موعدك</b></div><div class="p-3"><span class="text-2xl block">📊</span><b class="text-olive-700">تابع تقدمك</b></div></div></div></section>');}
+
+/* ---------- التسجيل ---------- */
+async function join(preTrack){app.innerHTML=shell('<div class="min-h-[60vh] flex items-center justify-center"><span class="spin dark"></span></div>');
+try{const{data,error}=await sb.rpc('msk_teachers_list');if(error)throw error;TEACHERS=data||[];}catch(e){TEACHERS=[];}
+const pre=(preTrack&&TRACKS[+preTrack-1])||'';
+app.innerHTML=shell('<section class="bg-cream-50 border-b border-cream-200 py-10 text-center"><p class="text-xs text-ink/50 mb-2"><a href="#/" class="text-pine-700 font-semibold underline">الرئيسية</a> / التسجيل</p><h1 class="font-amiri text-3xl text-pine-800">التسجيل في مشكاة القرآن</h1><p class="text-sm text-ink/60 mt-1">املأ البيانات ثم اختر معلمك وموعدك</p></section><section class="max-w-2xl mx-auto px-4 py-10"><div class="card border-t-4 border-t-gold-500 overflow-hidden"><div class="bg-olive-700 text-cream-50 px-6 py-4"><h2 class="font-amiri text-xl">استمارة الانضمام</h2></div><form id="jForm" class="p-5 md:p-8" novalidate><div class="grid md:grid-cols-2 gap-5"><div class="md:col-span-2"><label class="label">الاسم الكامل <span class="text-red-700">*</span></label><input id="jname" class="input" placeholder="اسم الطالب كاملًا"></div><div><label class="label">رقم الموبايل <span class="text-red-700">*</span></label><input id="jphone" type="tel" dir="ltr" class="input" placeholder="01012345678"><p class="text-xs text-ink/50 mt-1">سيكون رقمك للدخول إلى صفحة متابعتك.</p></div><div><label class="label">العمر</label><input id="jage" type="number" min="4" max="90" class="input"></div><div><label class="label">النوع <span class="text-red-700">*</span></label><select id="jgender" class="input"><option value="ذكر">ذكر — مع شيخ</option><option value="أنثى">أنثى — مع شيخة</option></select></div><div><label class="label">مسار التعليم <span class="text-red-700">*</span></label><select id="jtrack" class="input">'+TRACKS.map(t=>'<option '+(t===pre?'selected':'')+'>'+t+'</option>').join('')+'</select></div><div class="md:col-span-2"><label class="label">اختر المعلم <span class="text-red-700">*</span></label><select id="jteacher" class="input"><option value="">اختر المعلم…</option></select></div><div><label class="label">اليوم <span class="text-red-700">*</span></label><select id="jday" class="input" disabled><option value="">اختر المعلم أولًا</option></select></div><div><label class="label">الساعة <span class="text-red-700">*</span></label><select id="jhour" class="input" disabled><option value="">اختر المعلم أولًا</option></select></div></div><div id="jErr" class="hidden mt-4 text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl px-4 py-3 leading-loose"></div><button id="jGo" type="submit" class="btn btn-primary w-full !py-3.5 !text-base mt-6">تسجيل وحجز الموعد</button></form></div></section>');
+fillTeachers();
+ $('#jgender').addEventListener('change',fillTeachers);
+ $('#jteacher').addEventListener('change',fillDays);
+ $('#jForm').addEventListener('submit',submitJoin);}
+function fillTeachers(){const g=$('#jgender').value;const list=TEACHERS.filter(t=>t.gender===g);
+ $('#jteacher').innerHTML='<option value="">اختر المعلم…</option>'+list.map(t=>'<option value="'+t.id+'">'+esc(t.name)+' — '+esc(t.track||'')+'</option>').join('');
+ $('#jday').innerHTML='<option value="">اختر المعلم أولًا</option>';$('#jday').disabled=true;
+ $('#jhour').innerHTML='<option value="">اختر المعلم أولًا</option>';$('#jhour').disabled=true;}
+function fillDays(){const t=TEACHERS.find(x=>String(x.id)===$('#jteacher').value);
+if(!t){return;}
+const days=(t.days||[]);const hours=(t.hours||[]);
+ $('#jday').innerHTML='<option value="">اختر اليوم…</option>'+days.map(d=>'<option>'+esc(d)+'</option>').join('');
+ $('#jday').disabled=!days.length;
+ $('#jhour').innerHTML='<option value="">اختر اليوم أولًا</option>';$('#jhour').disabled=true;
+if(!days.length)toast('هذا المعلم لم يحدد أيامه بعد — جرّب معلمًا آخر أو عاود لاحقًا','err');
+ $('#jday').onchange=()=>{$('#jhour').innerHTML='<option value="">اختر الساعة…</option>'+hours.map(h=>'<option>'+esc(h)+'</option>').join('');$('#jhour').disabled=!hours.length;};}
+async function submitJoin(e){e.preventDefault();
+const v=id=>(($('#'+id)||{}).value||'').trim();
+const err=$('#jErr');err.classList.add('hidden');
+const b=$('#jGo');b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ التسجيل…';
+try{const{data,error}=await sb.rpc('msk_register',{s:{name:v('jname'),phone:v('jphone'),age:v('jage')||null,gender:v('jgender'),track:v('jtrack'),teacher_id:v('jteacher'),day:v('jday'),hour:v('jhour')}});
+if(error)throw error;
+window.scrollTo({top:0});
+const t=TEACHERS.find(x=>String(x.id)===v('jteacher'));
+app.innerHTML=shell('<section class="max-w-xl mx-auto px-4 py-14"><div class="card border-t-4 border-t-gold-500 p-8 text-center"><span class="text-6xl">🎉</span><h1 class="font-amiri text-2xl md:text-3xl text-pine-800 mt-4">تم تسجيلك بنجاح</h1><div class="bg-cream-100 border border-cream-200 rounded-xl p-4 mt-6 text-start text-sm space-y-1.5"><p>الطالب: <b class="sn">'+esc(v('jname'))+'</b></p><p>المعلم: <b class="tn">'+esc(t?t.name:'—')+'</b></p><p>الموعد: <b>'+esc(v('jday'))+' — '+esc(v('jhour'))+'</b></p></div><p class="text-sm text-ink/60 mt-5">رقمك في المتابعة (يُرسل أيضًا برقم موبايلك):</p><div class="font-amiri text-3xl text-olive-700 border-2 border-dashed border-gold-500 rounded-xl py-2.5 px-6 inline-block mt-1">'+esc(data)+'</div><p class="text-xs text-ink/55 mt-5 leading-loose">طلبك قيد المراجعة — تابع حالتك وتعليمات معلمك وروابط اللقاء من صفحة «متابعتي» برقم موبايلك.</p><div class="flex gap-3 justify-center mt-6 flex-wrap"><a href="#/track" class="btn btn-primary">صفحة متابعتي</a><a href="#/" class="btn btn-outline">الرئيسية</a></div></div></section>');
+toast('تم التسجيل بنجاح','ok');}
+catch(er){err.textContent=er.message||'تعذر التسجيل — حاول مرة أخرى';err.classList.remove('hidden');err.scrollIntoView({behavior:'smooth',block:'center'});toast('تعذر التسجيل','err');b.disabled=false;b.innerHTML='تسجيل وحجز الموعد';}}
+
+/* ---------- صفحة المتابعة ---------- */
+function track(){app.innerHTML=shell('<section class="bg-cream-50 border-b border-cream-200 py-10 text-center"><p class="text-xs text-ink/50 mb-2"><a href="#/" class="text-pine-700 font-semibold underline">الرئيسية</a> / متابعتي</p><h1 class="font-amiri text-3xl text-pine-800">متابعتي</h1><p class="text-sm text-ink/60 mt-1">تابع حفظك ومستواك وتعليمات معلمك وروابط لقاءاتك</p></section><section class="max-w-xl mx-auto px-4 py-10"><div class="card border-t-4 border-t-gold-500 p-6 md:p-8"><label class="label">رقم الموبايل المسجل <span class="text-red-700">*</span></label><input id="tPhone" type="tel" dir="ltr" class="input !text-lg" placeholder="01xxxxxxxxx"><button id="tGo" class="btn btn-primary w-full !py-3 mt-4">دخول لصفحتي</button><div id="tOut" class="mt-6"></div></div></section>');
+const p=$('#tPhone');p.addEventListener('input',()=>{p.value=p.value.replace(/\D/g,'').slice(0,11);});
+p.addEventListener('keydown',e=>{if(e.key==='Enter')$('#tGo').click();});
+ $('#tGo').addEventListener('click',doLookup);}
+async function doLookup(){const ph=$('#tPhone').value.trim();const out=$('#tOut'),b=$('#tGo');
+if(!/^01[0125]\d{8}$/.test(ph)){out.innerHTML='<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3">أدخل رقم موبايل صحيحًا (11 رقمًا).</p>';return;}
+b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ البحث…';
+try{const{data,error}=await sb.rpc('msk_lookup',{p_phone:ph});if(error)throw error;
+if(!data){out.innerHTML='<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3">لا يوجد تسجيل بهذا الرقم — تأكد منه أو <a href="#/join" class="underline font-bold">سجّل الآن</a>.</p>';}
+else{const t=data.teacher_name||'—';
+out.innerHTML='<div class="bg-cream-100 border border-cream-200 rounded-xl p-5 text-sm space-y-1.5"><p>الطالب: <b class="sn text-base">'+esc(data.name)+'</b>'+(data.age?' <small class="text-ink/50">('+arNum(data.age)+' عامًا)</small>':'')+'</p><p>الرقم: <b class="text-gold-600">'+esc(data.code)+'</b></p><p>المسار: <b>'+esc(data.track||'—')+'</b></p></div><div class="card !bg-olive-700 !border-olive-600 p-5 mt-3"><p class="text-cream-50/70 text-xs mb-1">معلمك'+(data.teacher_gender==='أنثى'?'ة':'')+'</p><p class="tn !text-2xl">'+esc(t)+'</p><p class="text-cream-50/85 text-sm mt-2">🗓 الموعد: <b>'+esc(data.day||'—')+' — '+esc(data.hour||'—')+'</b></p><div class="mt-2"><span class="tag tag-'+esc(data.status)+'">'+(MST[data.status]||data.status)+'</span>'+(data.level?' <span class="tag tag-completed">المستوى: '+esc(data.level)+'</span>':'')+'</div></div>'+(data.progress?'<div class="card p-4 mt-3"><p class="font-amiri text-lg text-pine-800 mb-1">حفظي وتقدمي</p><p class="text-sm leading-loose">'+esc(data.progress)+'</p></div>':'')+(data.instructions?'<div class="card !border-gold-500/50 p-4 mt-3"><p class="font-amiri text-lg text-pine-800 mb-1">📋 تعليمات المعلم</p><p class="text-sm leading-loose">'+esc(data.instructions)+'</p></div>':'')+(data.link?'<a href="'+esc(data.link)+'" target="_blank" rel="noopener" class="btn btn-gold btn-block mt-3 !py-3">🔗 دخول اللقاء</a>':'')+(data.status==='pending'?'<p class="text-xs text-ink/55 mt-3 leading-loose text-center">طلبك قيد المراجعة — ستظهر التعليمات ورابط اللقاء هنا فور اعتماد المعلم.</p>':'');}}
+catch(er){out.innerHTML='<p class="text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl px-4 py-3">تعذر البحث: '+esc(er.message||'')+'</p>';}
+finally{b.disabled=false;b.innerHTML='دخول لصفحتي';}}
+
+/* ---------- الإدارة ---------- */
+async function admin(){const{data:{session}}=await sb.auth.getSession();if(!session)return login();
+if(TEACHERS===null||STUDS===null){app.innerHTML=shell('<div class="min-h-[60vh] flex items-center justify-center"><span class="spin dark"></span></div>');
+try{const a=await sb.from('msk_teachers').select('*').order('id');if(a.error)throw a.error;TEACHERS=a.data||[];
+const s=await sb.from('msk_students').select('*').order('created_at',{ascending:false});if(s.error)throw s.error;STUDS=s.data||[];}catch(e){return toast(e.message,'err');}}
+dash();}
+function login(){app.innerHTML='<div class="min-h-screen bg-pine-900 relative flex items-center justify-center p-4"><div class="pat-gold absolute inset-0 pointer-events-none"></div><div class="relative bg-cream-100 rounded-2xl border-t-4 border-gold-500 shadow-2xl w-full max-w-md p-8"><div class="text-center"><span class="w-14 h-14 rounded-full bg-olive-700 text-gold-400 inline-flex items-center justify-center font-amiri text-2xl font-bold">م</span><h1 class="font-amiri text-2xl text-pine-800 mt-3">إدارة مشكاة القرآن</h1></div><form id="lForm" class="mt-6 space-y-4"><div><label class="label">البريد الإلكتروني</label><input id="l_em" type="email" dir="ltr" class="input" required></div><div><label class="label">كلمة المرور</label><input id="l_pw" type="password" class="input" required></div><p id="lErr" class="hidden text-sm text-red-800 bg-red-50 border border-red-300 rounded-lg px-3 py-2"></p><button class="btn btn-primary w-full !py-3">دخول</button></form><p class="text-center mt-3"><a href="#/" class="text-pine-700 font-semibold underline text-sm">العودة</a></p></div></div>';
+ $('#lForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ…';
+const{error}=await sb.auth.signInWithPassword({email:$('#l_em').value.trim(),password:$('#l_pw').value});
+if(error){const m={'Invalid login credentials':'البريد أو كلمة المرور غير صحيحة'};const p=$('#lErr');p.textContent=m[error.message]||error.message;p.classList.remove('hidden');b.disabled=false;b.innerHTML='دخول';return;}
+TEACHERS=null;STUDS=null;admin();});}
+function dash(){app.innerHTML='<div class="min-h-screen flex flex-col md:flex-row"><aside class="bg-pine-900 text-cream-50 md:w-60 shrink-0 md:sticky md:top-0 md:h-screen p-4"><p class="font-amiri text-lg pb-3 mb-3 border-b border-white/10">إدارة مشكاة القرآن</p><nav class="flex md:flex-col gap-1.5 flex-wrap"><button data-tab="teachers" class="side-link '+(TAB==='teachers'?'active':'')+'">👨‍🏫 المعلمون</button><button data-tab="students" class="side-link '+(TAB==='students'?'active':'')+'">📚 الطلاب '+(STUDS?'<span class="ms-auto bg-gold-500 text-pine-900 text-[11px] font-bold rounded-full px-2">'+arNum(STUDS.length)+'</span>':'')+'</button></nav><div class="md:mt-auto pt-3 border-t border-white/10 flex md:flex-col gap-1.5"><a href="#/" class="side-link">عرض المنصة</a><button id="lOut" class="side-link">خروج</button></div></aside><main id="dMain" class="flex-1 min-w-0 p-4 md:p-8 bg-cream-100"></main></div>';
+renderTab();}
+function renderTab(){if(TAB==='teachers')tTab();else sTab();}
+function tTab(){const m=$('#dMain');
+m.innerHTML='<div class="flex items-center justify-between flex-wrap gap-3 mb-5"><h2 class="font-amiri text-2xl text-pine-800">المعلمون والممعلمات</h2><div class="flex gap-2"><button id="addT" class="btn btn-outline btn-sm">+ إضافة معلم</button><button id="saveT" class="btn btn-primary btn-sm">حفظ الكل</button></div></div><p class="text-xs text-ink/55 mb-4 leading-loose">حدد لكل معلم: النوع والمسار وأيام تدريسه (يومين أو ثلاثة مثلًا) والساعات المتاحة — تظهر للطلاب فورًا في استمارة التسجيل.</p><div id="tBox" class="space-y-3"></div>';
+paintT();}
+function paintT(){$('#tBox').innerHTML=TEACHERS.map((t,i)=>{const isNew=!t.id;
+return'<div class="card p-4 '+(isNew?'border-dashed border-olive-500':'')+'"><div class="grid md:grid-cols-4 gap-3"><div><label class="label !text-xs !mb-1">الاسم</label><input class="input tk" data-i="'+i+'" data-k="name" value="'+esc(t.name||'')+'" placeholder="اسم المعلم/المعلمة"></div><div><label class="label !text-xs !mb-1">النوع</label><select class="input tk" data-i="'+i+'" data-k="gender"><option '+(t.gender==='ذكر'?'selected':'')+'>ذكر</option><option '+(t.gender==='أنثى'?'selected':'')+'>أنثى</option></select></div><div><label class="label !text-xs !mb-1">المسار</label><select class="input tk" data-i="'+i+'" data-k="track">'+TRACKS.map(x=>'<option '+(t.track===x?'selected':'')+'>'+x+'</option>').join('')+'</select></div><div><label class="label !text-xs !mb-1">هاتف المعلم (خاص)</label><input class="input tk" dir="ltr" data-i="'+i+'" data-k="phone" value="'+esc(t.phone||'')+'"></div></div><div class="mt-3"><label class="label !text-xs !mb-1">رابط اللقاء الافتراضي (Zoom/Meet — اختياري)</label><input class="input tk" dir="ltr" data-i="'+i+'" data-k="meeting_link" value="'+esc(t.meeting_link||'')+'" placeholder="https://..."></div><div class="mt-3"><p class="text-xs font-bold text-olive-700 mb-1.5">الأيام المتاحة:</p><div class="flex flex-wrap gap-1.5">'+DAYS.map(d=>'<button type="button" class="chip2 '+((t.days||[]).includes(d)?'on':'')+'" data-ci="'+i+'" data-arr="days" data-v="'+d+'">'+d+'</button>').join('')+'</div></div><div class="mt-3"><p class="text-xs font-bold text-olive-700 mb-1.5">الساعات المتاحة:</p><div class="flex flex-wrap gap-1.5">'+SLOTS.map(h=>'<button type="button" class="chip2 '+((t.hours||[]).includes(h)?'on':'')+'" data-ci="'+i+'" data-arr="hours" data-v="'+h+'">'+h+'</button>').join('')+'</div></div><div class="flex items-center justify-between mt-4 pt-3 border-t border-cream-200"><label class="check2 flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" class="tk" data-i="'+i+'" data-k="active" '+(t.active!==false?'checked':'')+'> <span>مُتاح للطلاب</span></label><button class="btn btn-danger btn-sm delT" data-i="'+i+'">حذف</button></div></div>';}).join('');}
+function readT(){$$('.tk').forEach(el=>{const i=+el.dataset.i,k=el.dataset.k;const t=TEACHERS[i];if(!t)return;if(k==='active')t.active=el.checked;else t[k]=el.value.trim();});}
+function sTab(){const m=$('#dMain');const list=STUDS.filter(s=>!Q||[s.name,s.code,s.phone].join(' ').includes(Q));
+m.innerHTML='<div class="flex items-center justify-between flex-wrap gap-3 mb-5"><h2 class="font-amiri text-2xl text-pine-800">الطلاب</h2><input id="sQ" class="input !w-64" placeholder="بحث بالاسم أو الرقم…" value="'+esc(Q)+'"></div><div class="card overflow-x-auto"><table class="rtable w-full text-sm"><thead><tr class="bg-cream-100 text-pine-800 text-xs"><th class="p-3 text-start">الرقم</th><th class="p-3 text-start">الطالب</th><th class="p-3 text-start">المعلم</th><th class="p-3 text-start">الموعد</th><th class="p-3 text-start">الحالة</th><th class="p-3 text-start"></th></tr></thead><tbody>'+(!list.length?'<tr><td colspan="6" class="p-8 text-center text-ink/50">لا يوجد طلاب بعد</td></tr>':list.map(s=>{const t=TEACHERS.find(x=>x.id===s.teacher_id);
+return'<tr class="border-t border-cream-200"><td data-l="الرقم" class="p-3"><span class="font-bold text-gold-600 text-xs">'+esc(s.code)+'</span></td><td data-l="الطالب" class="p-3"><b class="sn">'+esc(s.name)+'</b><small class="block text-ink/50" dir="ltr">'+esc(s.phone)+'</small></td><td data-l="المعلم" class="p-3"><span class="tn !text-base">'+esc(t?t.name:'—')+'</span></td><td data-l="الموعد" class="p-3">'+esc(s.day||'—')+' — '+esc(s.hour||'')+'</td><td data-l="الحالة" class="p-3"><span class="tag tag-'+s.status+'">'+MST[s.status]+'</span></td><td class="p-3"><button class="btn btn-primary btn-sm editS" data-id="'+s.id+'">إدارة</button></td></tr>';}).join(''))+'</tbody></table></div>';
+ $('#sQ').addEventListener('input',e=>{Q=e.target.value;sTab();$('#sQ').focus();});}
+function openS(id){const s=STUDS.find(x=>x.id===id);if(!s)return;const t=TEACHERS.find(x=>x.id===s.teacher_id);
+ $('#layer').innerHTML='<div class="overlay" data-close></div><aside class="drawer"><div class="bg-olive-700 text-cream-50 p-5 sticky top-0 z-10 flex items-start justify-between gap-3"><div><h3 class="sn !text-cream-50 text-xl">'+esc(s.name)+'</h3><span class="text-gold-400 text-sm font-bold">'+esc(s.code)+'</span></div><button class="text-2xl" data-close>✕</button></div><div class="p-5 space-y-4"><div class="card p-4"><p class="text-xs text-ink/55 mb-1">المعلم والموعد</p><p class="tn">'+esc(t?t.name:'—')+'</p><p class="text-sm mt-1">🗓 '+esc(s.day||'—')+' — '+esc(s.hour||'—')+' · '+esc(s.track||'')+'</p><p class="text-xs text-ink/50 mt-1" dir="ltr">'+esc(s.phone)+'</p></div><div class="card p-4"><label class="label !text-xs !mb-1">الحالة</label><select id="eSt" class="input">'+Object.entries(MST).map(([k,v])=>'<option value="'+k+'" '+(s.status===k?'selected':'')+'>'+v+'</option>').join('')+'</select><label class="label !text-xs !mb-1 mt-3">المستوى</label><select id="eLv" class="input"><option value="">غير محدد</option>'+LVL.map(l=>'<option '+(s.level===l?'selected':'')+'>'+l+'</option>').join('')+'</select></div><div class="card p-4"><label class="label !text-xs !mb-1">حفظه وتقدمه (يظهر في صفحة متابعته)</label><textarea id="ePr" rows="3" class="input" placeholder="مثال: أتم حفظ جزء عمّ وبدأ سورة البقرة — تجويده في تحسن">'+esc(s.progress||'')+'</textarea></div><div class="card p-4"><label class="label !text-xs !mb-1">تعليمات المعلم (تظهر له)</label><textarea id="eIn" rows="3" class="input" placeholder="مثال: راجع من آية كذا إلى كذا، واحضر قبل الموعد بعشر دقائق">'+esc(s.instructions||'')+'</textarea><label class="label !text-xs !mb-1 mt-3">رابط اللقاء الخاص به</label><input id="eLk" dir="ltr" class="input" value="'+esc(s.link||'')+'" placeholder="https://zoom.us/... أو رابط واتساب"></div><button id="eSave" data-id="'+s.id+'" class="btn btn-primary w-full !py-3">حفظ وتحديث صفحة الطالب</button></div></aside>';}
+async function saveAllT(){readT();
+if(TEACHERS.some(t=>!t.name))return toast('اكتب اسم كل معلم','err');
+TEACHERS.forEach(t=>{if(!Array.isArray(t.days))t.days=[];if(!Array.isArray(t.hours))t.hours=[];});
+const b=$('#saveT');b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ…';
+try{const cur=await sb.from('msk_teachers').select('id');if(cur.error)throw cur.error;
+const keep=TEACHERS.filter(t=>t.id).map(t=>t.id);
+const del=(cur.data||[]).map(x=>x.id).filter(id=>!keep.includes(id));
+if(del.length){const d=await sb.from('msk_teachers').delete().in('id',del);if(d.error)throw d.error;}
+for(const t of TEACHERS.filter(t=>t.id)){const u=await sb.from('msk_teachers').update({name:t.name,gender:t.gender,track:t.track,phone:t.phone,meeting_link:t.meeting_link||null,days:t.days,hours:t.hours,active:t.active!==false}).eq('id',t.id);if(u.error)throw u.error;}
+const news=TEACHERS.filter(t=>!t.id).map(t=>({name:t.name,gender:t.gender,track:t.track,phone:t.phone,meeting_link:t.meeting_link||null,days:t.days,hours:t.hours,active:t.active!==false}));
+if(news.length){const n=await sb.from('msk_teachers').insert(news);if(n.error)throw n.error;}
+const a=await sb.from('msk_teachers').select('*').order('id');if(a.error)throw a.error;TEACHERS=a.data;
+toast('تم حفظ المعلمين — أيامهم وساعاتهم ظاهرة للطلاب فورًا','ok');tTab();}
+catch(e){toast('تعذّر: '+e.message,'err');b.disabled=false;b.innerHTML='حفظ الكل';}}
+
+/* ---------- الأحداث ---------- */
+document.addEventListener('click',async e=>{const btn=e.target.closest('button');const t=e.target;
+if(t.closest('[data-close]')||t.classList.contains('overlay')){closeL();return;}
+const chip=e.target.closest('.chip2');
+if(chip){const i=+chip.dataset.ci,arr=chip.dataset.arr,v=chip.dataset.v;const tc=TEACHERS[i];if(tc){const ix=(tc[arr]||[]).indexOf(v);if(ix>-1)tc[arr].splice(ix,1);else(tc[arr]=tc[arr]||[]).push(v);chip.classList.toggle('on');}return;}
+if(!btn)return;
+if(btn.dataset.tab){TAB=btn.dataset.tab;dash();return;}
+if(btn.id==='lOut'){await sb.auth.signOut();TEACHERS=null;STUDS=null;admin();return;}
+if(btn.id==='addT'){readT();TEACHERS.push({name:'',gender:'ذكر',track:TRACKS[0],phone:'',meeting_link:'',days:[],hours:[],active:true});paintT();return;}
+if(btn.id==='saveT'){saveAllT();return;}
+if(btn.classList.contains('delT')){readT();TEACHERS.splice(+btn.dataset.i,1);paintT();return;}
+if(btn.classList.contains('editS')){openS(btn.dataset.id);return;}
+if(btn.id==='eSave'){const id=btn.dataset.id;btn.disabled=true;btn.innerHTML='<span class="spin"></span> جارٍ…';
+try{const patch={status:$('#eSt').value,level:$('#eLv').value||null,progress:$('#ePr').value.trim()||null,instructions:$('#eIn').value.trim()||null,link:$('#eLk').value.trim()||null};
+const u=await sb.from('msk_students').update(patch).eq('id',id);if(u.error)throw u.error;
+Object.assign(STUDS.find(x=>x.id===id),patch);
+toast('تم الحفظ — ستظهر التحديثات في صفحة متابعة الطالب فورًا','ok');closeL();sTab();}
+catch(er){toast('تعذّر: '+er.message,'err');btn.disabled=false;btn.innerHTML='حفظ';}return;}});
+
+/* ---------- التوجيه ---------- */
+const app=$('#app');
+async function route(){const raw=(location.hash||'#/').slice(2).split('/');const page=raw[0]||'home';const p=raw[1]?decodeURIComponent(raw[1]):null;
+window.scrollTo(0,0);document.title=({join:'التسجيل — ',track:'متابعتي — ',admin:'الإدارة — '}[page]||'')+'مشكاة القرآن';
+if(page==='join')return join(p);if(page==='track')return track();if(page==='admin')return admin();return home();}
+window.addEventListener('hashchange',route);
+(async function(){route();})();
+</script>
+</body>
+</html>
+<!-- ★ نهاية مشكاة ★ لو مش شايف السطر ده يبقى اتقص: امسح وانسخ من الأول -->
