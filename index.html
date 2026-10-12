@@ -128,7 +128,7 @@ const SUPABASE_ANON_KEY='sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const APPB='applications',EXB='exams';
 let EXUP=null,REGF={photo:null,doc:null,urls:{}};
-function compressImg(file,maxDim){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{const sc=Math.min(1,maxDim/(img.naturalWidth||maxDim));const w=Math.max(1,Math.round(img.naturalWidth*sc)),h=Math.max(1,Math.round(img.naturalHeight*sc));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);c.toBlob(b=>b?res(b):rej(new Error('تعذر ضغط الصورة')),'image/jpeg',.8);}catch(e){URL.revokeObjectURL(url);rej(e);}};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('ملف صورة غير صالح'));};img.src=url;});}
+function compressImg(file,maxDim){return new Promise((res,rej)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{const sc=Math.min(1,maxDim/(img.naturalWidth||maxDim));const w=Math.max(1,Math.round(img.naturalWidth*sc)),h=Math.max(1,Math.round(img.naturalHeight*sc));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);URL.revokeObjectURL(url);c.toBlob(b=>b?res(b):rej(new Error('تعذر ضغط الصورة')),'image/jpeg', .6);}catch(e){URL.revokeObjectURL(url);rej(e);}};img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('ملف صورة غير صالح'));};img.src=url;});}
 async function uploadApp(kind,blob){const tok=(crypto.randomUUID?crypto.randomUUID():('t'+Date.now()+Math.random().toString(36).slice(2)));const isPdf=(blob instanceof File)&&/\.pdf$/i.test(blob.name||'');const path=tok+'/'+kind+'.'+(isPdf?'pdf':'jpg');const{error}=await sb.storage.from(APPB).upload(path,blob,{contentType:isPdf?'application/pdf':'image/jpeg'});if(error)throw error;return path;}
 async function uploadExam(regId,kind,file,oldPath){const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8)||'bin';const path=regId+'/'+kind+'-'+Date.now()+'.'+ext;const{error}=await sb.storage.from(EXB).upload(path,file,{cacheControl:'3600'});if(error)throw error;if(oldPath){try{await sb.storage.from(EXB).remove([oldPath]);}catch(e){}}return path;}
 async function adminUrl(path,bucket){const{data,error}=await sb.storage.from(bucket).createSignedUrl(path,3600);if(error)throw error;return data.signedUrl;}
@@ -411,7 +411,7 @@ Object.assign(A.regs.find(x=>x.id===rid),{status:val});toast('تم','ok');render
 if(t.id==='logoFile'&&t.files&&t.files[0]){try{S.site.logo=await pickImage(t.files[0],360,true);updateLogoPrev();toast('اضغط حفظ ونشر','ok');}catch(err){toast('تعذر','err');}t.value='';return;}
 const lvf=t.closest('.js-lvimgfile');
 if(lvf&&lvf.files&&lvf.files[0]){const i=+lvf.dataset.i;
-try{readLevelsDom();S.levels[i].image=await pickImage(lvf.files[0],640,false);paintLevels();toast('جاهزة — اضغط حفظ','ok');}catch(err){toast(err.message||'تعذر','err');}
+try{readLevelsDom();S.levels[i].image=await pickImage(lvf.files[0],480,false);paintLevels();toast('جاهزة — اضغط حفظ','ok');}catch(err){toast(err.message||'تعذر','err');}
 lvf.value='';return;}});
 sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')renderAdmin();});
 (function(){
