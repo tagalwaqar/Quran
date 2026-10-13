@@ -327,14 +327,14 @@ const news=A.examiners.filter(x=>!x.id).map(x=>({name:x.name,level_id:x.level_id
 if(news.length){const n=await sb.from('examiners').insert(news);if(n.error)throw n.error;}
 await loadExaminers();toast('تم الحفظ','ok');renderExaminersTab();}
 catch(e){toast(e.message,'err');b.disabled=false;}}
-function readLevelsDom(){$$('.lv-k').forEach(el=>{const i=+el.dataset.i;S.levels[i][el.dataset.k]=el.dataset.k==='max_age'?+el.value:el.value.trim();});}
+function readLevelsDom(){$$('.lv-k').forEach(el=>{const i=+el.dataset.i;if(S.levels[i]){S.levels[i][el.dataset.k]=el.dataset.k==='max_age'?+el.value:el.value.trim();}});}
 function paintLevels(){const box=$('#lvBox');if(!box)return;box.innerHTML=S.levels.map((l,i)=>{const odd=i%2===0;const bg=odd?'#F5E9C9':'#556B2F';const bd=odd?'#C9A227':'#8F9F5F';const tc=odd?'#8A6D1C':'#E0C468';return'<div class="card p-3" style="background:'+bg+';border:2px solid '+bd+'"><div class="grid gap-2 items-center md:grid-cols-[auto_1fr_2fr_6rem_2.2rem]"><div class="flex items-center gap-1"><button class="ibtn js-lvup" data-i="'+i+'">'+ic('up',13)+'</button><b class="font-amiri text-2xl w-6 text-center" style="color:'+tc+'">'+arNum(i+1)+'</b><button class="ibtn js-lvdown" data-i="'+i+'">'+ic('down',13)+'</button></div><input class="input lv-k" data-i="'+i+'" data-k="name" value="'+esc(l.name)+'"><input class="input lv-k" data-i="'+i+'" data-k="desc" value="'+esc(l.desc||'')+'"><input class="input lv-k" data-i="'+i+'" data-k="max_age" type="number" min="3" max="99" value="'+esc(l.max_age)+'"><button class="ibtn ibtn-red js-lvdel" data-i="'+i+'">'+ic('trash',15)+'</button></div><div class="flex flex-wrap items-center gap-2 mt-2.5 pt-2.5 border-t border-cream-200"><button type="button" class="btn btn-outline btn-sm js-lvimgbtn" data-i="'+i+'">'+ic('upload',14)+' '+(l.image?'تغيير الصورة':'صورة المستوى')+'</button><input type="file" accept="image/*" class="hidden js-lvimgfile" data-i="'+i+'">'+(l.image?'<img src="'+esc(l.image)+'" class="w-14 h-10 object-cover rounded border border-cream-200" alt=""><button type="button" class="ibtn ibtn-red js-lvimgdel" data-i="'+i+'">'+ic('trash',13)+'</button>':'')+'</div></div>';}).join('');}
 function renderLevelsTab(){$('#dashMain').innerHTML='<div class="flex items-center justify-between flex-wrap gap-3 mb-5"><h2 class="font-amiri text-2xl text-pine-800">المستويات والأعمار</h2><button id="addLevel" class="btn btn-outline btn-sm">'+ic('plus')+' إضافة مستوى</button></div><p class="text-xs text-ink/55 mb-4 leading-loose">عدّل الأسماء والوصف والحد الأقصى للعمر ورتّبها بالأسهم — تُنشر فور الحفظ.</p><div id="lvBox" class="space-y-2.5"></div><button id="saveLevels" class="btn btn-primary mt-5">'+ic('check')+' حفظ المستويات</button>';paintLevels();}
 async function saveLevels(){readLevelsDom();if(S.levels.some(l=>!l.name||!l.max_age))return toast('كل مستوى يحتاج اسمًا وحدًا أقصى للعمر','err');
-const btn=$('#saveLevels');btn.disabled=true;btn.innerHTML='<span class="spin"></span> جارٍ…';
-try{const levels=S.levels.map((l,i)=>({id:i+1,name:l.name,desc:l.desc||'',max_age:l.max_age,color:l.color||LEVEL_COLORS[i%LEVEL_COLORS.length],image:l.image||null}));
+const btn=$('#saveLevels');if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> جارٍ…';}
+try{const levels=S.levels.map((l,i)=>({id:i+1,name:l.name,desc:l.desc||'',max_age:+l.max_age,color:l.color||LEVEL_COLORS[i%LEVEL_COLORS.length],image:l.image||null}));
 const{error}=await sb.from('app_settings').upsert({key:'levels',value:levels},{onConflict:'key'});if(error)throw error;S.levels=levels;toast('تم حفظ المستويات ونشرها فورًا','ok');renderLevelsTab();}
-catch(e){toast('تعذّر الحفظ: '+e.message,'err');btn.disabled=false;btn.innerHTML=ic('check')+' حفظ المستويات';}}
+catch(e){toast('تعذّر الحفظ: '+e.message,'err');if(btn){btn.disabled=false;btn.innerHTML=ic('check')+' حفظ المستويات';}}}
 const stIn=(id,label,val)=>'<div><label class="label">'+label+'</label><input id="'+id+'" class="input" value="'+esc(val||'')+'"></div>';
 function updateLogoPrev(){const w=$('#logoPrevWrap');if(!w)return;w.innerHTML=S.site.logo?'<img src="'+S.site.logo+'" class="w-full h-full object-contain">':'<span class="block w-3/4 h-3/4">'+MUSHAF_SVG+'</span>';}
 function paintThemes(){const g=$('#themeGrid');if(!g)return;const cur=currentThemeKey();g.innerHTML=Object.entries(THEMES).map(([k,t])=>'<button type="button" data-theme="'+k+'" class="theme-swatch '+(cur===k?'sel':'')+'"><span class="flex gap-1.5 justify-center mb-1.5"><i style="background:'+t.pine+'" class="w-7 h-7 rounded-full"></i><i style="background:#C9A227" class="w-7 h-7 rounded-full"></i></span><b style="color:'+t.pine+'">'+esc(t.name)+'</b></button>').join('');}
@@ -363,13 +363,14 @@ if(btn.dataset.tab){A.tab=btn.dataset.tab;renderDash();return;}
 if(btn.id==='logoutBtn'){A.regs=null;await sb.auth.signOut();renderAdmin();return;}
 if(btn.id==='logoBtn'){$('#logoFile').click();return;}
 if(btn.id==='logoDel'){S.site.logo=null;updateLogoPrev();toast('سيُحذف بعد «حفظ ونشر»');return;}
-if(btn.id==='addLevel'){readLevelsDom();S.levels.push({name:'مستوى جديد',desc:'',max_age:10,color:LEVEL_COLORS[S.levels.length%LEVEL_COLORS.length],image:null});paintLevels();return;}
-if(btn.classList.contains('js-lvup')){readLevelsDom();const i=+btn.dataset.i;if(i>0){const tmp=S.levels[i];S.levels[i]=S.levels[i-1];S.levels[i-1]=tmp;paintLevels();}return;}
-if(btn.classList.contains('js-lvdown')){readLevelsDom();const i=+btn.dataset.i;if(i<S.levels.length-1){const tmp=S.levels[i];S.levels[i]=S.levels[i+1];S.levels[i+1]=tmp;paintLevels();}return;}
-if(btn.classList.contains('js-lvdel')){readLevelsDom();if(S.levels.length<=1)return toast('أبقِ مستوى واحدًا على الأقل','err');S.levels.splice(+btn.dataset.i,1);paintLevels();return;}
-if(btn.id==='saveLevels'){saveLevels();return;}
 if(btn.classList.contains('js-lvimgbtn')){const f=document.querySelector('.js-lvimgfile[data-i="'+btn.dataset.i+'"]');if(f)f.click();return;}
 if(btn.classList.contains('js-lvimgdel')){readLevelsDom();S.levels[+btn.dataset.i].image=null;paintLevels();return;}
+if(btn.id==='addLevel'){readLevelsDom();const nextNum=S.levels.length+1;S.levels.push({id:nextNum,name:'المستوى '+arNum(nextNum),desc:'',max_age:15,color:LEVEL_COLORS[(nextNum-1)%LEVEL_COLORS.length],image:null});paintLevels();return;}
+if(btn.id==='saveLevels'){saveLevels();return;}
+if(btn.id==='saveSettings'){saveSettings();return;}
+if(btn.classList.contains('js-lvdel')){readLevelsDom();if(S.levels.length<=1){toast('يجب الإبقاء على مستوى واحد على الأقل','err');return;}S.levels.splice(+btn.dataset.i,1);paintLevels();return;}
+if(btn.classList.contains('js-lvup')){const i=+btn.dataset.i;if(i>0){readLevelsDom();const tmp=S.levels[i];S.levels[i]=S.levels[i-1];S.levels[i-1]=tmp;paintLevels();}return;}
+if(btn.classList.contains('js-lvdown')){const i=+btn.dataset.i;if(i<S.levels.length-1){readLevelsDom();const tmp=S.levels[i];S.levels[i]=S.levels[i+1];S.levels[i+1]=tmp;paintLevels();}return;}
 if(btn.id==='addExaminer'){readExDom();A.examiners.push({name:'',level_id:null,phone:''});paintExaminers();return;}
 if(btn.classList.contains('js-exdel')){readExDom();A.examiners.splice(+btn.dataset.i,1);paintExaminers();return;}
 if(btn.id==='saveExaminers'){saveExaminers();return;}
@@ -409,15 +410,15 @@ try{const{error}=await sb.from('registrations').update({status:val}).eq('id',rid
 Object.assign(A.regs.find(x=>x.id===rid),{status:val});toast('تم','ok');renderTab();}catch(err){toast(err.message,'err');sel.disabled=false;}return;}
 if(t.id==='logoFile'&&t.files&&t.files[0]){try{S.site.logo=await pickImage(t.files[0],280,true);updateLogoPrev();toast('اضغط حفظ ونشر','ok');}catch(err){toast('تعذر','err');}t.value='';return;}
 const lvf=t.closest('.js-lvimgfile');
-if(lvf&&lvf.files&&lvf.files[0]){const i=+lvf.dataset.i;toast('جارٍ رفع الصورة…');
+if(lvf&&lvf.files&&lvf.files[0]){const i=+lvf.dataset.i;toast('جارٍ معالجة الصورة…');
 try{readLevelsDom();const f=lvf.files[0];
-const blob=await compressImg(f,500);
-const path='level-'+(i+1)+'-'+Date.now()+'.jpg';
-const up=await sb.storage.from('levelimg').upload(path,blob,{contentType:'image/jpeg'});
-if(up.error)throw up.error;
-const pub=sb.storage.from('levelimg').getPublicUrl(path).data.publicUrl;
-S.levels[i].image=pub;paintLevels();toast('تم الرفع — اضغط «حفظ» للتثبيت','ok');
-}catch(err){toast('تعذّر رفع الصورة: '+(err.message||''),'err');}
+let imgUrl=null;
+try{const blob=await compressImg(f,600);const path='level-'+(i+1)+'-'+Date.now()+'.jpg';
+const up=await sb.storage.from('levelimg').upload(path,blob,{contentType:'image/jpeg',upsert:true});
+if(!up.error)imgUrl=sb.storage.from('levelimg').getPublicUrl(path).data.publicUrl;}catch(storageErr){}
+if(!imgUrl){imgUrl=await pickImage(f,600,false);}
+S.levels[i].image=imgUrl;paintLevels();toast('تم تجهيز الصورة — اضغط «حفظ المستويات» للتثبيت','ok');
+}catch(err){toast('تعذّر حفظ الصورة: '+(err.message||''),'err');}
 lvf.value='';return;}});
 sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT')renderAdmin();});
 (function(){
