@@ -363,6 +363,11 @@ if(btn.dataset.tab){A.tab=btn.dataset.tab;renderDash();return;}
 if(btn.id==='logoutBtn'){A.regs=null;await sb.auth.signOut();renderAdmin();return;}
 if(btn.id==='logoBtn'){$('#logoFile').click();return;}
 if(btn.id==='logoDel'){S.site.logo=null;updateLogoPrev();toast('سيُحذف بعد «حفظ ونشر»');return;}
+if(btn.id==='addLevel'){readLevelsDom();S.levels.push({name:'مستوى جديد',desc:'',max_age:10,color:LEVEL_COLORS[S.levels.length%LEVEL_COLORS.length],image:null});paintLevels();return;}
+if(btn.classList.contains('js-lvup')){readLevelsDom();const i=+btn.dataset.i;if(i>0){const tmp=S.levels[i];S.levels[i]=S.levels[i-1];S.levels[i-1]=tmp;paintLevels();}return;}
+if(btn.classList.contains('js-lvdown')){readLevelsDom();const i=+btn.dataset.i;if(i<S.levels.length-1){const tmp=S.levels[i];S.levels[i]=S.levels[i+1];S.levels[i+1]=tmp;paintLevels();}return;}
+if(btn.classList.contains('js-lvdel')){readLevelsDom();if(S.levels.length<=1)return toast('أبقِ مستوى واحدًا على الأقل','err');S.levels.splice(+btn.dataset.i,1);paintLevels();return;}
+if(btn.id==='saveLevels'){saveLevels();return;}
 if(btn.classList.contains('js-lvimgbtn')){const f=document.querySelector('.js-lvimgfile[data-i="'+btn.dataset.i+'"]');if(f)f.click();return;}
 if(btn.classList.contains('js-lvimgdel')){readLevelsDom();S.levels[+btn.dataset.i].image=null;paintLevels();return;}
 if(btn.id==='addExaminer'){readExDom();A.examiners.push({name:'',level_id:null,phone:''});paintExaminers();return;}
