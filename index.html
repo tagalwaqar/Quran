@@ -333,10 +333,11 @@ if(!S.levels.length)return toast('لا توجد مستويات','err');
 if(S.levels.some(l=>!l.name||!String(l.name).trim()||!l.max_age||+l.max_age<3))return toast('كل مستوى يحتاج اسمًا وحدًا أقصى للعمر (٣ فأكثر)','err');
 const b=$('#saveLevels');b.disabled=true;b.innerHTML='جارٍ الحفظ…';
 try{
-const levels=S.levels.map((l,i)=>({id:i+1,name:String(l.name).trim(),desc:String(l.desc||'').trim(),max_age:+l.max_age,color:l.color||LEVEL_COLORS[i%LEVEL_COLORS.length]}));
-const{error}=await sb.from('app_settings').upsert({key:'levels',value:levels},{onConflict:'key'});
+const levels=S.levels.map((l,i)=>({id:i+1,name:String(l.name).trim(),desc:String(l.desc||'').trim(),max_age:+l.max_age}));
+const{data,error}=await sb.rpc('save_levels',{p_levels:levels});
 if(error)throw error;
 S.levels=levels;toast('تم الحفظ والنشر فورًا','ok');renderLevelsTab();}
+catch(e){toast('تعذّر الحفظ: '+(e.message||''),'err');b.disabled=false;b.innerHTML='حفظ المستويات';}}
 catch(e){toast('تعذّر الحفظ: '+(e.message||'حاول مجددًا'),'err');b.disabled=false;b.innerHTML='حفظ المستويات';}}
 const stIn=(id,label,val)=>'<div><label class="label">'+label+'</label><input id="'+id+'" class="input" value="'+esc(val||'')+'"></div>';
 function updateLogoPrev(){const w=$('#logoPrevWrap');if(!w)return;w.innerHTML=S.site.logo?'<img src="'+S.site.logo+'" class="w-full h-full object-contain">':'<span class="block w-3/4 h-3/4">'+MUSHAF_SVG+'</span>';}
