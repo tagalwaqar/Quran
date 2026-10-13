@@ -369,7 +369,26 @@ if(btn.dataset.tab){A.tab=btn.dataset.tab;renderDash();return;}
 if(btn.id==='logoutBtn'){A.regs=null;await sb.auth.signOut();renderAdmin();return;}
 if(btn.id==='logoBtn'){$('#logoFile').click();return;}
 if(btn.id==='logoDel'){S.site.logo=null;updateLogoPrev();toast('سيُحذف الشعار بعد «حفظ ونشر»');return;}
-if(btn.classList.contains('js-lvimgbtn')){const f=document.querySelector('.js-lvimgfile[data-i="'+btn.dataset.i+'"]');if(f)f.click();return;}
+if(btn.classList.contains('js-lvimgbtn')){const lvf=t.closest('.js-lvimgfile');
+if(lvf&&lvf.files&&lvf.files[0]){
+  const i=+lvf.dataset.i;
+  toast('جارٍ رفع صورة المستوى…');
+  try{
+    readLevelsDom();
+    const old=S.levels[i].image;
+    const f=lvf.files[0];
+    const img=await compressImg(f,600,false);
+    const path='level-'+(i+1)+'-'+Date.now()+'.jpg';
+    const up=await sb.storage.from('levelimg').upload(path,img,{contentType:'image/jpeg'});
+    if(up.error)throw up.error;
+    if(old&&old.indexOf('supabase')>-1){const op=old.split('/levelimg/')[1];if(op){try{await sb.storage.from('levelimg').remove([decodeURIComponent(op.split('?')[0])]);}catch(e2){}}}
+    const pub=sb.storage.from('levelimg').getPublicUrl(path).data.publicUrl;
+    S.levels[i].image=pub;
+    paintLevels();
+    toast('تم الرفع — اضغط «حفظ» لتثبيتها','ok');
+  }catch(err){toast('تعذّر رفع الصورة: '+(err.message||''),'err');}
+  lvf.value='';
+  return;}}
 if(btn.classList.contains('js-lvimgdel')){readLevelsDom();S.levels[+btn.dataset.i].image=null;paintLevels();return;}
 if(btn.id==='addExaminer'){readExDom();A.examiners.push({name:'',level_id:null,phone:''});paintExaminers();return;}
 if(btn.classList.contains('js-exdel')){readExDom();A.examiners.splice(+btn.dataset.i,1);paintExaminers();return;}
