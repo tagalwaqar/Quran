@@ -405,7 +405,7 @@ Object.assign(A.regs.find(x=>x.id===rid),{status:val});toast('تم','ok');render
 if(t.id==='logoFile'&&t.files&&t.files[0]){try{S.site.logo=await pickImage(t.files[0],280,true);updateLogoPrev();toast('اضغط حفظ ونشر','ok');}catch(err){toast('تعذر','err');}t.value='';return;}
 const lvf=t.closest('.js-lvimgfile');
 if(lvf&&lvf.files&&lvf.files[0]){const i=+lvf.dataset.i;toast('جارٍ رفع الصورة…');
-try{readLevelsDom();const f=lvf.files[0;
+try{readLevelsDom();const f=lvf.files[0];
 const blob=await compressImg(f,500);
 const path='level-'+(i+1)+'-'+Date.now()+'.jpg';
 const up=await sb.storage.from('levelimg').upload(path,blob,{contentType:'image/jpeg'});
