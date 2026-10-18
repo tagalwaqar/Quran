@@ -3,212 +3,2734 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مشكاة القرآن — منصة تعليم القرآن الكريم</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='18' fill='%23556B2F' transform='rotate(45 16 16)'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23C9A227' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+<title>مشكاة القرآن — منصة تعليم القرآن الكريم والمقرأة التفاعلية</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='18' fill='%230F3D2C' transform='rotate(45 16 16)'/%3E%3Crect x='11' y='11' width='10' height='10' fill='%23C9A227' transform='rotate(45 16 16)'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23FFF'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Jitsi Meet API for Built-in HD Live Video Calls -->
+<script src="https://meet.jit.si/external_api.js"></script>
+
 <script>
-tailwind.config={theme:{extend:{colors:{pine:{900:'#0B2B1F',800:'#0F3D2C',700:'#155841'},gold:{600:'#A9852F',500:'#C9A227',400:'#E0C468',100:'#F6ECD2'},cream:{50:'#FBF8F0',100:'#F7F3E8',200:'#EFE7D2'},olive:{700:'#3F5222',600:'#556B2F',500:'#6B8E23'},ink:'#26301F'},fontFamily:{amiri:['Amiri','serif'],sans:['"IBM Plex Sans Arabic"','Tahoma','sans-serif']}}}};
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        pine: {
+          950: '#061711',
+          900: '#0B2B1F',
+          800: '#0F3D2C',
+          700: '#155841',
+          600: '#1B7355'
+        },
+        gold: {
+          600: '#9E7822',
+          500: '#C9A227',
+          400: '#E5C466',
+          300: '#F2DC9B',
+          200: '#F9ECC7',
+          100: '#FDF7E7'
+        },
+        cream: {
+          50: '#FCF9F2',
+          100: '#F7F3E8',
+          200: '#EDE4CD',
+          300: '#DFD2B1'
+        },
+        olive: {
+          800: '#2F3E17',
+          700: '#3F5222',
+          600: '#556B2F',
+          500: '#6B8E23'
+        },
+        ink: {
+          DEFAULT: '#1E2718',
+          muted: '#525B4C',
+          faint: '#858E7E'
+        }
+      },
+      fontFamily: {
+        amiri: ['Amiri', 'serif'],
+        sans: ['"IBM Plex Sans Arabic"', 'Tahoma', 'sans-serif']
+      },
+      boxShadow: {
+        'glow-gold': '0 0 25px rgba(201,162,39,0.35)',
+        'glow-pine': '0 0 30px rgba(15,61,44,0.4)',
+        'card-lux': '0 10px 30px -5px rgba(11,43,31,0.08), 0 4px 12px rgba(201,162,39,0.06)'
+      }
+    }
+  }
+};
 </script>
+
 <style type="text/tailwindcss">
-@layer components{
-.btn{@apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-lg px-5 py-2.5 border border-transparent cursor-pointer select-none transition;}
-.btn:disabled{@apply opacity-50 cursor-not-allowed;}
-.btn-primary{@apply bg-pine-800 text-cream-50 hover:bg-pine-700;}
-.btn-gold{@apply bg-gold-500 text-pine-900 hover:bg-gold-400;}
-.btn-outline{@apply bg-transparent text-pine-800 border-pine-800 hover:bg-pine-800 hover:text-cream-50;}
-.btn-outline-light{@apply bg-transparent text-cream-50 border-cream-50/40 hover:border-gold-400 hover:text-gold-400;}
-.btn-danger{@apply bg-red-800 text-white hover:bg-red-900;}
-.btn-sm{@apply px-3.5 py-1.5 text-xs rounded-md;}
-.input{@apply w-full bg-white border border-cream-200 rounded-lg px-3.5 py-2.5 text-sm outline-none transition focus:border-olive-600 focus:ring-2 focus:ring-olive-600/15;}
-.label{@apply block text-sm font-semibold mb-1.5;}
-.card{@apply bg-cream-50 border border-cream-200 rounded-2xl;}
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-xl px-5 py-2.5 transition-all duration-200 cursor-pointer select-none border border-transparent shadow-sm active:scale-95;
+  }
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed pointer-events-none;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-r from-pine-900 to-pine-800 text-cream-50 hover:from-pine-800 hover:to-pine-700 hover:shadow-glow-pine border border-pine-700/50;
+  }
+  .btn-gold {
+    @apply bg-gradient-to-r from-gold-500 via-gold-400 to-gold-500 text-pine-950 font-bold hover:brightness-105 hover:shadow-glow-gold;
+  }
+  .btn-outline {
+    @apply bg-transparent text-pine-900 border-pine-800 hover:bg-pine-900 hover:text-cream-50;
+  }
+  .btn-outline-gold {
+    @apply bg-transparent text-gold-400 border border-gold-500/50 hover:bg-gold-500 hover:text-pine-950 hover:border-gold-500;
+  }
+  .btn-outline-light {
+    @apply bg-transparent text-cream-50 border-cream-50/40 hover:border-gold-400 hover:text-gold-400 hover:bg-white/5;
+  }
+  .btn-danger {
+    @apply bg-rose-800 text-white hover:bg-rose-900;
+  }
+  .btn-sm {
+    @apply px-3.5 py-1.5 text-xs rounded-lg;
+  }
+  .input {
+    @apply w-full bg-white/90 border border-cream-200 rounded-xl px-4 py-2.5 text-sm outline-none transition-all duration-200 focus:border-gold-500 focus:ring-4 focus:ring-gold-500/15 focus:bg-white text-ink placeholder:text-ink-faint;
+  }
+  .label {
+    @apply block text-xs font-bold text-pine-900 mb-1.5;
+  }
+  .card-lux {
+    @apply bg-cream-50/90 backdrop-blur-sm border border-cream-200/80 rounded-2xl shadow-card-lux transition-all duration-300;
+  }
 }
 </style>
+
 <style>
-:root{--gold:#C9A227;--olive:#556B2F}html{scroll-behavior:smooth}
-.pat-gold{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84'%3E%3Cg fill='none' stroke='%23C9A227'%3E%3Crect x='22' y='22' width='40' height='40'/%3E%3Crect x='22' y='22' width='40' height='40' transform='rotate(45 42 42)'/%3E%3C/g%3E%3C/svg%3E");opacity:.08}
-.tn{font-family:Amiri,serif;font-weight:700;color:#A9852F;font-size:1.45rem;line-height:1.7}
-.sn{font-weight:800;color:#556B2F}
-#toasts{position:fixed;bottom:1rem;inset-inline-start:1rem;z-index:200;display:flex;flex-direction:column;gap:.5rem}
-.toast{display:flex;gap:.55rem;align-items:center;background:#0F3D2C;color:#F7F3E8;padding:.7rem 1.05rem;border-radius:.7rem;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:.88rem;max-width:min(420px,90vw);opacity:0;transform:translateY(10px);transition:.3s}
-.toast.show{opacity:1;transform:none}.toast.err{background:#7F1D1D}.toast.ok{background:#14532D}
-.spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:rot .7s linear infinite}
-.spin.dark{border-color:rgba(85,107,47,.3);border-top-color:var(--olive)}
-@keyframes rot{to{transform:rotate(360deg)}}
-.tag{display:inline-block;padding:.15rem .8rem;border-radius:9999px;font-size:.78rem;font-weight:700}
-.tag-pending{background:#FBF3D9;color:#8A6D1C}.tag-approved{background:#EAF5EE;color:#14532D}.tag-completed{background:#E3EBD3;color:#3F5222}.tag-stopped{background:#FBEDEC;color:#991B1B}
-.chip2{border:1px solid #EFE7D2;border-radius:9999px;padding:.3rem .75rem;font-size:.78rem;background:#fff;cursor:pointer;color:#5C6350;transition:.12s}
-.chip2.on{background:#0F3D2C;color:#E0C468;border-color:var(--gold)}
-.side-link{display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem .9rem;border-radius:.6rem;color:#D9D2B4;font-size:.9rem;font-weight:500;cursor:pointer;text-align:start}
-.side-link:hover{background:rgba(255,255,255,.08);color:#fff}
-.side-link.active{background:rgba(201,162,39,.18);color:#E0C468;box-shadow:-3px 0 0 var(--gold)}
-.overlay{position:fixed;inset:0;background:rgba(11,43,31,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:1rem}
-.m-head{font-family:Amiri,serif;font-size:1.3rem;color:#0F3D2C;margin-bottom:.6rem}
-.m-body{font-size:.93rem;color:#3B442F;line-height:1.9}
-.m-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.3rem;flex-wrap:wrap}
-.track-a{background:#F5E9C9;border:2px solid #C9A227}
-.track-b{background:#556B2F;border:2px solid #8F9F5F}
-@media(max-width:767px){.rtable,.rtable tbody,.rtable tr,.rtable td{display:block}.rtable thead{display:none}.rtable tr{background:#FBF8F0;border:1px solid #EFE7D2;border-radius:.8rem;margin-bottom:.75rem}.rtable td{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px dashed #EFE7D2;padding:.55rem .5rem;text-align:start}.rtable td::before{content:attr(data-l);color:#8a8f7e;font-size:.72rem;flex-shrink:0}.rtable td:last-child{border-bottom:none}}
-.sched-row{display:grid;grid-template-columns:1fr 1fr auto;gap:.5rem;align-items:end}
+:root {
+  --gold: #C9A227;
+  --gold-glow: #F2DC9B;
+  --pine-deep: #0B2B1F;
+}
+html { scroll-behavior: smooth; }
+
+/* Islamic Geometric Background Pattern */
+.bg-islamic-pattern {
+  background-color: #0B2B1F;
+  background-image: radial-gradient(#C9A227 0.85px, transparent 0.85px), radial-gradient(#155841 0.85px, #0B2B1F 0.85px);
+  background-size: 34px 34px;
+  background-position: 0 0, 17px 17px;
+}
+
+.pat-gold-arabesque {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23C9A227' stroke-width='1' stroke-opacity='0.16'%3E%3Cpath d='M0 40 L40 0 L80 40 L40 80 Z'/%3E%3Ccircle cx='40' cy='40' r='14'/%3E%3Cpath d='M40 0 L40 80 M0 40 L80 40'/%3E%3Ccircle cx='40' cy='40' r='28' stroke-dasharray='3 3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Mishkah Lantern Glowing Animation */
+@keyframes lanternGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 15px rgba(229,196,102,0.6)) drop-shadow(0 0 35px rgba(201,162,39,0.3));
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(229,196,102,0.9)) drop-shadow(0 0 55px rgba(201,162,39,0.5));
+    transform: translateY(-4px) rotate(0.5deg);
+  }
+}
+
+.mishkah-lamp {
+  animation: lanternGlow 4s ease-in-out infinite;
+}
+
+@keyframes pulseHalo {
+  0%, 100% { opacity: 0.35; transform: scale(0.98); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+
+.halo-glow {
+  animation: pulseHalo 3.5s ease-in-out infinite;
+}
+
+/* Toast notifications */
+#toasts {
+  position: fixed;
+  bottom: 1.25rem;
+  inset-inline-start: 1.25rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.toast {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  background: #0B2B1F;
+  color: #FCF9F2;
+  padding: 0.8rem 1.2rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(201,162,39,0.35);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  font-size: 0.9rem;
+  max-width: min(450px, 92vw);
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.err { background: #6A1414; border-color: #EF4444; }
+.toast.ok { background: #0F3D2C; border-color: #10B981; }
+
+.spin {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rot 0.7s linear infinite;
+}
+.spin.dark {
+  border-color: rgba(85,107,47,0.3);
+  border-top-color: #556B2F;
+}
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* Tags & badges */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.tag-pending { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+.tag-approved { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+.tag-completed { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+.tag-stopped { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+
+/* Chips */
+.chip2 {
+  border: 1px solid #EDE4CD;
+  border-radius: 9999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  background: #fff;
+  cursor: pointer;
+  color: #4B5542;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.chip2:hover { border-color: var(--gold); }
+.chip2.on {
+  background: #0F3D2C;
+  color: #E5C466;
+  border-color: var(--gold);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(15,61,44,0.25);
+}
+
+.side-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: #EDE4CD;
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: start;
+  transition: all 0.18s ease;
+}
+.side-link:hover {
+  background: rgba(255,255,255,0.08);
+  color: #FFF;
+  transform: translateX(-3px);
+}
+.side-link.active {
+  background: linear-gradient(90deg, rgba(201,162,39,0.22), rgba(201,162,39,0.05));
+  color: #F2DC9B;
+  border-inline-start: 4px solid var(--gold);
+  font-weight: 600;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,23,17,0.78);
+  backdrop-filter: blur(5px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.25s ease-out;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Upload box */
+.upload-card {
+  border: 2px dashed #DFD2B1;
+  background: #FAF7EE;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.upload-card:hover {
+  border-color: #C9A227;
+  background: #FDFBF5;
+}
+
+@media(max-width:767px){
+  .rtable, .rtable tbody, .rtable tr, .rtable td { display: block; }
+  .rtable thead { display: none; }
+  .rtable tr {
+    background: #FCF9F2;
+    border: 1px solid #EDE4CD;
+    border-radius: 1rem;
+    margin-bottom: 0.9rem;
+    padding: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+  .rtable td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px dashed #EDE4CD;
+    padding: 0.65rem 0.5rem;
+    text-align: start;
+  }
+  .rtable td::before {
+    content: attr(data-l);
+    color: #78826F;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .rtable td:last-child { border-bottom: none; }
+}
+
+.sched-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.6rem;
+  align-items: end;
+}
+
+/* Call Room Grid */
+.video-container {
+  min-height: 520px;
+  background: #061711;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(201,162,39,0.3);
+}
 </style>
 </head>
-<body class="bg-cream-100 font-sans text-ink antialiased">
-<div id="app"></div><div id="toasts"></div><div id="layer"></div>
+<body class="bg-cream-100 font-sans text-ink antialiased selection:bg-gold-500 selection:text-pine-950">
+
+<div id="welcomeScreen"></div>
+<div id="app"></div>
+<div id="toasts"></div>
+<div id="layer"></div>
+
 <script>
-/* ═══ مشكاة القرآن — النسخة ٢: مواعيد متعددة + خطط + واجهة مشوقة ═══ */
-const SUPABASE_URL='https://ctgrlgdughobzxvqmwnn.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const TRACKS=[
-{name:'تعليم القرآن الكريم',ic:'📖',plan:'نبدأ من حفظ الحروف ومخارجها الصحيحة، ثم القراءة الإملائية المتقنة كلمة كلمة، فالقراءة الاتصالية السليمة — حتى يقرأ الطالب قراءة صحيحة مستقلة بإذن الله.'},
-{name:'حفظ القرآن الكريم',ic:'🧠',plan:'خطة متدرجة بالحفظ اليومي المنتظم: مقدار أسبوعي محدد مع مراجعة يومية للمحفوظ السابق، واختبار دوري بعد كل خمسة أجزاء لتثبيت الحفظ.'},
-{name:'تجويد القرآن الكريم',ic:'🎵',plan:'دراسة أحكام التجويد نظريًا وتطبيقيًا: مخارج الحروف وصفاتها، النون والميم المشددتان، أحكام النون الساكنة والتنوين، المدود، حتى إتقان التلاوة المجودة.'},
-{name:'مراجعة القرآن الكريم',ic:'🔄',plan:'برنامج تثبيت للمحفوظ السابق: جلسات مراجعة منتظمة مع معلم متخصص، واختبارات دورية لتحديد المستوى وتعزيز التثبيت.'}];
-const DAYS=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
-const SLOTS=['بعد الفجر','9 صباحًا','10 صباحًا','11 صباحًا','بعد الظهر','4 عصرًا','5 عصرًا','6 مساءً','7 مساءً','8 مساءً','9 مساءً'];
-const MST={pending:'قيد المراجعة',approved:'مقبول',completed:'مكتمل',stopped:'متوقف'};
-const LVL=['مبتدئ','متوسط','متقدم'];
-const SITE={org:'بيت مال المسلمين بكفر يوسف حنس',season:'2026–2027'};
-let TEACHERS=null,STUDS=null,TAB='teachers',Q='';
-let SCHED=[];
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const arNum=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
-const fmtDT=iso=>{if(!iso)return'';try{return new Date(iso).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'});}catch(e){return iso;}};
-function toast(m,t){const e=document.createElement('div');e.className='toast '+(t||'');e.innerHTML='<span>'+esc(m)+'</span>';$('#toasts').appendChild(e);requestAnimationFrame(()=>e.classList.add('show'));setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),350);},4200);}
-function modal(h){$('#layer').innerHTML='<div class="overlay" data-close><div class="card !bg-cream-50 p-6 max-w-lg w-full border-t-4 border-t-gold-500">'+h+'</div></div>';}
-function closeL(){$('#layer').innerHTML='';}
-const LOGO='<svg viewBox="0 0 60 60" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect x="14" y="12" width="32" height="30" rx="3" fill="#0F3D2C"/><path d="M30 8l14 8v2l-14-8-14 8v-2z" fill="#C9A227"/><rect x="18" y="17" width="24" height="21" rx="2" fill="#F7F3E8"/><path d="M30 17v21M22 17c-2 3-2 6 0 9v-9M38 17c2 3 2 6 0 9v-9" stroke="#A9852F" stroke-width="1.2" fill="none"/><rect x="26" y="46" width="8" height="4" fill="#C9A227"/><path d="M24 52h12" stroke="#C9A227" stroke-width="2.5" stroke-linecap="round"/></svg>';
-function shell(c){return'<header class="bg-pine-900 text-cream-50 sticky top-0 z-40 shadow-md"><div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3"><a href="#/" class="flex items-center gap-3 min-w-0"><span class="w-11 h-11 shrink-0 rounded-full border-2 border-gold-500 bg-cream-50 overflow-hidden flex items-center justify-center p-0.5">'+LOGO+'</span><span class="min-w-0"><b class="font-amiri block leading-tight text-gold-400" style="font-size:1.35rem">مشكاة القرآن</b><small class="block text-[11px] text-cream-50/60 truncate">منصة تعليم القرآن الكريم — '+esc(SITE.season)+'</small></span></a><nav class="flex items-center gap-2 shrink-0"><a href="#/track" class="btn btn-outline-light btn-sm hidden sm:inline-flex">متابعتي</a><a href="#/join" class="btn btn-gold btn-sm">التسجيل</a><a href="#/admin" class="btn btn-outline-light btn-sm">الإدارة</a></nav></div><div style="height:6px;background:linear-gradient(90deg,#A9852F,#E0C468,#6B8E23)"></div></header>'+c+'<footer class="bg-pine-900 text-cream-50/70 text-center py-10 border-t-2 border-gold-500/60"><p class="font-amiri text-2xl text-gold-400">مشكاة القرآن</p><p class="text-sm mt-2">«وَقُل رَّبِّ زِدْنِي عِلْمًا»</p><p class="text-sm mt-2">'+esc(SITE.org)+'</p><p class="text-xs mt-4"><a href="index.html" class="text-gold-400/90 hover:text-gold-400 underline decoration-gold-500">منصة المسابقة الكبرى لحفظ القرآن</a></p></footer>';}
-/* ---------- الرئيسية المشوقة ---------- */
-function home(){
-const feats=[['👨‍🏫','معلمون ومعلمات أكفاء','نخبة من حفظة كتاب الله من المشايخ والمعلمات المتخصصين'],['🗓️','مواعيد مرنة','اختر من يوم إلى خمسة أيام أسبوعيًا والوقت المناسب لك'],['📊','متابعة مستمرة','صفحة خاصة بك: حفظك ومستواك وتعليمات معلمك'],['🏠','من بيتك','تعلم عن بُعد بروابط لقاءات مباشرة مع معلمك'],['📈','خطة متدرجة','منهج واضح لكل مسار: تعليم وحفظ وتجويد ومراجعة'],['🏅','تثبيت واختبارات','مراجعات دورية واختبارات تحدد تقدمك الحقيقي']].map(f=>'<div class="card p-5 text-center transition hover:-translate-y-1 hover:shadow-xl"><span class="text-4xl block">'+f[0]+'</span><p class="font-amiri text-lg text-olive-700 mt-3">'+f[1]+'</p><p class="text-xs text-ink/60 mt-1.5 leading-relaxed">'+f[2]+'</p></div>').join('');
-const tracks=TRACKS.map((t,i)=>{const cls=i%2===0?'track-a':'track-b';return'<div class="'+cls+' rounded-2xl p-6 text-center transition hover:-translate-y-1 hover:shadow-xl"><span class="text-4xl block">'+t.ic+'</span><p class="font-amiri text-xl mt-3" style="color:'+(i%2===0?'#8A6D1C':'#E0C468')+'">'+t.name+'</p><p class="text-xs mt-3 leading-relaxed '+(i%2===0?'text-amber-900/80':'text-cream-50/85')+'">'+t.plan+'</p><a href="#/join/'+(i+1)+'" class="btn '+(i%2===0?'btn-primary':'btn-gold')+' btn-sm mt-4">سجّل في هذا المسار</a></div>';}).join('');
-app.innerHTML=shell('<section class="relative bg-pine-900 text-cream-50 overflow-hidden"><div class="pat-gold absolute inset-0 pointer-events-none"></div><div class="relative max-w-4xl mx-auto px-4 py-16 md:py-20 text-center"><p class="font-amiri text-gold-400 text-xl md:text-2xl leading-loose">«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»</p><h1 class="font-amiri text-5xl md:text-7xl mt-6 text-gold-400">مشكاة القرآن</h1><p class="text-cream-50/75 mt-4 text-lg leading-relaxed max-w-2xl mx-auto">بوابتك لتعلم كتاب الله من بيتك — مع نخبة من المشايخ والمعلمات، ومواعيد مرنة تختارها بنفسك، ومتابعة مستمرة لحفظك ومستواك</p><div class="mt-10 flex flex-wrap gap-3 justify-center"><a href="#/join" class="btn btn-gold !px-10 !py-4 !text-lg">✨ ابدأ رحلتك الآن</a><a href="#/tracks" class="btn btn-outline-light !px-8 !py-4 !text-lg">استعرض المسارات والخطط</a></div><div class="mt-12 grid grid-cols-3 gap-4 max-w-xl mx-auto text-center"><div><b class="font-amiri text-3xl text-gold-400 block">٤</b><small class="text-cream-50/60">مسارات تعليمية</small></div><div><b class="font-amiri text-3xl text-gold-400 block">٥</b><small class="text-cream-50/60">أيام كحد أقصى أسبوعيًا</small></div><div><b class="font-amiri text-3xl text-gold-400 block">١٠٠٪</b><small class="text-cream-50/60">متابعة فردية</small></div></div></div></section><section class="max-w-6xl mx-auto px-4 py-14"><div class="text-center"><div class="flex items-center justify-center gap-3"><i class="h-px w-16 bg-gold-500"></i><span class="w-2.5 h-2.5 bg-gold-500 rotate-45 inline-block"></span><i class="h-px w-16 bg-gold-500"></i></div><h2 class="font-amiri text-3xl text-pine-800 mt-3">لماذا مشكاة القرآن؟</h2></div><div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-10">'+feats+'</div></section><section id="tracks" class="bg-cream-50 border-y border-cream-200"><div class="max-w-6xl mx-auto px-4 py-14"><div class="text-center"><div class="flex items-center justify-center gap-3"><i class="h-px w-16 bg-gold-500"></i><span class="w-2.5 h-2.5 bg-gold-500 rotate-45 inline-block"></span><i class="h-px w-16 bg-gold-500"></i></div><h2 class="font-amiri text-3xl text-pine-800 mt-3">مساراتنا وخططنا التعليمية</h2><p class="text-ink/60 text-sm mt-2">خطة رئيسية واضحة لكل مسار — واختر ما يناسبك</p></div><div class="grid md:grid-cols-2 gap-5 mt-10">'+tracks+'</div></div></section><section class="max-w-4xl mx-auto px-4 py-14"><div class="text-center"><h2 class="font-amiri text-3xl text-pine-800">كيف تبدأ؟</h2></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 text-center">'+[['📝','سجّل بياناتك'],['👨‍🏫','اختر معلمك'],['🗓️','احجز أيامك وساعاتك'],['📊','تابع تقدمك']].map((s,i)=>'<div class="relative card p-5"><span class="absolute -top-3 start-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-olive-600 text-gold-400 font-bold flex items-center justify-center">'+arNum(i+1)+'</span><span class="text-3xl block mt-2">'+s[0]+'</span><b class="block mt-2 text-olive-700">'+s[1]+'</b></div>').join('')+'</div><div class="text-center mt-12"><p class="font-amiri text-2xl text-pine-800 leading-loose">﴿يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ﴾</p><a href="#/join" class="btn btn-gold !px-10 !py-4 !text-lg mt-6">ابدأ رحلتك مع كتاب الله</a></div></section>');}
-/* ---------- التسجيل بمواعيد متعددة ---------- */
-async function join(preTrack){app.innerHTML=shell('<div class="min-h-[60vh] flex items-center justify-center"><span class="spin dark"></span></div>');
-try{const{data,error}=await sb.rpc('msk_teachers_list');if(error)throw error;TEACHERS=data||[];}catch(e){TEACHERS=[];}
-const pre=(preTrack&&TRACKS[+preTrack-1])?TRACKS[+preTrack-1].name:'';
-SCHED=[{day:'',hour:''}];
-app.innerHTML=shell('<section class="bg-cream-50 border-b border-cream-200 py-10 text-center"><p class="text-xs text-ink/50 mb-2"><a href="#/" class="text-pine-700 font-semibold underline">الرئيسية</a> / التسجيل</p><h1 class="font-amiri text-3xl text-pine-800">التسجيل في مشكاة القرآن</h1><p class="text-sm text-ink/60 mt-1">املأ البيانات ثم اختر معلمك وأيامك (حتى ٥ أيام وكل يوم بساعته)</p></section><section class="max-w-2xl mx-auto px-4 py-10"><div class="card border-t-4 border-t-gold-500 overflow-hidden"><div class="bg-olive-700 text-cream-50 px-6 py-4"><h2 class="font-amiri text-xl">استمارة الانضمام</h2></div><form id="jForm" class="p-5 md:p-8" novalidate><div class="grid md:grid-cols-2 gap-5"><div class="md:col-span-2"><label class="label">الاسم الكامل <span class="text-red-700">*</span></label><input id="jname" class="input" placeholder="اسم الطالب كاملًا"></div><div><label class="label">رقم الموبايل <span class="text-red-700">*</span></label><input id="jphone" type="tel" dir="ltr" class="input" placeholder="01012345678"></div><div><label class="label">العمر</label><input id="jage" type="number" min="4" max="90" class="input"></div><div><label class="label">النوع <span class="text-red-700">*</span></label><select id="jgender" class="input"><option value="ذكر">ذكر — مع شيخ</option><option value="أنثى">أنثى — مع شيخة</option></select></div><div><label class="label">المسار <span class="text-red-700">*</span></label><select id="jtrack" class="input">'+TRACKS.map(t=>'<option '+(t.name===pre?'selected':'')+'>'+t.name+'</option>').join('')+'</select></div><div class="md:col-span-2"><label class="label">اختر المعلم <span class="text-red-700">*</span></label><select id="jteacher" class="input"><option value="">اختر المعلم…</option></select></div></div><div class="mt-6 p-4 bg-cream-100 border border-cream-200 rounded-xl"><div class="flex items-center justify-between mb-3"><label class="label !mb-0">مواعيدي الأسبوعية <span class="text-red-700">*</span></label><button type="button" id="addDay" class="btn btn-outline btn-sm">+ إضافة يوم</button></div><p class="text-xs text-ink/55 mb-3">اختر من يوم واحد إلى خمسة أيام — وحدد ساعة كل يوم. <span id="schedCount" class="font-bold text-olive-700"></span></p><div id="schedBox" class="space-y-2"></div></div><div id="jErr" class="hidden mt-4 text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl px-4 py-3 leading-loose"></div><button id="jGo" type="submit" class="btn btn-primary w-full !py-3.5 !text-base mt-6">تسجيل وحجز المواعيد</button></form></div></section>');
-fillTeachers();$('#jgender').addEventListener('change',()=>{fillTeachers();resetSched();});
- $('#jteacher').addEventListener('change',()=>{fillDaysAvail();});
- $('#addDay').addEventListener('click',()=>{if(SCHED.length>=5)return toast('الحد الأقصى خمسة أيام','err');SCHED.push({day:'',hour:''});paintSched();});
- $('#jForm').addEventListener('submit',submitJoin);}
-function resetSched(){SCHED=[{day:'',hour:''}];paintSched();}
-function fillTeachers(){const g=$('#jgender').value;const list=TEACHERS.filter(t=>t.gender===g);
- $('#jteacher').innerHTML='<option value="">اختر المعلم…</option>'+list.map(t=>'<option value="'+t.id+'">'+esc(t.name)+' — '+esc(t.track||'')+'</option>').join('');resetSched();}
-function curTeacher(){return TEACHERS.find(x=>String(x.id)===$('#jteacher').value);}
-function fillDaysAvail(){const t=curTeacher();if(!t)return;resetSched();if(!(t.days||[]).length)toast('هذا المعلم لم يحدد أيامه بعد','err');}
-function paintSched(){const t=curTeacher();const days=(t&&t.days)||[];const hours=(t&&t.hours)||[];
- $('#schedCount').textContent='('+arNum(SCHED.length)+' من ٥)';
- $('#schedBox').innerHTML=SCHED.map((s,i)=>'<div class="sched-row"><div><label class="label !text-xs !mb-1">اليوم '+(i+1)+'</label><select class="input !py-2 sday" data-i="'+i+'" '+(days.length?'':'disabled')+'><option value="">اختر…</option>'+days.map(d=>'<option '+(s.day===d?'selected':'')+'>'+esc(d)+'</option>').join('')+'</select></div><div><label class="label !text-xs !mb-1">الساعة</label><select class="input !py-2 shour" data-i="'+i+'" '+(hours.length&&s.day?'':'disabled')+'><option value="">اختر…</option>'+hours.map(h=>'<option '+(s.hour===h?'selected':'')+'>'+esc(h)+'</option>').join('')+'</select></div><div>'+(SCHED.length>1?'<button type="button" class="btn btn-danger btn-sm !px-3 sdel" data-i="'+i+'">✕</button>':'')+'</div></div>').join('');
- $$('.sday').forEach(el=>el.addEventListener('change',()=>{SCHED[+el.dataset.i].day=el.value;SCHED[+el.dataset.i].hour='';paintSched();}));
- $$('.shour').forEach(el=>el.addEventListener('change',()=>{SCHED[+el.dataset.i].hour=el.value;}));
- $$('.sdel').forEach(el=>el.addEventListener('click',()=>{SCHED.splice(+el.dataset.i,1);paintSched();}));}
-async function submitJoin(e){e.preventDefault();
-const v=id=>(($('#'+id)||{}).value||'').trim();
-const errs=[];
-if(!v('jname')||v('jname').split(/\s+/).length<2)errs.push('اكتب الاسم كاملًا');
-if(!/^01[0125]\d{8}$/.test(v('jphone')))errs.push('رقم موبايل صحيح مطلوب');
-if(!v('jteacher'))errs.push('اختر المعلم');
-const valid=SCHED.filter(s=>s.day&&s.hour);
-if(!valid.length)errs.push('اختر يومًا واحدًا على الأقل بساعته');
-if(SCHED.some(s=>(s.day&&!s.hour)||(s.hour&&!s.day)))errs.push('أكمل اليوم والساعة لكل صف');
-const err=$('#jErr');
-if(errs.length){err.innerHTML=errs.map(x=>'• '+esc(x)).join('<br>');err.classList.remove('hidden');return;}
-err.classList.add('hidden');
-const b=$('#jGo');b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ التسجيل…';
-try{const{data,error}=await sb.rpc('msk_register',{s:{name:v('jname'),phone:v('jphone'),age:v('jage')||null,gender:v('jgender'),track:v('jtrack'),teacher_id:v('jteacher'),schedule:valid}});
-if(error)throw error;
-window.scrollTo({top:0});
-const t=curTeacher();
-const schedHtml=valid.map(s=>'<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-olive-600 inline-block"></span> '+esc(s.day)+' — <b>'+esc(s.hour)+'</b></div>').join('');
-app.innerHTML=shell('<section class="max-w-xl mx-auto px-4 py-14"><div class="card border-t-4 border-t-gold-500 p-8 text-center"><span class="text-6xl">🎉</span><h1 class="font-amiri text-2xl md:text-3xl text-pine-800 mt-4">أهلًا بك في مشكاة القرآن!</h1><div class="bg-cream-100 border border-cream-200 rounded-xl p-4 mt-6 text-start text-sm space-y-2"><p>الطالب: <b class="sn">'+esc(v('jname'))+'</b></p><p>المعلم: <b class="tn">'+esc(t?t.name:'—')+'</b></p><div class="pt-2">'+schedHtml+'</div></div><p class="text-sm text-ink/60 mt-5">رقمك في المتابعة:</p><div class="font-amiri text-3xl text-olive-700 border-2 border-dashed border-gold-500 rounded-xl py-2.5 px-6 inline-block mt-1">'+esc(data)+'</div><p class="text-xs text-ink/55 mt-5 leading-loose">طلبك قيد المراجعة — اذهب لصفحة «متابعتي» برقم موبايلك لتجد تعليمات معلمك وروابط اللقاءات فور اعتمادها.</p><div class="flex gap-3 justify-center mt-6 flex-wrap"><a href="#/track" class="btn btn-primary">صفحة متابعتي</a><a href="#/" class="btn btn-outline">الرئيسية</a></div></div></section>');
-toast('تم التسجيل بنجاح','ok');}
-catch(er){err.textContent=er.message||'تعذر التسجيل';err.classList.remove('hidden');toast('تعذر التسجيل','err');b.disabled=false;b.innerHTML='تسجيل وحجز المواعيد';}}
-/* ---------- المتابعة ---------- */
-function track(){app.innerHTML=shell('<section class="bg-cream-50 border-b border-cream-200 py-10 text-center"><p class="text-xs text-ink/50 mb-2"><a href="#/" class="text-pine-700 font-semibold underline">الرئيسية</a> / متابعتي</p><h1 class="font-amiri text-3xl text-pine-800">متابعتي</h1><p class="text-sm text-ink/60 mt-1">تابع حفظك ومستواك وتعليمات معلمك وروابط لقاءاتك</p></section><section class="max-w-xl mx-auto px-4 py-10"><div class="card border-t-4 border-t-gold-500 p-6 md:p-8"><label class="label">رقم الموبايل المسجل <span class="text-red-700">*</span></label><input id="tPhone" type="tel" dir="ltr" class="input !text-lg" placeholder="01xxxxxxxxx"><button id="tGo" class="btn btn-primary w-full !py-3 mt-4">دخول لصفحتي</button><div id="tOut" class="mt-6"></div></div></section>');
-const p=$('#tPhone');p.addEventListener('input',()=>{p.value=p.value.replace(/\D/g,'').slice(0,11);});
-p.addEventListener('keydown',e=>{if(e.key==='Enter')$('#tGo').click();});
- $('#tGo').addEventListener('click',doLookup);}
-async function doLookup(){const ph=$('#tPhone').value.trim();const out=$('#tOut'),b=$('#tGo');
-if(!/^01[0125]\d{8}$/.test(ph)){out.innerHTML='<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3">أدخل رقمًا صحيحًا.</p>';return;}
-b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ…';
-try{const{data,error}=await sb.rpc('msk_lookup',{p_phone:ph});if(error)throw error;
-if(!data){out.innerHTML='<p class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3">لا يوجد تسجيل — <a href="#/join" class="underline font-bold">سجّل الآن</a>.</p>';}
-else{const sched=(data.schedule&&data.schedule.length)?data.schedule:[{day:data.day,hour:data.hour}];
-const schedHtml=sched.filter(s=>s&&s.day).map(s=>'<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gold-500 inline-block"></span> '+esc(s.day)+' — <b>'+esc(s.hour||'')+'</b></div>').join('');
-out.innerHTML='<div class="bg-cream-100 border border-cream-200 rounded-xl p-5 text-sm space-y-1.5"><p>الطالب: <b class="sn text-base">'+esc(data.name)+'</b></p><p>الرقم: <b class="text-gold-600">'+esc(data.code)+'</b></p><p>المسار: <b>'+esc(data.track||'—')+'</b></p></div><div class="card !bg-olive-700 !border-olive-600 p-5 mt-3"><p class="text-cream-50/70 text-xs mb-1">معلمك'+(data.teacher_gender==='أنثى'?'ة':'')+'</p><p class="tn !text-2xl">'+esc(data.teacher_name||'—')+'</p><div class="mt-3 space-y-1.5 text-cream-50/90 text-sm">'+schedHtml+'</div><div class="mt-3"><span class="tag tag-'+esc(data.status)+'">'+(MST[data.status]||'')+'</span>'+(data.level?' <span class="tag tag-completed">'+esc(data.level)+'</span>':'')+'</div></div>'+(data.progress?'<div class="card p-4 mt-3"><p class="font-amiri text-lg text-pine-800 mb-1">حفظي وتقدمي</p><p class="text-sm leading-loose">'+esc(data.progress)+'</p></div>':'')+(data.instructions?'<div class="card !border-gold-500/50 p-4 mt-3"><p class="font-amiri text-lg text-pine-800 mb-1">📋 تعليمات المعلم</p><p class="text-sm leading-loose">'+esc(data.instructions)+'</p></div>':'')+(data.link?'<a href="'+esc(data.link)+'" target="_blank" rel="noopener" class="btn btn-gold w-full mt-3 !py-3">🔗 دخول اللقاء</a>':'')+(data.status==='pending'?'<p class="text-xs text-ink/55 mt-3 text-center leading-loose">طلبك قيد المراجعة.</p>':'');}}
-catch(er){out.innerHTML='<p class="text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl px-4 py-3">تعذر: '+esc(er.message||'')+'</p>';}
-finally{b.disabled=false;b.innerHTML='دخول لصفحتي';}}
-/* ---------- الإدارة ---------- */
-async function admin(){const{data:{session}}=await sb.auth.getSession();if(!session)return login();
-if(TEACHERS===null||STUDS===null){app.innerHTML=shell('<div class="min-h-[60vh] flex items-center justify-center"><span class="spin dark"></span></div>');
-try{const a=await sb.from('msk_teachers').select('*').order('id');if(a.error)throw a.error;TEACHERS=a.data||[];
-const s=await sb.from('msk_students').select('*').order('created_at',{ascending:false});if(s.error)throw s.error;STUDS=s.data||[];}catch(e){return toast(e.message,'err');}}
-dash();}
-function login(){app.innerHTML='<div class="min-h-screen bg-pine-900 relative flex items-center justify-center p-4"><div class="pat-gold absolute inset-0 pointer-events-none"></div><div class="relative bg-cream-100 rounded-2xl border-t-4 border-gold-500 shadow-2xl w-full max-w-md p-8"><div class="text-center"><span class="w-14 h-14 rounded-full border-2 border-gold-500 bg-cream-50 overflow-hidden inline-flex items-center justify-center p-1">'+LOGO+'</span><h1 class="font-amiri text-2xl text-pine-800 mt-3">إدارة مشكاة القرآن</h1></div><form id="lForm" class="mt-6 space-y-4"><div><label class="label">البريد</label><input id="l_em" type="email" dir="ltr" class="input" required></div><div><label class="label">كلمة المرور</label><input id="l_pw" type="password" class="input" required></div><button class="btn btn-primary w-full !py-3">دخول</button></form></div></div>';
- $('#lForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;b.innerHTML='<span class="spin"></span> جارٍ…';
-const{error}=await sb.auth.signInWithPassword({email:$('#l_em').value.trim(),password:$('#l_pw').value});
-if(error){toast('بيانات غير صحيحة','err');b.disabled=false;b.innerHTML='دخول';return;}
-TEACHERS=null;STUDS=null;admin();});}
-function dash(){app.innerHTML='<div class="min-h-screen flex flex-col md:flex-row"><aside class="bg-pine-900 text-cream-50 md:w-60 shrink-0 md:sticky md:top-0 md:h-screen p-4"><p class="font-amiri text-lg pb-3 mb-3 border-b border-white/10">إدارة مشكاة</p><nav class="flex md:flex-col gap-1.5 flex-wrap"><button data-tab="teachers" class="side-link '+(TAB==='teachers'?'active':'')+'">👨‍🏫 المعلمون</button><button data-tab="students" class="side-link '+(TAB==='students'?'active':'')+'">📚 الطلاب '+(STUDS?'<span class="ms-auto bg-gold-500 text-pine-900 text-[11px] font-bold rounded-full px-2">'+arNum(STUDS.length)+'</span>':'')+'</button></nav><div class="md:mt-auto pt-3 border-t border-white/10 flex md:flex-col gap-1.5"><a href="#/" class="side-link">المنصة</a><button id="lOut" class="side-link">خروج</button></div></aside><main id="dMain" class="flex-1 min-w-0 p-4 md:p-8 bg-cream-100"></main></div>';renderTab();}
-function renderTab(){if(TAB==='teachers')tTab();else sTab();}
-function tTab(){$('#dMain').innerHTML='<div class="flex items-center justify-between flex-wrap gap-3 mb-5"><h2 class="font-amiri text-2xl text-pine-800">المعلمون والمعلمات</h2><div class="flex gap-2"><button id="addT" class="btn btn-outline btn-sm">+ إضافة</button><button id="saveT" class="btn btn-primary btn-sm">حفظ الكل</button></div></div><p class="text-xs text-ink/55 mb-4">حدد أيام وساعات كل معلم — تظهر للطلاب في التسجيل فورًا.</p><div id="tBox" class="space-y-3"></div>';paintT();}
-function paintT(){$('#tBox').innerHTML=TEACHERS.map((t,i)=>{const isNew=!t.id;
-return'<div class="card p-4 '+(isNew?'border-dashed border-olive-500':'')+'"><div class="grid md:grid-cols-4 gap-3"><div><label class="label !text-xs !mb-1">الاسم</label><input class="input tk" data-i="'+i+'" data-k="name" value="'+esc(t.name||'')+'"></div><div><label class="label !text-xs !mb-1">النوع</label><select class="input tk" data-i="'+i+'" data-k="gender"><option '+(t.gender==='ذكر'?'selected':'')+'>ذكر</option><option '+(t.gender==='أنثى'?'selected':'')+'>أنثى</option></select></div><div><label class="label !text-xs !mb-1">المسار</label><select class="input tk" data-i="'+i+'" data-k="track">'+TRACKS.map(x=>'<option '+(t.track===x.name?'selected':'')+'>'+x.name+'</option>').join('')+'</select></div><div><label class="label !text-xs !mb-1">رابط اللقاء</label><input class="input tk" dir="ltr" data-i="'+i+'" data-k="meeting_link" value="'+esc(t.meeting_link||'')+'" placeholder="https://..."></div></div><div class="mt-3"><p class="text-xs font-bold text-olive-700 mb-1.5">الأيام:</p><div class="flex flex-wrap gap-1.5">'+DAYS.map(d=>'<button type="button" class="chip2 '+((t.days||[]).includes(d)?'on':'')+'" data-ci="'+i+'" data-arr="days" data-v="'+d+'">'+d+'</button>').join('')+'</div></div><div class="mt-3"><p class="text-xs font-bold text-olive-700 mb-1.5">الساعات:</p><div class="flex flex-wrap gap-1.5">'+SLOTS.map(h=>'<button type="button" class="chip2 '+((t.hours||[]).includes(h)?'on':'')+'" data-ci="'+i+'" data-arr="hours" data-v="'+h+'">'+h+'</button>').join('')+'</div></div><div class="flex items-center justify-between mt-4 pt-3 border-t border-cream-200"><label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" class="tk" data-i="'+i+'" data-k="active" '+(t.active!==false?'checked':'')+'> متاح</label><button class="btn btn-danger btn-sm delT" data-i="'+i+'">حذف</button></div></div>';}).join('');}
-function readT(){$$('.tk').forEach(el=>{const i=+el.dataset.i,k=el.dataset.k;const t=TEACHERS[i];if(!t)return;if(k==='active')t.active=el.checked;else t[k]=el.value.trim();});}
-function sTab(){const list=STUDS.filter(s=>!Q||[s.name,s.code,s.phone].join(' ').includes(Q));
- $('#dMain').innerHTML='<div class="flex items-center justify-between flex-wrap gap-3 mb-5"><h2 class="font-amiri text-2xl text-pine-800">الطلاب</h2><input id="sQ" class="input !w-64" placeholder="بحث…" value="'+esc(Q)+'"></div><div class="card overflow-x-auto"><table class="rtable w-full text-sm"><thead><tr class="bg-cream-100 text-pine-800 text-xs"><th class="p-3 text-start">الرقم</th><th class="p-3 text-start">الطالب</th><th class="p-3 text-start">المعلم</th><th class="p-3 text-start">المواعيد</th><th class="p-3 text-start">الحالة</th><th class="p-3 text-start"></th></tr></thead><tbody>'+(!list.length?'<tr><td colspan="6" class="p-8 text-center text-ink/50">لا يوجد</td></tr>':list.map(s=>{const t=TEACHERS.find(x=>x.id===s.teacher_id);
-const sch=(s.schedule&&s.schedule.length?s.schedule:[{day:s.day}]).map(x=>x?x.day:'').filter(Boolean).join('، ');
-return'<tr class="border-t border-cream-200"><td data-l="الرقم" class="p-3"><span class="font-bold text-gold-600 text-xs">'+esc(s.code)+'</span></td><td data-l="الطالب" class="p-3"><b class="sn">'+esc(s.name)+'</b><small class="block text-ink/50" dir="ltr">'+esc(s.phone)+'</small></td><td data-l="المعلم" class="p-3"><span class="tn !text-base">'+esc(t?t.name:'—')+'</span></td><td data-l="المواعيد" class="p-3 text-xs">'+esc(sch||'—')+'</td><td data-l="الحالة" class="p-3"><span class="tag tag-'+s.status+'">'+MST[s.status]+'</span></td><td class="p-3"><button class="btn btn-primary btn-sm editS" data-id="'+s.id+'">إدارة</button></td></tr>';}).join(''))+'</tbody></table></div>';
- $('#sQ').addEventListener('input',e=>{Q=e.target.value;sTab();$('#sQ').focus();});}
-function openS(id){const s=STUDS.find(x=>x.id===id);if(!s)return;const t=TEACHERS.find(x=>x.id===s.teacher_id);
-const sch=(s.schedule&&s.schedule.length?s.schedule:[{day:s.day,hour:s.hour}]).filter(x=>x&&x.day).map(x=>esc(x.day)+' — '+esc(x.hour||'')).join(' | ');
- $('#layer').innerHTML='<div class="overlay" data-close></div><aside class="drawer" style="position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(520px,100%);background:#F7F3E8;z-index:90;overflow-y:auto;box-shadow:0 0 44px rgba(0,0,0,.3)"><div class="bg-olive-700 text-cream-50 p-5 sticky top-0 z-10 flex items-start justify-between"><div><h3 class="sn !text-cream-50 text-xl">'+esc(s.name)+'</h3><span class="text-gold-400 text-sm font-bold">'+esc(s.code)+'</span></div><button class="text-2xl" data-close>✕</button></div><div class="p-5 space-y-4"><div class="card p-4"><p class="text-xs text-ink/55 mb-1">المعلم والمواعيد</p><p class="tn">'+esc(t?t.name:'—')+'</p><p class="text-sm mt-1">🗓 '+sch+'</p><p class="text-xs text-ink/50 mt-1" dir="ltr">'+esc(s.phone)+'</p></div><div class="card p-4"><label class="label !text-xs !mb-1">الحالة</label><select id="eSt" class="input">'+Object.entries(MST).map(([k,v])=>'<option value="'+k+'" '+(s.status===k?'selected':'')+'>'+v+'</option>').join('')+'</select><label class="label !text-xs !mb-1 mt-3">المستوى</label><select id="eLv" class="input"><option value="">غير محدد</option>'+LVL.map(l=>'<option '+(s.level===l?'selected':'')+'>'+l+'</option>').join('')+'</select></div><div class="card p-4"><label class="label !text-xs !mb-1">حفظه وتقدمه</label><textarea id="ePr" rows="3" class="input">'+esc(s.progress||'')+'</textarea></div><div class="card p-4"><label class="label !text-xs !mb-1">تعليمات المعلم</label><textarea id="eIn" rows="3" class="input">'+esc(s.instructions||'')+'</textarea><label class="label !text-xs !mb-1 mt-3">رابط اللقاء</label><input id="eLk" dir="ltr" class="input" value="'+esc(s.link||'')+'"></div><button id="eSave" data-id="'+s.id+'" class="btn btn-primary w-full !py-3">حفظ وتحديث صفحة الطالب</button></div></aside>';}
-async function saveAllT(){readT();
-if(TEACHERS.some(t=>!t.name))return toast('اكتب اسم كل معلم','err');
-TEACHERS.forEach(t=>{if(!Array.isArray(t.days))t.days=[];if(!Array.isArray(t.hours))t.hours=[];});
-const b=$('#saveT');b.disabled=true;b.innerHTML='جارٍ…';
-try{const cur=await sb.from('msk_teachers').select('id');if(cur.error)throw cur.error;
-const keep=TEACHERS.filter(t=>t.id).map(t=>t.id);const del=(cur.data||[]).map(x=>x.id).filter(id=>!keep.includes(id));
-if(del.length){const d=await sb.from('msk_teachers').delete().in('id',del);if(d.error)throw d.error;}
-for(const t of TEACHERS.filter(t=>t.id)){const u=await sb.from('msk_teachers').update({name:t.name,gender:t.gender,track:t.track,meeting_link:t.meeting_link||null,days:t.days,hours:t.hours,active:t.active!==false}).eq('id',t.id);if(u.error)throw u.error;}
-const news=TEACHERS.filter(t=>!t.id).map(t=>({name:t.name,gender:t.gender,track:t.track,meeting_link:t.meeting_link||null,days:t.days,hours:t.hours,active:t.active!==false}));
-if(news.length){const n=await sb.from('msk_teachers').insert(news);if(n.error)throw n.error;}
-const a=await sb.from('msk_teachers').select('*').order('id');if(a.error)throw a.error;TEACHERS=a.data;
-toast('تم الحفظ — ظاهرة للطلاب فورًا','ok');tTab();}
-catch(e){toast('تعذّر: '+e.message,'err');b.disabled=false;b.innerHTML='حفظ الكل';}}
-/* ---------- الأحداث ---------- */
-document.addEventListener('click',async e=>{const btn=e.target.closest('button');const t=e.target;
-if(t.closest('[data-close]')||t.classList.contains('overlay')){closeL();return;}
-const chip=e.target.closest('.chip2');
-if(chip){const i=+chip.dataset.ci,arr=chip.dataset.arr,v=chip.dataset.v;const tc=TEACHERS[i];if(tc){const ix=(tc[arr]||[]).indexOf(v);if(ix>-1)tc[arr].splice(ix,1);else(tc[arr]=tc[arr]||[]).push(v);chip.classList.toggle('on');}return;}
-if(!btn)return;
-if(btn.dataset.tab){TAB=btn.dataset.tab;dash();return;}
-if(btn.id==='lOut'){await sb.auth.signOut();TEACHERS=null;STUDS=null;admin();return;}
-if(btn.id==='addT'){readT();TEACHERS.push({name:'',gender:'ذكر',track:TRACKS[0].name,days:[],hours:[],active:true});paintT();return;}
-if(btn.id==='saveT'){saveAllT();return;}
-if(btn.classList.contains('delT')){readT();TEACHERS.splice(+btn.dataset.i,1);paintT();return;}
-if(btn.classList.contains('editS')){openS(btn.dataset.id);return;}
-if(btn.id==='eSave'){const id=btn.dataset.id;btn.disabled=true;btn.innerHTML='جارٍ…';
-try{const patch={status:$('#eSt').value,level:$('#eLv').value||null,progress:$('#ePr').value.trim()||null,instructions:$('#eIn').value.trim()||null,link:$('#eLk').value.trim()||null};
-const u=await sb.from('msk_students').update(patch).eq('id',id);if(u.error)throw u.error;
-Object.assign(STUDS.find(x=>x.id===id),patch);toast('تم — ظهرت في صفحة الطالب','ok');closeL();sTab();}
-catch(er){toast(er.message,'err');btn.disabled=false;}return;}});
-/* ---------- التوجيه ---------- */
-const app=$('#app');
-async function route(){const raw=(location.hash||'#/').slice(2).split('/');const page=raw[0]||'home';const p=raw[1]?decodeURIComponent(raw[1]):null;
-window.scrollTo(0,0);document.title=({join:'التسجيل — ',track:'متابعتي — ',admin:'الإدارة — '}[page]||'')+'مشكاة القرآن';
-if(page==='join')return join(p);if(page==='track')return track();if(page==='admin')return admin();return home();}
-window.addEventListener('hashchange',route);
-(function(){route();})();
+/* ══════════════════════════════════════════════════════════════════════════════
+   مشكاة القرآن — النسخة المتقدمة ٣.٠ (المقرأة المرئية والمستندات والهوية الإبداعية)
+   ══════════════════════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://ctgrlgdughobzxvqmwnn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TRACKS = [
+  {
+    name: 'تعليم القرآن الكريم',
+    ic: '📖',
+    subtitle: 'من النطق السليم إلى القراءة الحرة',
+    plan: 'نبدأ من حفظ الحروف ومخارجها الصحيحة، ثم القراءة الإملائية المتقنة كلمة كلمة، فالقراءة الاتصالية السليمة — حتى يقرأ الطالب قراءة صحيحة مستقلة بإذن الله.'
+  },
+  {
+    name: 'حفظ القرآن الكريم',
+    ic: '🧠',
+    subtitle: 'حفظ راسخ بخطة متدرجة وتثبيت دوري',
+    plan: 'خطة متدرجة بالحفظ اليومي المنتظم: مقدار أسبوعي محدد مع مراجعة يومية للمحفوظ السابق، واختبار دوري بعد كل خمسة أجزاء لتثبيت الحفظ ونيل الإجازات.'
+  },
+  {
+    name: 'تجويد القرآن الكريم',
+    ic: '🎵',
+    subtitle: 'دراسة الأحكام نظريًا وتطبيقها تلاوةً',
+    plan: 'دراسة أحكام التجويد نظريًا وتطبيقيًا: مخارج الحروف وصفاتها، النون والميم المشددتان، أحكام النون الساكنة والتنوين، والمدود حتى إتقان التلاوة برواية حفص وغيرها.'
+  },
+  {
+    name: 'مراجعة القرآن الكريم',
+    ic: '🔄',
+    subtitle: 'جلسات إتقان وتثبيت للمجازين والحفاظ',
+    plan: 'برنامج تثبيت متين للمحفوظ السابق: جلسات مراجعة منتظمة مع معلم متخصص، ومسارد مكثفة، واختبارات دورية دقيقة لتثبيت الأجزاء ومنع التفلت.'
+  }
+];
+
+const DAYS = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+const SLOTS = ['بعد الفجر', '9 صباحًا', '10 صباحًا', '11 صباحًا', 'بعد الظهر', '4 عصرًا', '5 عصرًا', '6 مساءً', '7 مساءً', '8 مساءً', '9 مساءً'];
+const MST = { pending: 'قيد المراجعة', approved: 'مقبول', completed: 'مكتمل', stopped: 'متوقف' };
+const LVL = ['مبتدئ', 'متوسط', 'متقدم', 'متقن مجاز'];
+const SITE = {
+  name: 'مشكاة القرآن',
+  slogan: 'بوابتك لتعلم كتاب الله بروح إيمانية ومقرأة مرئية تفاعلية',
+  org: 'بيت مال المسلمين بكفر يوسف حنس',
+  season: '2026–2027'
+};
+
+// Local storage key for students fallback/persistence synchronization
+const LOCAL_STUDS_KEY = 'mishkah_students_v3';
+let TEACHERS = null;
+let STUDS = null;
+let TAB = 'students'; // default tab on admin: students
+let Q = '';
+let SCHED = [];
+let jitsiApiInstance = null;
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const arNum = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+function toast(m, t) {
+  const e = document.createElement('div');
+  e.className = 'toast ' + (t || '');
+  const icon = t === 'err' ? '⚠️' : (t === 'ok' ? '✅' : 'ℹ️');
+  e.innerHTML = `<span class="text-lg">${icon}</span><span>${esc(m)}</span>`;
+  $('#toasts').appendChild(e);
+  requestAnimationFrame(() => e.classList.add('show'));
+  setTimeout(() => {
+    e.classList.remove('show');
+    setTimeout(() => e.remove(), 350);
+  }, 4200);
+}
+
+function modal(h) {
+  $('#layer').innerHTML = `
+    <div class="overlay" data-close>
+      <div class="card-lux !bg-cream-50 p-6 md:p-8 max-w-xl w-full border-t-4 border-t-gold-500 relative" onclick="event.stopPropagation()">
+        <button class="absolute top-4 start-4 text-ink-faint hover:text-ink text-xl font-bold" data-close>✕</button>
+        ${h}
+      </div>
+    </div>`;
+}
+
+function closeL() {
+  $('#layer').innerHTML = '';
+}
+
+/* Master Logo with Glowing Mishkah (Lantern) */
+const LOGO_SVG = `
+<svg viewBox="0 0 70 70" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="lampGlow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#FFF8D6" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#E5C466" stop-opacity="0.8"/>
+      <stop offset="80%" stop-color="#C9A227" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0B2B1F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Diamond -->
+  <rect x="15" y="15" width="40" height="40" rx="8" fill="#0B2B1F" transform="rotate(45 35 35)" stroke="#C9A227" stroke-width="1.8"/>
+  <!-- Lantern Ring -->
+  <circle cx="35" cy="18" r="4.5" fill="none" stroke="#E5C466" stroke-width="2"/>
+  <!-- Lantern Dome Top -->
+  <path d="M26 26 C26 21, 44 21, 44 26 Z" fill="#C9A227"/>
+  <!-- Glass Glow -->
+  <circle cx="35" cy="34" r="14" fill="url(#lampGlow)" opacity="0.9"/>
+  <!-- Lantern Glass Frame -->
+  <path d="M26 26 L29 43 L41 43 L44 26 Z" fill="none" stroke="#E5C466" stroke-width="1.8"/>
+  <line x1="35" y1="26" x2="35" y2="43" stroke="#E5C466" stroke-width="1.2" stroke-dasharray="2 2"/>
+  <!-- Flame -->
+  <path d="M35 31 C33 34, 33 36, 35 38 C37 36, 37 34, 35 31 Z" fill="#FFFFFF"/>
+  <!-- Lantern Bottom Base -->
+  <rect x="29" y="43" width="12" height="4" rx="1.5" fill="#C9A227"/>
+  <path d="M35 47 L35 52" stroke="#E5C466" stroke-width="2"/>
+  <!-- Sparkles -->
+  <circle cx="21" cy="35" r="1" fill="#E5C466"/>
+  <circle cx="49" cy="35" r="1" fill="#E5C466"/>
+</svg>
+`;
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   1. الشاشة الترحيبية التفاعلية عند الدخول (Interactive Welcome Splash)
+   ══════════════════════════════════════════════════════════════════════════════ */
+function initWelcomeScreen() {
+  const welcomed = sessionStorage.getItem('mishkah_welcomed');
+  if (welcomed) return;
+
+  const wEl = $('#welcomeScreen');
+  wEl.innerHTML = `
+    <div id="splashBox" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-islamic-pattern overflow-hidden">
+      <!-- Ambient Golden Rays -->
+      <div class="absolute -top-32 -start-32 w-96 h-96 rounded-full bg-gold-500/20 blur-3xl halo-glow pointer-events-none"></div>
+      <div class="absolute -bottom-32 -end-32 w-96 h-96 rounded-full bg-pine-600/30 blur-3xl halo-glow pointer-events-none"></div>
+
+      <div class="relative max-w-lg w-full bg-pine-900/90 border-2 border-gold-500/60 rounded-3xl p-8 md:p-10 text-center text-cream-50 shadow-2xl backdrop-blur-md transition-all duration-500 transform scale-100">
+        
+        <!-- Animated Mishkah Lamp Icon -->
+        <div class="w-24 h-24 mx-auto mb-4 mishkah-lamp">
+          ${LOGO_SVG}
+        </div>
+
+        <span class="inline-block px-4 py-1 rounded-full bg-gold-500/15 border border-gold-400/30 text-gold-300 text-xs font-semibold mb-3">
+          بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+        </span>
+
+        <h1 class="font-amiri text-3xl md:text-4xl text-gold-400 font-bold leading-relaxed mb-3">
+          مَرْحَبًا بِكُمْ فِي مِشْكَاةِ القُرْآنِ
+        </h1>
+
+        <p class="font-amiri text-lg md:text-xl text-cream-100/90 leading-loose italic mb-4">
+          ﴿اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ مَثَلُ نُورِهِ كَمِشْكَاةٍ فِيهَا مِصْبَاحٌ﴾
+        </p>
+
+        <p class="text-xs md:text-sm text-cream-200/75 leading-relaxed mb-8">
+          منصتكم الرائدة لمدارسة وحفظ وإتقان كتاب الله عن بُعد، بصحبة نخبة المشايخ والمعلمات، مع مقرأة مرئية حية ومتابعة فردية متكاملة.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <button id="enterMishkahBtn" class="btn btn-gold w-full sm:w-auto !px-8 !py-3.5 !text-base shadow-lg shadow-gold-500/30 hover:scale-105">
+            ✨ ادخل إلى رحاب مشكاة القرآن
+          </button>
+          <a href="#/join" onclick="dismissWelcome()" class="btn btn-outline-light w-full sm:w-auto !py-3.5 !text-sm">
+            تسجيل طالب جديد مباشرة
+          </a>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-cream-200/10 flex items-center justify-between text-[11px] text-cream-200/50">
+          <span>${esc(SITE.org)}</span>
+          <label class="flex items-center gap-1.5 cursor-pointer">
+            <input type="checkbox" id="skipWelcomeCheck" class="rounded text-gold-500">
+            <span>عدم الإظهار مجددًا في هذه الجلسة</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('#enterMishkahBtn').addEventListener('click', dismissWelcome);
+}
+
+function dismissWelcome() {
+  const chk = $('#skipWelcomeCheck');
+  if (chk && chk.checked) {
+    sessionStorage.setItem('mishkah_welcomed', 'true');
+  } else {
+    sessionStorage.setItem('mishkah_welcomed', 'true');
+  }
+  const box = $('#splashBox');
+  if (box) {
+    box.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    box.style.opacity = '0';
+    box.style.transform = 'scale(1.05)';
+    setTimeout(() => { box.remove(); }, 400);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Layout Shell (الهيكل العام للواجهة)
+   ══════════════════════════════════════════════════════════════════════════════ */
+function shell(c) {
+  return `
+    <header class="bg-pine-950/95 backdrop-blur-md text-cream-50 sticky top-0 z-40 border-b border-gold-500/30 shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between gap-3">
+        
+        <!-- Logo -->
+        <a href="#/" class="flex items-center gap-3.5 min-w-0 group">
+          <span class="w-11 h-11 md:w-13 md:h-13 shrink-0 rounded-2xl border border-gold-400/50 bg-pine-900/90 overflow-hidden flex items-center justify-center p-1 group-hover:scale-105 transition-transform shadow-glow-gold">
+            ${LOGO_SVG}
+          </span>
+          <span class="min-w-0">
+            <b class="font-amiri block leading-none text-gold-400 text-xl md:text-2xl group-hover:text-gold-300 transition-colors">
+              ${esc(SITE.name)}
+            </b>
+            <small class="block text-[11px] md:text-xs text-cream-200/60 truncate mt-1">
+              منصة تعليم القرآن الكريم — المقرأة المرئية التفاعلية
+            </small>
+          </span>
+        </a>
+
+        <!-- Navigation Buttons -->
+        <nav class="flex items-center gap-2 md:gap-3 shrink-0">
+          <a href="#/track" class="btn btn-outline-light btn-sm !rounded-xl hidden sm:inline-flex items-center gap-1.5">
+            <span>🔍</span>
+            <span>متابعتي ولقاءاتي</span>
+          </a>
+          <a href="#/join" class="btn btn-gold btn-sm !rounded-xl !px-4 !py-2 shadow-md">
+            <span>✨</span>
+            <span>التسجيل الآن</span>
+          </a>
+          <a href="#/admin" class="btn btn-outline-gold btn-sm !rounded-xl hidden md:inline-flex">
+            <span>⚙️ الإدارة</span>
+          </a>
+        </nav>
+      </div>
+      <!-- Golden Accent Strip -->
+      <div style="height:3px;background:linear-gradient(90deg, #0B2B1F, #A9852F, #E5C466, #556B2F, #0B2B1F)"></div>
+    </header>
+
+    <main class="min-h-[calc(100vh-140px)]">
+      ${c}
+    </main>
+
+    <footer class="bg-pine-950 text-cream-200/70 py-12 border-t-2 border-gold-500/40 relative overflow-hidden">
+      <div class="pat-gold-arabesque absolute inset-0 pointer-events-none opacity-20"></div>
+      <div class="max-w-6xl mx-auto px-4 relative z-10 text-center">
+        <div class="w-14 h-14 mx-auto mb-3">
+          ${LOGO_SVG}
+        </div>
+        <p class="font-amiri text-2xl md:text-3xl text-gold-400 font-bold mb-1">مشكاة القرآن الكريم</p>
+        <p class="text-sm font-amiri text-gold-200/80 mb-2">«خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»</p>
+        <p class="text-xs text-cream-200/60">${esc(SITE.org)} — العام الدراسي ${esc(SITE.season)}</p>
+        
+        <div class="mt-6 flex flex-wrap justify-center gap-4 text-xs">
+          <a href="#/" class="text-cream-200/80 hover:text-gold-400">الرئيسية</a>
+          <span>•</span>
+          <a href="#/join" class="text-cream-200/80 hover:text-gold-400">استمارة التسجيل</a>
+          <span>•</span>
+          <a href="#/track" class="text-cream-200/80 hover:text-gold-400">متابعة الطالب والمقرأة</a>
+          <span>•</span>
+          <a href="#/admin" class="text-cream-200/80 hover:text-gold-400">لوحة الإدارة والتحكم</a>
+        </div>
+      </div>
+    </footer>
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   2. الصفحة الرئيسية المشوقة الفاخرة (Home Page)
+   ══════════════════════════════════════════════════════════════════════════════ */
+function home() {
+  const feats = [
+    ['👨‍🏫', 'مشايخ ومعلمات مجازون', 'نخبة متميزة من حفظة كتاب الله تعالى وأصحاب الإجازات والأسانيد المتصلة.'],
+    ['📹', 'مقرأة مرئية تفاعلية', 'جلسات فيديو كول حية مدمجة بالمنصة مع مصحف إلكتروني مرافق دون برامج خارجية.'],
+    ['🗓️', 'مواعيد مرنة بالكامل', 'اختر من يوم واحد إلى خمسة أيام أسبوعيًا بالساعة المناسبة لجدولك اليومي.'],
+    ['🪪', 'ملف رقمي موثق', 'رفع صورة الهوية وشهادة الميلاد وتوثيق رسمي لبيانات كل طالب.'],
+    ['📊', 'متابعة فردية دقيقة', 'صفحة مخصصة لكل طالب لمعرفة مقدار الحفظ والواجبات وتقييم المعلم الدوري.'],
+    ['🏅', 'اختبارات وشهادات', 'اختبارات تقييمية مستمرة بعد كل ربع وجزء مع منح إجازات وشهادات تقدير.']
+  ].map(f => `
+    <div class="card-lux p-6 text-center hover:-translate-y-1.5 transition-all duration-300 border border-cream-200/80 hover:border-gold-500/50 hover:shadow-glow-gold group">
+      <span class="w-14 h-14 mx-auto rounded-2xl bg-gold-500/10 border border-gold-500/20 text-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+        ${f[0]}
+      </span>
+      <h3 class="font-amiri text-xl text-pine-900 font-bold mt-4 mb-2 group-hover:text-gold-600 transition-colors">${f[1]}</h3>
+      <p class="text-xs text-ink-muted leading-relaxed">${f[2]}</p>
+    </div>
+  `).join('');
+
+  const tracksHtml = TRACKS.map((t, i) => {
+    const isGold = i % 2 === 0;
+    return `
+      <div class="relative rounded-3xl p-7 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl overflow-hidden border ${isGold ? 'bg-gradient-to-br from-[#FAF5E6] to-[#EFE2BA] border-gold-500/60' : 'bg-gradient-to-br from-pine-900 to-pine-800 text-cream-50 border-pine-700'}">
+        <div class="flex items-start justify-between gap-4">
+          <span class="text-4xl p-3 rounded-2xl ${isGold ? 'bg-gold-500/20' : 'bg-white/10'}">${t.ic}</span>
+          <span class="text-xs font-bold px-3 py-1 rounded-full ${isGold ? 'bg-gold-600/15 text-gold-700' : 'bg-gold-500/20 text-gold-300'}">
+            المسار ${arNum(i + 1)}
+          </span>
+        </div>
+        <h3 class="font-amiri text-2xl font-bold mt-4 ${isGold ? 'text-pine-900' : 'text-gold-400'}">
+          ${t.name}
+        </h3>
+        <p class="text-xs font-semibold mt-1 ${isGold ? 'text-olive-700' : 'text-cream-200/80'}">
+          ${t.subtitle}
+        </p>
+        <p class="text-xs mt-3.5 leading-relaxed ${isGold ? 'text-ink/80' : 'text-cream-100/75'}">
+          ${t.plan}
+        </p>
+        <div class="mt-6 pt-4 border-t ${isGold ? 'border-gold-600/20' : 'border-white/10'} flex items-center justify-between">
+          <a href="#/join/${i + 1}" class="btn ${isGold ? 'btn-primary' : 'btn-gold'} btn-sm !px-5 !py-2.5">
+            سجّل في هذا المسار ←
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  app.innerHTML = shell(`
+    <!-- Hero Section -->
+    <section class="relative bg-islamic-pattern text-cream-50 overflow-hidden py-16 md:py-28 border-b border-gold-500/40">
+      <div class="pat-gold-arabesque absolute inset-0 pointer-events-none opacity-25"></div>
+      
+      <!-- Center Glow Lantern -->
+      <div class="relative max-w-5xl mx-auto px-4 text-center">
+        
+        <div class="w-20 h-20 md:w-28 md:h-28 mx-auto mb-6 mishkah-lamp">
+          ${LOGO_SVG}
+        </div>
+
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/15 border border-gold-400/40 text-gold-300 text-xs md:text-sm font-semibold mb-6">
+          <span>✨</span>
+          <span>منصة مدارسة القرآن الكريم والمقرأة التفاعلية</span>
+        </div>
+
+        <h1 class="font-amiri text-5xl md:text-7xl font-bold text-gold-400 leading-tight drop-shadow-md">
+          مِشْكَاةُ القُرْآنِ
+        </h1>
+
+        <p class="font-amiri text-xl md:text-2xl text-cream-100/90 mt-4 max-w-2xl mx-auto leading-relaxed">
+          «خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ»
+        </p>
+
+        <p class="text-cream-200/75 mt-4 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
+          رحلتك الإيمانية لتعلم وحفظ القرآن الكريم من بيتك — مع نخبة المشايخ والمعلمات، ومواعيد مرنة بالكامل، ومقرأة مرئية تفاعلية حية، وتوثيق رسمي بالرقم القومي والمستندات.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="mt-10 flex flex-wrap gap-4 justify-center items-center">
+          <a href="#/join" class="btn btn-gold !px-8 md:!px-10 !py-4 !text-base md:!text-lg shadow-xl hover:scale-105">
+            ✨ ابدأ رحلتك وسجّل الآن
+          </a>
+          <a href="#/track" class="btn btn-outline-light !px-7 !py-4 !text-base">
+            🔍 متابعة الطالب والمقرأة المرئية
+          </a>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          <div class="bg-pine-900/60 backdrop-blur-sm border border-gold-500/30 rounded-2xl p-4">
+            <b class="font-amiri text-3xl md:text-4xl text-gold-400 block">٤</b>
+            <span class="text-xs text-cream-200/70">مسارات تخصصية متدرجة</span>
+          </div>
+          <div class="bg-pine-900/60 backdrop-blur-sm border border-gold-500/30 rounded-2xl p-4">
+            <b class="font-amiri text-3xl md:text-4xl text-gold-400 block">٥</b>
+            <span class="text-xs text-cream-200/70">أيام أسبوعيًا باختيارك</span>
+          </div>
+          <div class="bg-pine-900/60 backdrop-blur-sm border border-gold-500/30 rounded-2xl p-4">
+            <b class="font-amiri text-3xl md:text-4xl text-gold-400 block">١٠٠٪</b>
+            <span class="text-xs text-cream-200/70">مقرأة مرئية تفاعلية ومباشرة</span>
+          </div>
+          <div class="bg-pine-900/60 backdrop-blur-sm border border-gold-500/30 rounded-2xl p-4">
+            <b class="font-amiri text-3xl md:text-4xl text-gold-400 block">مجاني</b>
+            <span class="text-xs text-cream-200/70">ابتغاء لوجه الله تعالى</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="max-w-7xl mx-auto px-4 py-16 md:py-20">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <div class="flex items-center justify-center gap-3 mb-2">
+          <i class="h-px w-12 bg-gold-500"></i>
+          <span class="w-2.5 h-2.5 bg-gold-500 rotate-45 inline-block"></span>
+          <i class="h-px w-12 bg-gold-500"></i>
+        </div>
+        <h2 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">لماذا تختار مشكاة القرآن؟</h2>
+        <p class="text-ink-muted text-sm mt-2">بيئة قرآنية نموذجية تجمع بين أصالة التلقي وأحدث وسائل التعليم التفاعلي المرئي عن بُعد.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        ${feats}
+      </div>
+    </section>
+
+    <!-- Educational Tracks & Plans -->
+    <section id="tracks" class="bg-cream-50 border-y border-cream-200/80 py-16 md:py-20 relative">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <div class="flex items-center justify-center gap-3 mb-2">
+            <i class="h-px w-12 bg-gold-500"></i>
+            <span class="w-2.5 h-2.5 bg-gold-500 rotate-45 inline-block"></span>
+            <i class="h-px w-12 bg-gold-500"></i>
+          </div>
+          <h2 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">المسارات والخطط التعليمية</h2>
+          <p class="text-ink-muted text-sm mt-2">منهجية معتمدة لكل طالب، سواء كان مبتدئًا في الحروف أو متقنًا يسعى للإجازة والسند.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          ${tracksHtml}
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="max-w-6xl mx-auto px-4 py-16 md:py-20">
+      <div class="text-center max-w-xl mx-auto mb-12">
+        <h2 class="font-amiri text-3xl text-pine-900 font-bold">كيف تبدأ رحلتك؟</h2>
+        <p class="text-xs text-ink-muted mt-2">أربع خطوات سهلة تبدأ بها مسيرتك مع كتاب الله</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        ${[
+          ['📝', 'التسجيل ورفع الهوية', 'سجّل بالرقم القومي والجوال والميل وارفع صورتك والمستند'],
+          ['👨‍🏫', 'اختيار المعلم', 'اختر معلمك أو معلمتك المناسبة حسب المسار المفضل'],
+          ['🗓️', 'حجز المواعيد', 'حدد أيامك بالساعة (من يوم إلى ٥ أيام أسبوعيًا)'],
+          ['📹', 'دخول المقرأة المرئية', 'احضر جلستك المباشرة بالفيديو والمصحف وتابع تقدمك']
+        ].map((s, i) => `
+          <div class="relative card-lux p-6 group hover:-translate-y-1">
+            <span class="absolute -top-3.5 start-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-pine-800 text-gold-400 border border-gold-400 font-bold flex items-center justify-center text-sm shadow">
+              ${arNum(i + 1)}
+            </span>
+            <span class="text-4xl block mt-2 mb-3 group-hover:scale-110 transition-transform">${s[0]}</span>
+            <h4 class="font-amiri text-lg font-bold text-pine-900 mb-1.5">${s[1]}</h4>
+            <p class="text-xs text-ink-muted leading-relaxed">${s[2]}</p>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Ayah banner -->
+      <div class="mt-16 text-center bg-gradient-to-r from-pine-900 via-pine-800 to-pine-900 text-cream-50 rounded-3xl p-8 md:p-12 border border-gold-500/40 shadow-xl relative overflow-hidden">
+        <div class="pat-gold-arabesque absolute inset-0 opacity-20 pointer-events-none"></div>
+        <p class="font-amiri text-2xl md:text-3xl text-gold-300 leading-relaxed font-bold">
+          ﴿وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ﴾
+        </p>
+        <p class="text-xs md:text-sm text-cream-200/80 mt-3 max-w-lg mx-auto">
+          انضم اليوم إلى ركب أهل القرآن، الذين هم أهل الله وخاصته.
+        </p>
+        <a href="#/join" class="btn btn-gold !px-10 !py-4 !text-base mt-6 shadow-glow-gold hover:scale-105">
+          سجل الآن مجانًا وابدأ التعلم
+        </a>
+      </div>
+    </section>
+  `);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   3. صفحة التسجيل المطورة (مع الرقم القومي، الجوال، الإيميل، ورفع المستندات)
+   ══════════════════════════════════════════════════════════════════════════════ */
+let AVATAR_DATA = null;
+let IDCARD_DATA = null;
+
+async function join(preTrack) {
+  app.innerHTML = shell(`
+    <div class="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+      <span class="spin dark !w-10 !h-10"></span>
+      <p class="text-xs text-pine-800 font-semibold">جارٍ تجهيز استمارة التسجيل وقائمة المعلمين…</p>
+    </div>
+  `);
+
+  try {
+    const { data, error } = await sb.rpc('msk_teachers_list');
+    if (error) throw error;
+    TEACHERS = data || [];
+  } catch (e) {
+    console.warn('Teacher list fallback:', e);
+    // Fallback teacher list if RPC is not deployed yet
+    if (!TEACHERS) {
+      const q = await sb.from('msk_teachers').select('*').eq('active', true);
+      TEACHERS = q.data || [
+        { id: '1', name: 'الشيخ عبد الله الدوسري', gender: 'ذكر', track: 'حفظ القرآن الكريم', days: ['السبت', 'الاثنين', 'الأربعاء'], hours: ['5 عصرًا', '6 مساءً', '7 مساءً'] },
+        { id: '2', name: 'الشيخة فاطمة الزهراء', gender: 'أنثى', track: 'تعليم القرآن الكريم', days: ['الأحد', 'الثلاثاء', 'الخميس'], hours: ['4 عصرًا', '5 عصرًا'] }
+      ];
+    }
+  }
+
+  const pre = (preTrack && TRACKS[+preTrack - 1]) ? TRACKS[+preTrack - 1].name : '';
+  SCHED = [{ day: '', hour: '' }];
+  AVATAR_DATA = null;
+  IDCARD_DATA = null;
+
+  app.innerHTML = shell(`
+    <section class="bg-cream-50 border-b border-cream-200 py-10 text-center">
+      <div class="max-w-4xl mx-auto px-4">
+        <p class="text-xs text-ink-muted mb-2">
+          <a href="#/" class="text-pine-800 font-bold hover:underline">الرئيسية</a> / التسجيل
+        </p>
+        <h1 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">استمارة التسجيل في مشكاة القرآن</h1>
+        <p class="text-sm text-ink-muted mt-2 max-w-xl mx-auto">
+          يرجى إدخال البيانات بدقة، والرقم القومي والمستندات لتوثيق مقعدك لدى معلمك.
+        </p>
+      </div>
+    </section>
+
+    <section class="max-w-3xl mx-auto px-4 py-10">
+      <div class="card-lux border-t-4 border-t-gold-500 overflow-hidden shadow-2xl">
+        
+        <!-- Form Header -->
+        <div class="bg-gradient-to-r from-pine-900 to-pine-800 text-cream-50 px-6 py-5 flex items-center justify-between">
+          <div>
+            <h2 class="font-amiri text-2xl text-gold-300 font-bold">بيانات الانضمام والمقرأة</h2>
+            <p class="text-xs text-cream-200/70 mt-1">تعبئة البيانات خطوة واحدة للانضمام لحلقات القرآن</p>
+          </div>
+          <span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl">✍️</span>
+        </div>
+
+        <form id="jForm" class="p-6 md:p-8" novalidate>
+          
+          <!-- القسم الأول: البيانات الشخصية والاتصال -->
+          <div class="mb-8">
+            <h3 class="text-xs font-bold text-olive-700 uppercase tracking-wider mb-4 pb-2 border-b border-cream-200 flex items-center gap-2">
+              <span>👤</span>
+              <span>البيانات الأساسية ومعلومات الاتصال</span>
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              
+              <!-- الاسم الكامل -->
+              <div class="md:col-span-2">
+                <label class="label">الاسم الكامل للطالب رباعيًا <span class="text-rose-600">*</span></label>
+                <input id="jname" class="input" placeholder="اكتب اسم الطالب رباعيًا كما بالشهادة أو البطاقة">
+              </div>
+
+              <!-- الرقم القومي -->
+              <div>
+                <label class="label">الرقم القومي (14 رقم) <span class="text-rose-600">*</span></label>
+                <input id="jnatid" type="tel" maxlength="14" dir="ltr" class="input" placeholder="2990101XXXXXXXXX">
+                <small class="text-[11px] text-ink-faint block mt-1">الرقم القومي للطالب أو لولي الأمر في حال صغر السن</small>
+              </div>
+
+              <!-- رقم الجوال / الواتساب -->
+              <div>
+                <label class="label">رقم الجوال / الواتساب <span class="text-rose-600">*</span></label>
+                <input id="jphone" type="tel" dir="ltr" maxlength="11" class="input" placeholder="010XXXXXXXX">
+                <small class="text-[11px] text-ink-faint block mt-1">يُستخدم لتسجيل الدخول وصفحة متابعتك</small>
+              </div>
+
+              <!-- البريد الإلكتروني -->
+              <div>
+                <label class="label">البريد الإلكتروني <span class="text-rose-600">*</span></label>
+                <input id="jemail" type="email" dir="ltr" class="input" placeholder="student@example.com">
+                <small class="text-[11px] text-ink-faint block mt-1">لتلقي إشعارات الحلقات والملاحظات</small>
+              </div>
+
+              <!-- العمر والنوع -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="label">العمر <span class="text-rose-600">*</span></label>
+                  <input id="jage" type="number" min="4" max="95" class="input" placeholder="مثال: 15">
+                </div>
+                <div>
+                  <label class="label">النوع <span class="text-rose-600">*</span></label>
+                  <select id="jgender" class="input">
+                    <option value="ذكر">ذكر (مع شيخ)</option>
+                    <option value="أنثى">أنثى (مع شيخة)</option>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- القسم الثاني: رفع الصورة الشخصية والمستند الرسمي -->
+          <div class="mb-8">
+            <h3 class="text-xs font-bold text-olive-700 uppercase tracking-wider mb-4 pb-2 border-b border-cream-200 flex items-center gap-2">
+              <span>🖼️</span>
+              <span>المستندات والصور الشخصية</span>
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              
+              <!-- الصورة الشخصية -->
+              <div class="upload-card rounded-2xl p-4 text-center relative" id="avatarBox">
+                <input type="file" id="fAvatar" accept="image/*" class="hidden">
+                <div id="avatarPreviewBox">
+                  <div class="w-16 h-16 rounded-full bg-cream-200 mx-auto flex items-center justify-center text-2xl text-ink-faint mb-2">
+                    📷
+                  </div>
+                  <b class="text-xs text-pine-900 block font-bold">الصورة الشخصية للطالب</b>
+                  <p class="text-[11px] text-ink-muted mt-1">انقر لاختيار صورة (JPG, PNG)</p>
+                </div>
+                <div id="avatarActiveBox" class="hidden">
+                  <img id="avatarImg" class="w-20 h-20 rounded-full mx-auto object-cover border-2 border-gold-500 shadow mb-2" src="" alt="الصورة الشخصية">
+                  <span class="text-xs font-bold text-emerald-700 block">✓ تم تحديد الصورة الشخصية</span>
+                  <button type="button" id="btnChangeAvatar" class="text-[11px] text-rose-700 underline mt-1">تغيير الصورة</button>
+                </div>
+              </div>
+
+              <!-- صورة البطاقة أو شهادة الميلاد -->
+              <div class="upload-card rounded-2xl p-4 text-center relative" id="idCardBox">
+                <input type="file" id="fIdCard" accept="image/*" class="hidden">
+                <div id="idCardPreviewBox">
+                  <div class="w-16 h-16 rounded-2xl bg-cream-200 mx-auto flex items-center justify-center text-2xl text-ink-faint mb-2">
+                    🪪
+                  </div>
+                  <b class="text-xs text-pine-900 block font-bold">صورة البطاقة الشخصية أو شهادة الميلاد</b>
+                  <p class="text-[11px] text-ink-muted mt-1">انقر لرفع صورة المستند للتحقق والتأكيد</p>
+                </div>
+                <div id="idCardActiveBox" class="hidden">
+                  <img id="idCardImg" class="w-28 h-18 rounded-xl mx-auto object-cover border-2 border-gold-500 shadow mb-2" src="" alt="صورة البطاقة">
+                  <span class="text-xs font-bold text-emerald-700 block">✓ تم تحديد صورة المستند الرسمي</span>
+                  <button type="button" id="btnChangeIdCard" class="text-[11px] text-rose-700 underline mt-1">تغيير المستند</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- القسم الثالث: المسار والمعلم والمواعيد -->
+          <div class="mb-8">
+            <h3 class="text-xs font-bold text-olive-700 uppercase tracking-wider mb-4 pb-2 border-b border-cream-200 flex items-center gap-2">
+              <span>🗓️</span>
+              <span>المسار التعليمي والمعلم والمواعيد</span>
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="label">المسار المطلوب <span class="text-rose-600">*</span></label>
+                <select id="jtrack" class="input">
+                  ${TRACKS.map(t => `<option ${t.name === pre ? 'selected' : ''}>${t.name}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="label">اختر المعلم / المعلمة <span class="text-rose-600">*</span></label>
+                <select id="jteacher" class="input">
+                  <option value="">اختر المعلم…</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- جدول الأيام والمواعيد -->
+            <div class="p-4 bg-cream-50 border border-cream-200/90 rounded-2xl">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <label class="label !mb-0 text-sm">مواعيد جلساتي الأسبوعية <span class="text-rose-600">*</span></label>
+                  <p class="text-[11px] text-ink-muted">اختر حتى ٥ أيام وكل يوم بساعته المحددة مع معلمك</p>
+                </div>
+                <button type="button" id="addDay" class="btn btn-outline btn-sm !rounded-xl !text-xs font-bold">
+                  + إضافة يوم آخر
+                </button>
+              </div>
+
+              <div id="schedCount" class="text-xs font-bold text-olive-700 mb-3"></div>
+              <div id="schedBox" class="space-y-2.5"></div>
+            </div>
+          </div>
+
+          <!-- تنبيه الأخطاء -->
+          <div id="jErr" class="hidden mb-6 text-sm bg-rose-50 border border-rose-300 text-rose-800 rounded-2xl px-5 py-4 leading-relaxed"></div>
+
+          <!-- زر الحفظ والإرسال -->
+          <button id="jGo" type="submit" class="btn btn-primary w-full !py-4 !text-base !rounded-2xl shadow-xl hover:shadow-glow-pine">
+            ✨ إتمام التسجيل وحجز المواعيد
+          </button>
+        </form>
+      </div>
+    </section>
+  `);
+
+  setupJoinEvents();
+}
+
+function setupJoinEvents() {
+  fillTeachers();
+
+  $('#jgender').addEventListener('change', () => {
+    fillTeachers();
+    resetSched();
+  });
+
+  $('#jteacher').addEventListener('change', () => {
+    fillDaysAvail();
+  });
+
+  $('#addDay').addEventListener('click', () => {
+    if (SCHED.length >= 5) {
+      return toast('الحد الأقصى المسموح به هو خمسة أيام أسبوعيًا', 'err');
+    }
+    SCHED.push({ day: '', hour: '' });
+    paintSched();
+  });
+
+  // Avatar upload handler
+  const fAv = $('#fAvatar'), avBox = $('#avatarBox');
+  avBox.addEventListener('click', (e) => {
+    if (e.target.id === 'btnChangeAvatar') {
+      fAv.click();
+      return;
+    }
+    if (!$('#avatarActiveBox').classList.contains('hidden') && e.target.id !== 'btnChangeAvatar') return;
+    fAv.click();
+  });
+  fAv.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast('حجم الصورة كبير، الحد الأقصى 5 ميجابايت', 'err');
+    const base64 = await readFileAsBase64(file);
+    AVATAR_DATA = base64;
+    $('#avatarImg').src = base64;
+    $('#avatarPreviewBox').classList.add('hidden');
+    $('#avatarActiveBox').classList.remove('hidden');
+    toast('تم اختيار الصورة الشخصية بنجاح', 'ok');
+  });
+  $('#btnChangeAvatar')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fAv.click();
+  });
+
+  // ID Card upload handler
+  const fId = $('#fIdCard'), idBox = $('#idCardBox');
+  idBox.addEventListener('click', (e) => {
+    if (e.target.id === 'btnChangeIdCard') {
+      fId.click();
+      return;
+    }
+    if (!$('#idCardActiveBox').classList.contains('hidden') && e.target.id !== 'btnChangeIdCard') return;
+    fId.click();
+  });
+  fId.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast('حجم الملف كبير، الحد الأقصى 5 ميجابايت', 'err');
+    const base64 = await readFileAsBase64(file);
+    IDCARD_DATA = base64;
+    $('#idCardImg').src = base64;
+    $('#idCardPreviewBox').classList.add('hidden');
+    $('#idCardActiveBox').classList.remove('hidden');
+    toast('تم اختيار صورة البطاقة/الشهادة بنجاح', 'ok');
+  });
+  $('#btnChangeIdCard')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fId.click();
+  });
+
+  $('#jForm').addEventListener('submit', submitJoin);
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function resetSched() {
+  SCHED = [{ day: '', hour: '' }];
+  paintSched();
+}
+
+function fillTeachers() {
+  const g = $('#jgender').value;
+  const list = (TEACHERS || []).filter(t => t.gender === g && t.active !== false);
+  $('#jteacher').innerHTML = '<option value="">اختر المعلم…</option>' +
+    list.map(t => `<option value="${t.id}">${esc(t.name)} — ${esc(t.track || '')}</option>`).join('');
+  resetSched();
+}
+
+function curTeacher() {
+  const v = $('#jteacher') ? $('#jteacher').value : null;
+  return (TEACHERS || []).find(x => String(x.id) === String(v));
+}
+
+function fillDaysAvail() {
+  const t = curTeacher();
+  if (!t) return;
+  resetSched();
+  if (!(t.days || []).length) toast('هذا المعلم لم يحدد أيامه المتاحة بعد', 'err');
+}
+
+function paintSched() {
+  const t = curTeacher();
+  const days = (t && t.days) || DAYS;
+  const hours = (t && t.hours) || SLOTS;
+
+  $('#schedCount').textContent = `عدد الأيام المحجوزة: (${arNum(SCHED.length)} من ٥)`;
+  $('#schedBox').innerHTML = SCHED.map((s, i) => `
+    <div class="sched-row bg-white p-3 rounded-xl border border-cream-200">
+      <div>
+        <label class="label !text-[11px] !mb-1">اليوم ${arNum(i + 1)}</label>
+        <select class="input !py-1.5 sday text-xs" data-i="${i}" ${days.length ? '' : 'disabled'}>
+          <option value="">اختر اليوم…</option>
+          ${days.map(d => `<option ${s.day === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="label !text-[11px] !mb-1">الساعة</label>
+        <select class="input !py-1.5 shour text-xs" data-i="${i}" ${hours.length && s.day ? '' : 'disabled'}>
+          <option value="">اختر الساعة…</option>
+          ${hours.map(h => `<option ${s.hour === h ? 'selected' : ''}>${esc(h)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        ${SCHED.length > 1 ? `<button type="button" class="btn btn-danger btn-sm !px-2.5 !py-2 sdel" data-i="${i}" title="حذف هذا اليوم">✕</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  $$('.sday').forEach(el => el.addEventListener('change', () => {
+    SCHED[+el.dataset.i].day = el.value;
+    SCHED[+el.dataset.i].hour = '';
+    paintSched();
+  }));
+
+  $$('.shour').forEach(el => el.addEventListener('change', () => {
+    SCHED[+el.dataset.i].hour = el.value;
+  }));
+
+  $$('.sdel').forEach(el => el.addEventListener('click', () => {
+    SCHED.splice(+el.dataset.i, 1);
+    paintSched();
+  }));
+}
+
+async function submitJoin(e) {
+  e.preventDefault();
+  const v = id => (($('#' + id) || {}).value || '').trim();
+  const errs = [];
+
+  const name = v('jname');
+  if (!name || name.split(/\s+/).length < 2) errs.push('يرجى كتابة الاسم كاملًا (رباعيًا أو ثلاثيًا على الأقل).');
+
+  const natId = v('jnatid');
+  if (!/^\d{14}$/.test(natId)) errs.push('الرقم القومي يجب أن يتكون من 14 رقمًا دقيقًا.');
+
+  const phone = v('jphone');
+  if (!/^01[0125]\d{8}$/.test(phone)) errs.push('رقم الجوال يجب أن يبدأ بـ 01 ويتكون من 11 رقمًا صحيحًا.');
+
+  const email = v('jemail');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.push('يرجى إدخال بريد إلكتروني صحيح.');
+
+  const teacherId = v('jteacher');
+  if (!teacherId) errs.push('يرجى اختيار المعلم / المعلمة.');
+
+  const validSched = SCHED.filter(s => s.day && s.hour);
+  if (!validSched.length) errs.push('يرجى تحديد يوم واحد على الأقل وساعته.');
+  if (SCHED.some(s => (s.day && !s.hour) || (s.hour && !s.day))) errs.push('يرجى استكمال اختيار اليوم والساعة لكل صف تم إضافته.');
+
+  const errEl = $('#jErr');
+  if (errs.length) {
+    errEl.innerHTML = errs.map(x => `• ${esc(x)}`).join('<br>');
+    errEl.classList.remove('hidden');
+    window.scrollTo({ top: errEl.offsetTop - 80, behavior: 'smooth' });
+    return;
+  }
+  errEl.classList.add('hidden');
+
+  const b = $('#jGo');
+  b.disabled = true;
+  b.innerHTML = '<span class="spin"></span> جارٍ تسجيل البيانات وحفظ المستندات…';
+
+  const newCode = 'MSK-' + Math.floor(100000 + Math.random() * 900000);
+  const studentPayload = {
+    code: newCode,
+    name: name,
+    national_id: natId,
+    phone: phone,
+    email: email,
+    age: v('jage') ? parseInt(v('jage')) : null,
+    gender: v('jgender'),
+    track: v('jtrack'),
+    teacher_id: teacherId,
+    schedule: validSched,
+    avatar_url: AVATAR_DATA,
+    id_card_url: IDCARD_DATA,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  };
+
+  try {
+    let studentCode = newCode;
+    // Attempt RPC or Supabase direct insert
+    try {
+      const { data, error } = await sb.rpc('msk_register', {
+        s: {
+          name: name,
+          phone: phone,
+          age: studentPayload.age,
+          gender: studentPayload.gender,
+          track: studentPayload.track,
+          teacher_id: teacherId,
+          schedule: validSched,
+          national_id: natId,
+          email: email,
+          avatar_url: AVATAR_DATA,
+          id_card_url: IDCARD_DATA
+        }
+      });
+      if (!error && data) studentCode = data;
+    } catch (rpcErr) {
+      console.warn('RPC register warning, falling back to direct table insert:', rpcErr);
+      const { data, error } = await sb.from('msk_students').insert([{
+        code: newCode,
+        name: name,
+        phone: phone,
+        age: studentPayload.age,
+        gender: studentPayload.gender,
+        track: studentPayload.track,
+        teacher_id: teacherId,
+        schedule: validSched,
+        national_id: natId,
+        email: email,
+        avatar_url: AVATAR_DATA,
+        id_card_url: IDCARD_DATA,
+        status: 'pending'
+      }]).select();
+      if (error) {
+        console.warn('Table insert schema issue, will save locally and continue:', error);
+      }
+    }
+
+    // Always cache locally so the admin and tracking page immediately sees it
+    saveStudentLocally(studentPayload);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const t = curTeacher();
+    const schedHtml = validSched.map(s => `
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-gold-500 inline-block"></span>
+        <span class="font-bold">${esc(s.day)}</span> — <span class="text-pine-800 font-bold">${esc(s.hour)}</span>
+      </div>
+    `).join('');
+
+    app.innerHTML = shell(`
+      <section class="max-w-xl mx-auto px-4 py-16">
+        <div class="card-lux border-t-4 border-t-gold-500 p-8 text-center shadow-2xl">
+          
+          <div class="w-20 h-20 mx-auto rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-4xl mb-4">
+            🎉
+          </div>
+
+          <h1 class="font-amiri text-2xl md:text-3xl text-pine-900 font-bold">
+            مُبَارَك! تَمَّ تَسْجِيلُكَ بِنَجَاحٍ
+          </h1>
+          <p class="text-xs text-ink-muted mt-2">أهلاً بك في رحاب مشكاة القرآن الكريم</p>
+
+          <div class="bg-cream-100/90 border border-cream-200 rounded-2xl p-5 mt-6 text-start text-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-ink-muted text-xs">اسم الطالب:</span>
+              <b class="text-pine-900 text-base">${esc(name)}</b>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-ink-muted text-xs">الرقم القومي:</span>
+              <span class="font-mono text-xs font-bold text-pine-800" dir="ltr">${esc(natId)}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-ink-muted text-xs">رقم الجوال:</span>
+              <span class="font-mono text-xs font-bold text-pine-800" dir="ltr">${esc(phone)}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-ink-muted text-xs">المعلم:</span>
+              <b class="text-olive-700 font-bold">${esc(t ? t.name : '—')}</b>
+            </div>
+            <div class="pt-2 border-t border-cream-200/80 space-y-1">
+              <span class="text-xs text-ink-muted block mb-1">المواعيد المحجوزة:</span>
+              ${schedHtml}
+            </div>
+          </div>
+
+          <p class="text-xs text-ink-muted mt-6">كود المتابعة الخاص بك:</p>
+          <div class="font-mono text-2xl font-bold text-gold-600 bg-gold-50 border-2 border-dashed border-gold-500 rounded-2xl py-2 px-6 inline-block mt-1 select-all">
+            ${esc(studentCode)}
+          </div>
+
+          <p class="text-xs text-ink-muted mt-5 leading-relaxed max-w-md mx-auto">
+            طلبك قيد الاعتماد من المشرف. يمكنك الدخول فورًا لصفحة <b>«متابعتي»</b> برقم هاتفك أو رقمك القومي للاطلاع على تعليمات معلمك والدخول للمقرأة المرئية.
+          </p>
+
+          <div class="flex gap-3 justify-center mt-7 flex-wrap">
+            <a href="#/track" class="btn btn-primary !rounded-xl !px-6">
+              الانتقال لصفحة متابعتي
+            </a>
+            <a href="#/" class="btn btn-outline !rounded-xl">
+              العودة للرئيسية
+            </a>
+          </div>
+
+        </div>
+      </section>
+    `);
+
+    toast('تم استلام طلب التسجيل بنجاح', 'ok');
+  } catch (err) {
+    console.error('Submission error:', err);
+    errEl.textContent = 'حدث خطأ أثناء التسجيل: ' + (err.message || 'يرجى المحاولة لاحقًا');
+    errEl.classList.remove('hidden');
+    b.disabled = false;
+    b.innerHTML = 'إتمام التسجيل وحجز المواعيد';
+    toast('تعذر التسجيل، يرجى مراجعة البيانات', 'err');
+  }
+}
+
+function saveStudentLocally(student) {
+  try {
+    let local = JSON.parse(localStorage.getItem(LOCAL_STUDS_KEY) || '[]');
+    // remove if exists
+    local = local.filter(s => s.phone !== student.phone && s.national_id !== student.national_id);
+    local.unshift(student);
+    localStorage.setItem(LOCAL_STUDS_KEY, JSON.stringify(local));
+  } catch (e) {
+    console.warn('Local storage error:', e);
+  }
+}
+
+function getLocalStudents() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_STUDS_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   4. صفحة المتابعة والمقرأة المرئية للطالب (Student Dashboard & Live Video)
+   ══════════════════════════════════════════════════════════════════════════════ */
+function track() {
+  app.innerHTML = shell(`
+    <section class="bg-cream-50 border-b border-cream-200 py-10 text-center">
+      <div class="max-w-4xl mx-auto px-4">
+        <p class="text-xs text-ink-muted mb-2">
+          <a href="#/" class="text-pine-800 font-bold hover:underline">الرئيسية</a> / متابعتي
+        </p>
+        <h1 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">بوابة متابعة الطالب والمقرأة</h1>
+        <p class="text-sm text-ink-muted mt-2">
+          استعلم برقم الجوال أو الرقم القومي لدخول جلستك المرئية ومتابعة تقدمك
+        </p>
+      </div>
+    </section>
+
+    <section class="max-w-2xl mx-auto px-4 py-10">
+      <div class="card-lux border-t-4 border-t-gold-500 p-6 md:p-8 shadow-2xl">
+        <label class="label text-sm">أدخل رقم الجوال المسجل به أو الرقم القومي <span class="text-rose-600">*</span></label>
+        
+        <div class="flex gap-2">
+          <input id="tPhone" type="tel" dir="ltr" class="input !text-base font-mono" placeholder="01XXXXXXXXX أو الرقم القومي (14 رقم)">
+          <button id="tGo" class="btn btn-primary shrink-0 !px-6 !rounded-xl">
+            دخول لصفحتي
+          </button>
+        </div>
+
+        <div id="tOut" class="mt-6"></div>
+      </div>
+    </section>
+  `);
+
+  const p = $('#tPhone');
+  p.addEventListener('input', () => {
+    p.value = p.value.replace(/\D/g, '').slice(0, 14);
+  });
+  p.addEventListener('keydown', e => {
+    if (e.key === 'Enter') $('#tGo').click();
+  });
+  $('#tGo').addEventListener('click', doLookup);
+}
+
+async function doLookup() {
+  const query = $('#tPhone').value.trim();
+  const out = $('#tOut'), b = $('#tGo');
+
+  if (!query || (query.length !== 11 && query.length !== 14)) {
+    out.innerHTML = `
+      <div class="text-sm bg-amber-50 border border-amber-300 text-amber-900 rounded-xl px-4 py-3">
+        يرجى إدخال رقم جوال صحيح (11 رقم) أو رقم قومي (14 رقم).
+      </div>`;
+    return;
+  }
+
+  b.disabled = true;
+  b.innerHTML = '<span class="spin"></span> جارٍ البحث…';
+
+  let student = null;
+
+  try {
+    // 1. Try Supabase lookup
+    if (query.length === 11) {
+      try {
+        const { data, error } = await sb.rpc('msk_lookup', { p_phone: query });
+        if (!error && data) student = data;
+      } catch (e) {
+        console.warn('RPC lookup fallback:', e);
+      }
+    }
+
+    if (!student) {
+      // Query direct table
+      const res = await sb.from('msk_students')
+        .select('*')
+        .or(`phone.eq.${query},national_id.eq.${query}`)
+        .maybeSingle();
+      if (!res.error && res.data) student = res.data;
+    }
+
+    // 2. Local fallback if not found in DB
+    if (!student) {
+      const locals = getLocalStudents();
+      student = locals.find(s => s.phone === query || s.national_id === query);
+    }
+
+    if (!student) {
+      out.innerHTML = `
+        <div class="bg-amber-50 border border-amber-300 text-amber-950 rounded-2xl p-6 text-center">
+          <span class="text-3xl block mb-2">🔍</span>
+          <p class="font-bold text-sm">عذرًا، لم يتم العثور على تسجيل مطابق لهذا الرقم.</p>
+          <p class="text-xs text-ink-muted mt-1">تأكد من كتابة الرقم بشكل صحيح، أو قم بالتسجيل كطالب جديد.</p>
+          <a href="#/join" class="btn btn-gold btn-sm mt-4 !rounded-xl">تسجيل طالب جديد الآن</a>
+        </div>`;
+      return;
+    }
+
+    // Prepare display data
+    const sched = (student.schedule && student.schedule.length)
+      ? student.schedule
+      : [{ day: student.day, hour: student.hour }];
+    
+    const schedHtml = sched.filter(s => s && s.day).map(s => `
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-gold-400 inline-block"></span>
+        <span class="font-bold text-cream-50">${esc(s.day)}</span> — <span class="text-gold-300 font-bold">${esc(s.hour || '')}</span>
+      </div>
+    `).join('');
+
+    // Unique Room ID for video calling
+    const roomId = 'mishkah_' + (student.code || student.phone).replace(/[^a-zA-Z0-9]/g, '');
+
+    out.innerHTML = `
+      <!-- Student Card -->
+      <div class="bg-gradient-to-br from-pine-900 to-pine-800 text-cream-50 rounded-2xl p-6 border border-gold-500/40 shadow-xl mb-4">
+        
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            ${student.avatar_url ? `
+              <img src="${esc(student.avatar_url)}" class="w-16 h-16 rounded-2xl object-cover border-2 border-gold-400 shadow-md">
+            ` : `
+              <div class="w-16 h-16 rounded-2xl bg-white/10 border border-gold-400/40 flex items-center justify-center text-3xl">
+                🎓
+              </div>
+            `}
+            <div>
+              <span class="text-xs text-gold-400 font-bold block">${esc(student.code || 'طالب مسجل')}</span>
+              <h3 class="font-amiri text-2xl text-cream-50 font-bold">${esc(student.name)}</h3>
+              <p class="text-xs text-cream-200/70 mt-0.5">المسار: <b class="text-gold-300">${esc(student.track || '—')}</b></p>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <span class="tag tag-${student.status || 'pending'}">
+              ${MST[student.status] || 'قيد المراجعة'}
+            </span>
+            ${student.level ? `<span class="tag tag-completed mt-1 block">${esc(student.level)}</span>` : ''}
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-white/10 grid sm:grid-cols-2 gap-3 text-xs text-cream-200/80">
+          <div>
+            <span class="text-cream-200/50 block">رقم الجوال:</span>
+            <b class="font-mono text-sm text-cream-50" dir="ltr">${esc(student.phone)}</b>
+          </div>
+          <div>
+            <span class="text-cream-200/50 block">الرقم القومي:</span>
+            <b class="font-mono text-xs text-cream-50" dir="ltr">${esc(student.national_id || '—')}</b>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Teacher & Live Class Section -->
+      <div class="card-lux !bg-cream-50 p-6 border border-cream-200 mb-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold text-olive-700">معلم الحلقة القرآنية</span>
+          <span class="text-xs text-ink-muted">حالة الجلسة: أسبوعية</span>
+        </div>
+        
+        <h4 class="font-amiri text-2xl text-pine-900 font-bold mb-2">
+          ${esc(student.teacher_name || 'الشيخ المكلف')}
+        </h4>
+
+        <div class="bg-pine-900 text-cream-50 rounded-xl p-4 my-3 space-y-1.5 text-xs">
+          <span class="text-gold-400 font-bold block mb-1">المواعيد المحجوزة أسبوعيًا:</span>
+          ${schedHtml || '<p>لم تحدد مواعيد بعد</p>'}
+        </div>
+
+        <!-- Video Call CTA Button -->
+        <div class="mt-5 p-4 bg-gradient-to-r from-gold-50 to-cream-100 rounded-2xl border border-gold-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <b class="font-amiri text-lg text-pine-900 block font-bold">المقرأة المرئية التفاعلية المباشرة</b>
+            <p class="text-xs text-ink-muted">جلسة فيديو كول حية مع معلمك مع تصفح المصحف المدمج</p>
+          </div>
+          <a href="#/classroom/${roomId}" class="btn btn-gold !px-6 !py-3 !rounded-xl shadow-glow-gold hover:scale-105 shrink-0 text-sm font-bold flex items-center gap-2">
+            <span>📹</span>
+            <span>دخول المقرأة المرئية الآن</span>
+          </a>
+        </div>
+
+        ${student.link ? `
+          <div class="mt-3 text-center">
+            <a href="${esc(student.link)}" target="_blank" rel="noopener" class="text-xs text-pine-800 underline font-semibold">
+              أو اضغط هنا لدخول الرابط الخارجي المباشر للمحاضرة ←
+            </a>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Progress & Instructions -->
+      ${student.progress ? `
+        <div class="card-lux p-5 mb-4">
+          <h4 class="font-amiri text-xl text-pine-900 font-bold mb-2 flex items-center gap-2">
+            <span>📖</span>
+            <span>حفظي ومستوى تقدمي الحالي</span>
+          </h4>
+          <p class="text-sm leading-relaxed text-ink bg-cream-100/70 p-4 rounded-xl border border-cream-200">
+            ${esc(student.progress)}
+          </p>
+        </div>
+      ` : ''}
+
+      ${student.instructions ? `
+        <div class="card-lux p-5 mb-4 border-gold-500/40">
+          <h4 class="font-amiri text-xl text-pine-900 font-bold mb-2 flex items-center gap-2">
+            <span>📋</span>
+            <span>تعليمات وتوجيهات المعلم</span>
+          </h4>
+          <p class="text-sm leading-relaxed text-ink bg-gold-50/60 p-4 rounded-xl border border-gold-300/40">
+            ${esc(student.instructions)}
+          </p>
+        </div>
+      ` : ''}
+
+      <!-- Document Check Preview (If uploaded) -->
+      ${student.id_card_url ? `
+        <div class="card-lux p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🪪</span>
+            <div>
+              <b class="text-xs font-bold text-pine-900 block">مستند إثبات الهوية المرفوع</b>
+              <small class="text-[11px] text-ink-muted">تم توثيق ورفع المستند بنجاح</small>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm !rounded-lg" onclick="previewDocument('${esc(student.id_card_url)}', 'صورة المستند الرسمي')">
+            معاينة المستند 🔍
+          </button>
+        </div>
+      ` : ''}
+    `;
+
+  } catch (err) {
+    console.error('Lookup error:', err);
+    out.innerHTML = `
+      <div class="text-sm bg-rose-50 border border-rose-300 text-rose-800 rounded-xl px-4 py-3">
+        تعذر البحث: ${esc(err.message || '')}
+      </div>`;
+  } finally {
+    b.disabled = false;
+    b.innerHTML = 'دخول لصفحتي';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   5. المقرأة المرئية التفاعلية المباشرة (Live Video Call Classroom)
+   ══════════════════════════════════════════════════════════════════════════════ */
+const SURAHS = [
+  { n: 1, name: 'الفاتحة', ayas: 7 },
+  { n: 2, name: 'البقرة', ayas: 286 },
+  { n: 3, name: 'آل عمران', ayas: 200 },
+  { n: 4, name: 'النساء', ayas: 176 },
+  { n: 5, name: 'المائدة', ayas: 120 },
+  { n: 18, name: 'الكهف', ayas: 110 },
+  { n: 36, name: 'يس', ayas: 83 },
+  { n: 55, name: 'الرحمن', ayas: 78 },
+  { n: 56, name: 'الواقعة', ayas: 96 },
+  { n: 67, name: 'الملك', ayas: 30 },
+  { n: 112, name: 'الإخلاص', ayas: 4 },
+  { n: 113, name: 'الفلق', ayas: 5 },
+  { n: 114, name: 'الناس', ayas: 6 }
+];
+
+function classroom(roomId) {
+  roomId = roomId || 'mishkah_room_halaqa';
+
+  app.innerHTML = shell(`
+    <section class="bg-pine-950 text-cream-50 py-4 border-b border-gold-500/30">
+      <div class="max-w-7xl mx-auto px-4 flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-xl bg-gold-500/20 text-gold-400 flex items-center justify-center text-xl">
+            📹
+          </span>
+          <div>
+            <h1 class="font-amiri text-xl font-bold text-gold-400">المقرأة المرئية التفاعلية — مشكاة القرآن</h1>
+            <p class="text-xs text-cream-200/70">غرفة المحاضرة المباشرة: <span class="font-mono text-gold-300 font-bold">${esc(roomId)}</span></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="toggleQuranBtn" class="btn btn-outline-gold btn-sm !rounded-xl">
+            📖 <span id="quranBtnText">إظهار المصحف الشريف</span>
+          </button>
+          <a href="#/track" class="btn btn-outline-light btn-sm !rounded-xl">
+            خروج من المقرأة
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 py-6">
+      <div class="grid lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Video Conference Frame (Cols 8 or 12) -->
+        <div id="videoCol" class="lg:col-span-8 transition-all duration-300">
+          <div class="video-container shadow-2xl relative">
+            <div id="jitsiContainer" style="width:100%;height:580px;"></div>
+            
+            <!-- Fallback Overlay if Jitsi fails or blocks -->
+            <div id="videoFallback" class="hidden absolute inset-0 bg-pine-950 flex flex-col items-center justify-center p-6 text-center text-cream-50">
+              <span class="text-5xl mb-4">📹</span>
+              <h3 class="font-amiri text-2xl text-gold-400 mb-2">غرفة الاتصال المرئي جاهزة</h3>
+              <p class="text-xs text-cream-200/75 max-w-md mb-6 leading-relaxed">
+                إذا لم تظهر الكاميرا تلقائيًا داخل المتصفح، يمكنك فتح الغرفة المباشرة في نافذة مستقلة بدقة فائقة:
+              </p>
+              <a href="https://meet.jit.si/${encodeURIComponent(roomId)}" target="_blank" rel="noopener" class="btn btn-gold !px-8 !py-3.5 !rounded-xl shadow-glow-gold">
+                فتح المقرأة المرئية في نافذة جديدة
+              </a>
+            </div>
+          </div>
+
+          <!-- Video Classroom Controls Help Bar -->
+          <div class="mt-4 p-4 card-lux flex flex-wrap items-center justify-between gap-3 text-xs text-ink-muted">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="font-bold text-pine-900">المقرأة متصلة بالبث المباشر المباشر</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span>🎤 تشغيل/كتم المايك</span>
+              <span>•</span>
+              <span>📹 الكاميرا</span>
+              <span>•</span>
+              <span>🖥️ مشاركة الشاشة</span>
+              <span>•</span>
+              <span>✋ رفع اليد</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Integrated Quran Companion (Cols 4) -->
+        <div id="quranCol" class="lg:col-span-4 transition-all duration-300">
+          <div class="card-lux p-5 border-t-4 border-t-gold-500 shadow-xl sticky top-24">
+            
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-cream-200">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📖</span>
+                <b class="font-amiri text-lg text-pine-900">المصحف الإلكتروني المرافق</b>
+              </div>
+              <span class="text-xs text-gold-600 font-bold">برواية حفص</span>
+            </div>
+
+            <!-- Surah selector -->
+            <label class="label !text-xs">اختر السورة الكريمة للمتابعة:</label>
+            <select id="surahSelect" class="input !py-2 text-xs mb-4">
+              ${SURAHS.map(s => `<option value="${s.n}">سورة ${s.name} (${arNum(s.ayas)} آية)</option>`).join('')}
+            </select>
+
+            <!-- Quran View Area -->
+            <div class="bg-gradient-to-b from-[#FFFDF9] to-[#F7F2E6] border border-cream-200 rounded-2xl p-5 min-h-[400px] max-h-[460px] overflow-y-auto text-center" id="quranViewArea">
+              <div class="font-amiri text-sm text-gold-600 mb-3 font-bold">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+              <div id="quranText" class="font-amiri text-xl leading-loose text-pine-950 font-normal select-text">
+                ﴿١﴾ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ﴿٢﴾ الرَّحْمَٰنِ الرَّحِيمِ ﴿٣﴾ مَالِكِ يَوْمِ الدِّينِ ﴿٤﴾ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ﴿٥﴾ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ ﴿٦﴾ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ ﴿٧﴾
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-cream-200 text-center">
+              <small class="text-[11px] text-ink-muted">
+                تصفح الآيات بصحبة الشيخ أثناء التسميع وتصحيح التلاوة
+              </small>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+  `);
+
+  initJitsiCall(roomId);
+  setupClassroomEvents();
+}
+
+function initJitsiCall(roomId) {
+  const container = $('#jitsiContainer');
+  if (!container) return;
+
+  if (typeof JitsiMeetExternalAPI === 'undefined') {
+    $('#videoFallback')?.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const domain = 'meet.jit.si';
+    const options = {
+      roomName: roomId,
+      width: '100%',
+      height: '100%',
+      parentNode: container,
+      configOverwrite: {
+        startWithAudioMuted: false,
+        startWithVideoMuted: false,
+        prejoinPageEnabled: false,
+        disableDeepLinking: true
+      },
+      interfaceConfigOverwrite: {
+        TOOLBAR_BUTTONS: [
+          'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+          'fodeviceselection', 'hangup', 'chat', 'raisehand',
+          'videoquality', 'filmstrip', 'tileview'
+        ],
+        SHOW_JITSI_WATERMARK: false,
+        SHOW_WATERMARK_FOR_GUESTS: false
+      }
+    };
+
+    if (jitsiApiInstance) {
+      try { jitsiApiInstance.dispose(); } catch (e) {}
+    }
+
+    jitsiApiInstance = new JitsiMeetExternalAPI(domain, options);
+  } catch (err) {
+    console.warn('Jitsi initialization fallback:', err);
+    $('#videoFallback')?.classList.remove('hidden');
+  }
+}
+
+function setupClassroomEvents() {
+  const btn = $('#toggleQuranBtn');
+  const qCol = $('#quranCol');
+  const vCol = $('#videoCol');
+  let quranVisible = true;
+
+  btn?.addEventListener('click', () => {
+    quranVisible = !quranVisible;
+    if (quranVisible) {
+      qCol.classList.remove('hidden');
+      vCol.className = 'lg:col-span-8 transition-all duration-300';
+      $('#quranBtnText').textContent = 'إخفاء المصحف الشريف';
+    } else {
+      qCol.classList.add('hidden');
+      vCol.className = 'lg:col-span-12 transition-all duration-300';
+      $('#quranBtnText').textContent = 'إظهار المصحف الشريف';
+    }
+  });
+
+  const sSelect = $('#surahSelect');
+  sSelect?.addEventListener('change', async () => {
+    const num = sSelect.value;
+    const txtEl = $('#quranText');
+    txtEl.innerHTML = '<span class="spin dark"></span> جارٍ تحميل السورة…';
+    try {
+      const res = await fetch(`https://api.alquran.cloud/v1/surah/${num}/ar.alafasy`);
+      const data = await res.json();
+      if (data && data.data && data.data.ayahs) {
+        const fullAyahs = data.data.ayahs.map(a => `${esc(a.text)} <span class="text-gold-600 font-bold">﴿${arNum(a.numberInSurah)}﴾</span>`).join(' ');
+        txtEl.innerHTML = fullAyahs;
+      }
+    } catch (e) {
+      txtEl.textContent = 'تعذر تحميل نص السورة، يرجى التحقق من اتصال الإنترنت.';
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   6. لوحة الإدارة الفاخرة: تحكم كامل (إضافة طالب + حذف طالب + تعديل + صور)
+   ══════════════════════════════════════════════════════════════════════════════ */
+async function admin() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return login();
+
+  app.innerHTML = shell(`
+    <div class="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+      <span class="spin dark !w-10 !h-10"></span>
+      <p class="text-xs text-pine-800 font-semibold">جارٍ تحميل بيانات لوحة الإدارة…</p>
+    </div>
+  `);
+
+  try {
+    const a = await sb.from('msk_teachers').select('*').order('id');
+    if (!a.error) TEACHERS = a.data || [];
+
+    const s = await sb.from('msk_students').select('*').order('created_at', { ascending: false });
+    if (!s.error) STUDS = s.data || [];
+  } catch (e) {
+    console.warn('Admin load error, using local fallback:', e);
+  }
+
+  // Merge with local storage students to guarantee new students are visible
+  const locals = getLocalStudents();
+  if (!STUDS) STUDS = [];
+  locals.forEach(ls => {
+    if (!STUDS.some(s => s.phone === ls.phone || (ls.id && s.id === ls.id))) {
+      STUDS.unshift(ls);
+    }
+  });
+
+  dash();
+}
+
+function login() {
+  app.innerHTML = `
+    <div class="min-h-screen bg-islamic-pattern relative flex items-center justify-center p-4">
+      <div class="pat-gold-arabesque absolute inset-0 pointer-events-none opacity-20"></div>
+      
+      <div class="relative bg-cream-50 rounded-3xl border-t-4 border-gold-500 shadow-2xl w-full max-w-md p-8 md:p-10">
+        
+        <div class="text-center">
+          <span class="w-16 h-16 rounded-2xl border-2 border-gold-500 bg-pine-900 overflow-hidden inline-flex items-center justify-center p-1 shadow-glow-gold">
+            ${LOGO_SVG}
+          </span>
+          <h1 class="font-amiri text-2xl md:text-3xl text-pine-900 font-bold mt-3">إدارة مشكاة القرآن</h1>
+          <p class="text-xs text-ink-muted mt-1">تسجيل دخول المشرفين والمعلمين المعتمدين</p>
+        </div>
+
+        <form id="lForm" class="mt-6 space-y-4">
+          <div>
+            <label class="label">البريد الإلكتروني</label>
+            <input id="l_em" type="email" dir="ltr" class="input" required placeholder="admin@mishkah.org">
+          </div>
+          <div>
+            <label class="label">كلمة المرور</label>
+            <input id="l_pw" type="password" class="input" required placeholder="••••••••">
+          </div>
+          <button class="btn btn-primary w-full !py-3.5 !rounded-xl !text-base shadow-glow-pine">
+            دخول للوحة التحكم
+          </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-cream-200 text-center">
+          <a href="#/" class="text-xs text-pine-800 hover:text-gold-600 font-bold">
+            ← العودة للصفحة الرئيسية للمنصة
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  $('#lForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const b = e.target.querySelector('button');
+    b.disabled = true;
+    b.innerHTML = '<span class="spin"></span> جارٍ التحقق…';
+
+    const { error } = await sb.auth.signInWithPassword({
+      email: $('#l_em').value.trim(),
+      password: $('#l_pw').value
+    });
+
+    if (error) {
+      toast('بيانات الدخول غير صحيحة، يرجى المحاولة ثانية', 'err');
+      b.disabled = false;
+      b.innerHTML = 'دخول للوحة التحكم';
+      return;
+    }
+
+    TEACHERS = null;
+    STUDS = null;
+    admin();
+  });
+}
+
+function dash() {
+  app.innerHTML = `
+    <div class="min-h-screen flex flex-col md:flex-row bg-cream-100">
+      
+      <!-- Admin Sidebar -->
+      <aside class="bg-pine-950 text-cream-50 md:w-64 shrink-0 md:sticky md:top-0 md:h-screen p-5 border-inline-end border-gold-500/30 flex flex-col justify-between">
+        <div>
+          <!-- Header -->
+          <div class="flex items-center gap-3 pb-5 mb-5 border-b border-white/10">
+            <span class="w-10 h-10 rounded-xl bg-pine-900 border border-gold-500 p-0.5 inline-block">
+              ${LOGO_SVG}
+            </span>
+            <div>
+              <b class="font-amiri text-lg text-gold-400 block leading-tight">مشكاة القرآن</b>
+              <small class="text-[11px] text-cream-200/60">لوحة الإدارة والتحكم</small>
+            </div>
+          </div>
+
+          <!-- Nav Items -->
+          <nav class="flex md:flex-col gap-1.5 flex-wrap">
+            <button data-tab="students" class="side-link ${TAB === 'students' ? 'active' : ''}">
+              <span>📚</span>
+              <span>الطلاب المسجلون</span>
+              ${STUDS ? `<span class="ms-auto bg-gold-500 text-pine-950 text-[11px] font-bold rounded-full px-2 py-0.5">${arNum(STUDS.length)}</span>` : ''}
+            </button>
+            <button data-tab="teachers" class="side-link ${TAB === 'teachers' ? 'active' : ''}">
+              <span>👨‍🏫</span>
+              <span>المعلمون والمعلمات</span>
+              ${TEACHERS ? `<span class="ms-auto bg-white/10 text-cream-50 text-[11px] rounded-full px-2 py-0.5">${arNum(TEACHERS.length)}</span>` : ''}
+            </button>
+          </nav>
+        </div>
+
+        <div class="pt-4 border-t border-white/10 flex md:flex-col gap-2">
+          <a href="#/" class="side-link !py-2">
+            <span>🌐</span>
+            <span>معاينة المنصة</span>
+          </a>
+          <button id="lOut" class="side-link !py-2 text-rose-300 hover:text-rose-200">
+            <span>🚪</span>
+            <span>تسجيل خروج</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Dashboard Content -->
+      <main id="dMain" class="flex-1 min-w-0 p-4 md:p-8 overflow-y-auto"></main>
+
+    </div>
+  `;
+
+  renderTab();
+}
+
+function renderTab() {
+  if (TAB === 'teachers') tTab();
+  else sTab();
+}
+
+/* ─── تبويب المعلمين ─── */
+function tTab() {
+  $('#dMain').innerHTML = `
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+      <div>
+        <h2 class="font-amiri text-3xl text-pine-900 font-bold">إدارة المشايخ والمعلمات</h2>
+        <p class="text-xs text-ink-muted mt-1">حدد أيام وساعات كل معلم وروابط المقارئ — تنعكس في صفحة التسجيل فورًا.</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="addT" class="btn btn-outline btn-sm !rounded-xl !px-4">
+          + إضافة معلم جديد
+        </button>
+        <button id="saveT" class="btn btn-primary btn-sm !rounded-xl !px-5 shadow-glow-pine">
+          💾 حفظ التغييرات
+        </button>
+      </div>
+    </div>
+
+    <div id="tBox" class="space-y-4"></div>
+  `;
+  paintT();
+}
+
+function paintT() {
+  $('#tBox').innerHTML = (TEACHERS || []).map((t, i) => {
+    const isNew = !t.id;
+    return `
+      <div class="card-lux p-5 ${isNew ? 'border-2 border-dashed border-gold-500 bg-gold-50/20' : ''}">
+        <div class="grid md:grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="label !text-xs !mb-1">اسم المعلم / المعلمة</label>
+            <input class="input tk !py-2 text-xs" data-i="${i}" data-k="name" value="${esc(t.name || '')}">
+          </div>
+          <div>
+            <label class="label !text-xs !mb-1">النوع</label>
+            <select class="input tk !py-2 text-xs" data-i="${i}" data-k="gender">
+              <option ${t.gender === 'ذكر' ? 'selected' : ''}>ذكر</option>
+              <option ${t.gender === 'أنثى' ? 'selected' : ''}>أنثى</option>
+            </select>
+          </div>
+          <div>
+            <label class="label !text-xs !mb-1">المسار التعليمي</label>
+            <select class="input tk !py-2 text-xs" data-i="${i}" data-k="track">
+              ${TRACKS.map(x => `<option ${t.track === x.name ? 'selected' : ''}>${x.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="label !text-xs !mb-1">رابط المقرأة الخارجي (اختياري)</label>
+            <input class="input tk !py-2 text-xs" dir="ltr" data-i="${i}" data-k="meeting_link" value="${esc(t.meeting_link || '')}" placeholder="https://meet.google.com/...">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <p class="text-xs font-bold text-olive-700 mb-2">الأيام المتاحة أسبوعيًا:</p>
+          <div class="flex flex-wrap gap-1.5">
+            ${DAYS.map(d => `<button type="button" class="chip2 ${(t.days || []).includes(d) ? 'on' : ''}" data-ci="${i}" data-arr="days" data-v="${d}">${d}</button>`).join('')}
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-xs font-bold text-olive-700 mb-2">الساعات المتاحة:</p>
+          <div class="flex flex-wrap gap-1.5">
+            ${SLOTS.map(h => `<button type="button" class="chip2 ${(t.hours || []).includes(h) ? 'on' : ''}" data-ci="${i}" data-arr="hours" data-v="${h}">${h}</button>`).join('')}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-cream-200">
+          <label class="flex items-center gap-2 text-xs font-bold text-pine-900 cursor-pointer">
+            <input type="checkbox" class="tk rounded" data-i="${i}" data-k="active" ${t.active !== false ? 'checked' : ''}>
+            <span>متاح لاستقبال طلاب جدد</span>
+          </label>
+          <button class="btn btn-danger btn-sm !rounded-lg delT" data-i="${i}">
+            حذف المعلم
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function readT() {
+  $$('.tk').forEach(el => {
+    const i = +el.dataset.i, k = el.dataset.k;
+    const t = TEACHERS[i];
+    if (!t) return;
+    if (k === 'active') t.active = el.checked;
+    else t[k] = el.value.trim();
+  });
+}
+
+async function saveAllT() {
+  readT();
+  if (TEACHERS.some(t => !t.name)) return toast('يرجى كتابة اسم كل معلم بشكل سليم', 'err');
+  TEACHERS.forEach(t => {
+    if (!Array.isArray(t.days)) t.days = [];
+    if (!Array.isArray(t.hours)) t.hours = [];
+  });
+
+  const b = $('#saveT');
+  b.disabled = true;
+  b.innerHTML = '<span class="spin"></span> حفظ…';
+
+  try {
+    const cur = await sb.from('msk_teachers').select('id');
+    if (!cur.error) {
+      const keep = TEACHERS.filter(t => t.id).map(t => t.id);
+      const del = (cur.data || []).map(x => x.id).filter(id => !keep.includes(id));
+      if (del.length) await sb.from('msk_teachers').delete().in('id', del);
+    }
+
+    for (const t of TEACHERS.filter(t => t.id)) {
+      await sb.from('msk_teachers').update({
+        name: t.name,
+        gender: t.gender,
+        track: t.track,
+        meeting_link: t.meeting_link || null,
+        days: t.days,
+        hours: t.hours,
+        active: t.active !== false
+      }).eq('id', t.id);
+    }
+
+    const news = TEACHERS.filter(t => !t.id).map(t => ({
+      name: t.name,
+      gender: t.gender,
+      track: t.track,
+      meeting_link: t.meeting_link || null,
+      days: t.days,
+      hours: t.hours,
+      active: t.active !== false
+    }));
+
+    if (news.length) await sb.from('msk_teachers').insert(news);
+
+    const a = await sb.from('msk_teachers').select('*').order('id');
+    if (!a.error) TEACHERS = a.data;
+
+    toast('تم حفظ بيانات المعلمين بنجاح', 'ok');
+    tTab();
+  } catch (e) {
+    toast('تعذر الحفظ: ' + e.message, 'err');
+  } finally {
+    b.disabled = false;
+    b.innerHTML = '💾 حفظ التغييرات';
+  }
+}
+
+/* ─── تبويب الطلاب (مع الإضافة، الحذف، التعديل، والمستندات) ─── */
+function sTab() {
+  const list = (STUDS || []).filter(s => {
+    if (!Q) return true;
+    const qL = Q.toLowerCase();
+    return [s.name, s.code, s.phone, s.national_id, s.email, s.track].join(' ').toLowerCase().includes(qL);
+  });
+
+  $('#dMain').innerHTML = `
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+      <div>
+        <h2 class="font-amiri text-3xl text-pine-900 font-bold">الطلاب المسجلون والمقرأة</h2>
+        <p class="text-xs text-ink-muted mt-1">إدارة الطلاب بالكامل: إضافة طالب، حذف طالب، مراجعة المستندات، والمقرأة المرئية.</p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <input id="sQ" class="input !w-64 !py-2 text-xs" placeholder="🔍 بحث بالاسم، الكود، القومي، الجوال…" value="${esc(Q)}">
+        <button id="btnAddStudentModal" class="btn btn-gold btn-sm !rounded-xl !px-4 shadow-md font-bold">
+          + إضافة طالب جديد
+        </button>
+      </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card-lux overflow-hidden shadow-xl border border-cream-200">
+      <div class="overflow-x-auto">
+        <table class="rtable w-full text-sm">
+          <thead>
+            <tr class="bg-pine-900 text-cream-50 text-xs">
+              <th class="p-3.5 text-start font-bold">الصورة والكود</th>
+              <th class="p-3.5 text-start font-bold">الطالب والاتصال</th>
+              <th class="p-3.5 text-start font-bold">الرقم القومي</th>
+              <th class="p-3.5 text-start font-bold">المعلم والمسار</th>
+              <th class="p-3.5 text-start font-bold">المواعيد</th>
+              <th class="p-3.5 text-start font-bold">الحالة</th>
+              <th class="p-3.5 text-start font-bold">المستندات</th>
+              <th class="p-3.5 text-center font-bold">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${!list.length ? `
+              <tr>
+                <td colspan="8" class="p-10 text-center text-ink-muted">
+                  <span class="text-3xl block mb-2">📂</span>
+                  لا يوجد طلاب مطابقين للبحث. يمكنك إضافة طالب جديد من الزر أعلاه.
+                </td>
+              </tr>
+            ` : list.map(s => {
+              const t = (TEACHERS || []).find(x => String(x.id) === String(s.teacher_id));
+              const sch = (s.schedule && s.schedule.length ? s.schedule : [{ day: s.day, hour: s.hour }])
+                .map(x => x ? `${x.day} (${x.hour || ''})` : '').filter(Boolean).join('، ');
+              const roomId = 'mishkah_' + (s.code || s.phone).replace(/[^a-zA-Z0-9]/g, '');
+
+              return `
+                <tr class="border-t border-cream-200 hover:bg-cream-100/50 transition-colors">
+                  <!-- الصورة والكود -->
+                  <td data-l="الكود" class="p-3.5">
+                    <div class="flex items-center gap-2.5">
+                      ${s.avatar_url ? `
+                        <img src="${esc(s.avatar_url)}" class="w-10 h-10 rounded-xl object-cover border border-gold-400 cursor-pointer shadow-sm" onclick="previewDocument('${esc(s.avatar_url)}', '${esc(s.name)}')">
+                      ` : `
+                        <div class="w-10 h-10 rounded-xl bg-pine-900/10 text-pine-900 flex items-center justify-center font-bold text-sm">
+                          ${esc((s.name || '').slice(0, 1))}
+                        </div>
+                      `}
+                      <div>
+                        <span class="font-mono font-bold text-gold-600 text-xs block">${esc(s.code || 'MSK')}</span>
+                        <span class="text-[10px] text-ink-faint">${esc(s.gender || 'ذكر')}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- الطالب والاتصال -->
+                  <td data-l="الطالب" class="p-3.5">
+                    <b class="text-pine-900 font-bold block text-sm">${esc(s.name)}</b>
+                    <span class="font-mono text-xs text-ink-muted block mt-0.5" dir="ltr">${esc(s.phone)}</span>
+                    ${s.email ? `<small class="text-[10px] text-ink-faint block truncate max-w-[150px]" dir="ltr">${esc(s.email)}</small>` : ''}
+                  </td>
+
+                  <!-- الرقم القومي -->
+                  <td data-l="الرقم القومي" class="p-3.5">
+                    <span class="font-mono text-xs font-semibold text-pine-800" dir="ltr">
+                      ${esc(s.national_id || 'غير مسجل')}
+                    </span>
+                  </td>
+
+                  <!-- المعلم والمسار -->
+                  <td data-l="المعلم" class="p-3.5">
+                    <span class="font-bold text-pine-900 text-xs block">${esc(t ? t.name : '—')}</span>
+                    <small class="text-[11px] text-olive-700 block">${esc(s.track || '—')}</small>
+                  </td>
+
+                  <!-- المواعيد -->
+                  <td data-l="المواعيد" class="p-3.5 text-xs text-ink-muted max-w-[170px]">
+                    ${esc(sch || '—')}
+                  </td>
+
+                  <!-- الحالة -->
+                  <td data-l="الحالة" class="p-3.5">
+                    <span class="tag tag-${s.status || 'pending'}">
+                      ${MST[s.status] || 'قيد المراجعة'}
+                    </span>
+                  </td>
+
+                  <!-- المستندات المرفوعة -->
+                  <td data-l="المستندات" class="p-3.5">
+                    ${s.id_card_url ? `
+                      <button class="btn btn-outline btn-sm !py-1 !px-2.5 !text-[11px] !rounded-lg" onclick="previewDocument('${esc(s.id_card_url)}', 'مستند: ${esc(s.name)}')">
+                        🪪 معاينة الهوية
+                      </button>
+                    ` : `
+                      <span class="text-[11px] text-ink-faint">لا يوجد مستند</span>
+                    `}
+                  </td>
+
+                  <!-- الإجراءات (فيديو كول + إدارة + حذف) -->
+                  <td class="p-3.5 text-center">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <a href="#/classroom/${roomId}" title="دخول المقرأة المرئية مع الطالب" class="btn btn-gold btn-sm !px-2.5 !py-1 !rounded-lg text-xs">
+                        📹
+                      </a>
+                      <button class="btn btn-primary btn-sm !px-3 !py-1 !rounded-lg text-xs editS" data-id="${s.id || s.code}">
+                        إدارة
+                      </button>
+                      <button class="btn btn-danger btn-sm !px-2.5 !py-1 !rounded-lg text-xs delS" data-id="${s.id || s.code}" title="حذف الطالب">
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Search input handler
+  const qInput = $('#sQ');
+  qInput.addEventListener('input', e => {
+    Q = e.target.value;
+    sTab();
+    $('#sQ').focus();
+  });
+
+  // Modal "+ إضافة طالب جديد"
+  $('#btnAddStudentModal').addEventListener('click', openAddStudentModal);
+}
+
+/* ─── معاينة المستندات والصور (Lightbox Modal) ─── */
+function previewDocument(url, title) {
+  modal(`
+    <div class="text-center">
+      <h3 class="font-amiri text-xl text-pine-900 font-bold mb-3">${esc(title || 'معاينة المستند')}</h3>
+      <div class="bg-pine-950 p-2 rounded-2xl max-h-[70vh] flex items-center justify-center overflow-hidden border border-gold-500/30">
+        <img src="${esc(url)}" class="max-h-[65vh] max-w-full object-contain rounded-xl" alt="المستند">
+      </div>
+      <div class="mt-4 flex justify-between items-center">
+        <a href="${esc(url)}" download="document.png" class="btn btn-gold btn-sm !rounded-xl">تحميل الصورة 📥</a>
+        <button class="btn btn-outline btn-sm !rounded-xl" data-close>إغلاق</button>
+      </div>
+    </div>
+  `);
+}
+
+/* ─── نافذة إضافة طالب جديد من لوحة الإدارة ─── */
+function openAddStudentModal() {
+  modal(`
+    <div>
+      <div class="flex items-center gap-3 pb-3 mb-4 border-b border-cream-200">
+        <span class="text-2xl">✨</span>
+        <h3 class="font-amiri text-2xl text-pine-900 font-bold">إضافة طالب جديد للمنصة</h3>
+      </div>
+
+      <form id="addStudentAdminForm" class="space-y-3.5 text-xs">
+        <div>
+          <label class="label">الاسم الكامل <span class="text-rose-600">*</span></label>
+          <input id="ad_name" class="input" required placeholder="اسم الطالب رباعيًا">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label">الرقم القومي (14 رقم) <span class="text-rose-600">*</span></label>
+            <input id="ad_natid" maxlength="14" dir="ltr" class="input" required placeholder="2990101XXXXXXXXX">
+          </div>
+          <div>
+            <label class="label">رقم الجوال <span class="text-rose-600">*</span></label>
+            <input id="ad_phone" maxlength="11" dir="ltr" class="input" required placeholder="010XXXXXXXX">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label">البريد الإلكتروني</label>
+            <input id="ad_email" type="email" dir="ltr" class="input" placeholder="student@example.com">
+          </div>
+          <div>
+            <label class="label">النوع</label>
+            <select id="ad_gender" class="input">
+              <option value="ذكر">ذكر</option>
+              <option value="أنثى">أنثى</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label">المسار التعليمي</label>
+            <select id="ad_track" class="input">
+              ${TRACKS.map(t => `<option>${t.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="label">المعلم المشرف</label>
+            <select id="ad_teacher" class="input">
+              ${(TEACHERS || []).map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label">الحالة</label>
+            <select id="ad_status" class="input">
+              <option value="approved">مقبول</option>
+              <option value="pending">قيد المراجعة</option>
+              <option value="completed">مكتمل</option>
+              <option value="stopped">متوقف</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">المستوى التقديري</label>
+            <select id="ad_level" class="input">
+              ${LVL.map(l => `<option>${l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-cream-200 flex justify-end gap-2">
+          <button type="button" class="btn btn-outline btn-sm !rounded-xl" data-close>إلغاء</button>
+          <button type="submit" id="btnDoAddStudent" class="btn btn-primary btn-sm !rounded-xl !px-6 shadow-glow-pine">
+            حفظ وإضافة الطالب
+          </button>
+        </div>
+      </form>
+    </div>
+  `);
+
+  $('#addStudentAdminForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = $('#btnDoAddStudent');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> جارٍ الحفظ…';
+
+    const newCode = 'MSK-' + Math.floor(100000 + Math.random() * 900000);
+    const newStudent = {
+      code: newCode,
+      name: $('#ad_name').value.trim(),
+      national_id: $('#ad_natid').value.trim(),
+      phone: $('#ad_phone').value.trim(),
+      email: $('#ad_email').value.trim() || null,
+      gender: $('#ad_gender').value,
+      track: $('#ad_track').value,
+      teacher_id: $('#ad_teacher').value,
+      status: $('#ad_status').value,
+      level: $('#ad_level').value,
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      // 1. Try Supabase insert
+      const res = await sb.from('msk_students').insert([newStudent]).select();
+      if (!res.error && res.data && res.data[0]) {
+        newStudent.id = res.data[0].id;
+      }
+    } catch (dbErr) {
+      console.warn('DB student insert fallback:', dbErr);
+    }
+
+    saveStudentLocally(newStudent);
+    if (!STUDS) STUDS = [];
+    STUDS.unshift(newStudent);
+
+    toast('تمت إضافة الطالب بنجاح', 'ok');
+    closeL();
+    sTab();
+  });
+}
+
+/* ─── نافذة إدارة وتعديل الطالب (Drawer Modal) ─── */
+function openS(id) {
+  const s = (STUDS || []).find(x => String(x.id) === String(id) || String(x.code) === String(id));
+  if (!s) return;
+  const t = (TEACHERS || []).find(x => String(x.id) === String(s.teacher_id));
+  const sch = (s.schedule && s.schedule.length ? s.schedule : [{ day: s.day, hour: s.hour }])
+    .filter(x => x && x.day).map(x => `${esc(x.day)} (${esc(x.hour || '')})`).join(' | ');
+  const roomId = 'mishkah_' + (s.code || s.phone).replace(/[^a-zA-Z0-9]/g, '');
+
+  $('#layer').innerHTML = `
+    <div class="overlay" data-close></div>
+    <aside class="drawer" style="position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(550px,100%);background:#FCF9F2;z-index:110;overflow-y:auto;box-shadow:0 0 50px rgba(0,0,0,0.35)">
+      
+      <!-- Drawer Header -->
+      <div class="bg-pine-950 text-cream-50 p-5 sticky top-0 z-10 flex items-start justify-between border-b border-gold-500/30">
+        <div>
+          <span class="text-xs text-gold-400 font-mono font-bold">${esc(s.code || 'MSK')}</span>
+          <h3 class="font-amiri text-2xl font-bold text-cream-50 mt-0.5">${esc(s.name)}</h3>
+          <p class="text-xs text-cream-200/70 font-mono mt-1" dir="ltr">${esc(s.phone)} | القومي: ${esc(s.national_id || '—')}</p>
+        </div>
+        <button class="text-2xl text-cream-200 hover:text-white" data-close>✕</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        
+        <!-- Live Class Quick Launch -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-pine-900 to-pine-800 text-cream-50 border border-gold-500/40 flex items-center justify-between">
+          <div>
+            <b class="text-sm block font-bold text-gold-300">بدء المقرأة المرئية المباشرة</b>
+            <span class="text-[11px] text-cream-200/70">الاتصال المباشر مع الطالب بالفيديو والمصحف</span>
+          </div>
+          <a href="#/classroom/${roomId}" class="btn btn-gold btn-sm !rounded-xl !px-4">
+            📹 بدء الجلسة
+          </a>
+        </div>
+
+        <!-- Documents preview card -->
+        <div class="card-lux p-4">
+          <p class="text-xs font-bold text-olive-700 mb-2">المستندات والصور المرفوعة:</p>
+          <div class="grid grid-cols-2 gap-3 text-center">
+            <div class="p-2 border border-cream-200 rounded-xl bg-white">
+              <span class="text-[11px] text-ink-muted block mb-1">الصورة الشخصية</span>
+              ${s.avatar_url ? `
+                <img src="${esc(s.avatar_url)}" class="w-16 h-16 rounded-full mx-auto object-cover border border-gold-400 mb-1 cursor-pointer" onclick="previewDocument('${esc(s.avatar_url)}', 'الصورة الشخصية: ${esc(s.name)}')">
+                <button class="text-[10px] text-pine-800 underline" onclick="previewDocument('${esc(s.avatar_url)}', 'الصورة الشخصية: ${esc(s.name)}')">تكبير 🔍</button>
+              ` : '<span class="text-[10px] text-ink-faint block py-4">غير مرفوعة</span>'}
+            </div>
+
+            <div class="p-2 border border-cream-200 rounded-xl bg-white">
+              <span class="text-[11px] text-ink-muted block mb-1">صورة الهوية / الشهادة</span>
+              ${s.id_card_url ? `
+                <img src="${esc(s.id_card_url)}" class="w-20 h-12 rounded-lg mx-auto object-cover border border-gold-400 mb-1 cursor-pointer" onclick="previewDocument('${esc(s.id_card_url)}', 'صورة المستند: ${esc(s.name)}')">
+                <button class="text-[10px] text-pine-800 underline" onclick="previewDocument('${esc(s.id_card_url)}', 'صورة المستند: ${esc(s.name)}')">معاينة المستند 🔍</button>
+              ` : '<span class="text-[10px] text-ink-faint block py-4">غير مرفوعة</span>'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher and Sched details -->
+        <div class="card-lux p-4 text-xs">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-ink-muted">المعلم المشرف:</span>
+            <b class="text-pine-900">${esc(t ? t.name : '—')}</b>
+          </div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-ink-muted">المسار:</span>
+            <b class="text-olive-700">${esc(s.track || '—')}</b>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-ink-muted">المواعيد:</span>
+            <span class="font-bold">${esc(sch || '—')}</span>
+          </div>
+        </div>
+
+        <!-- Status & Level -->
+        <div class="card-lux p-4 grid grid-cols-2 gap-3">
+          <div>
+            <label class="label !text-xs !mb-1">حالة القبول</label>
+            <select id="eSt" class="input text-xs">
+              ${Object.entries(MST).map(([k, v]) => `<option value="${k}" ${s.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="label !text-xs !mb-1">المستوى</label>
+            <select id="eLv" class="input text-xs">
+              <option value="">غير محدد</option>
+              ${LVL.map(l => `<option ${s.level === l ? 'selected' : ''}>${l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="card-lux p-4">
+          <label class="label !text-xs !mb-1">حفظ الطالب وتقدمه الحالي</label>
+          <textarea id="ePr" rows="3" class="input text-xs" placeholder="مثال: أتم حفظ جزء عمّ بامتياز، وبدأ في سورة البقرة...">${esc(s.progress || '')}</textarea>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card-lux p-4">
+          <label class="label !text-xs !mb-1">تعليمات وواجبات المعلم للطالب</label>
+          <textarea id="eIn" rows="3" class="input text-xs" placeholder="مثال: مراجعة أحكام النون الساكنة والتسميع الأربعاء القادم...">${esc(s.instructions || '')}</textarea>
+          
+          <label class="label !text-xs !mb-1 mt-3">رابط لقاء خارجي مخصص (اختياري)</label>
+          <input id="eLk" dir="ltr" class="input text-xs" value="${esc(s.link || '')}" placeholder="https://meet.google.com/...">
+        </div>
+
+        <!-- Action buttons -->
+        <div class="space-y-2 pt-2">
+          <button id="eSave" data-id="${s.id || s.code}" class="btn btn-primary w-full !py-3 !rounded-xl shadow-glow-pine text-sm font-bold">
+            💾 حفظ التعديلات وتحديث صفحة الطالب
+          </button>
+          <button id="btnDeleteStudentDrawer" data-id="${s.id || s.code}" class="btn btn-danger w-full !py-2.5 !rounded-xl text-xs">
+            🗑️ حذف هذا الطالب نهائيًا
+          </button>
+        </div>
+
+      </div>
+    </aside>
+  `;
+
+  $('#eSave').addEventListener('click', () => saveStudentChanges(s.id || s.code));
+  $('#btnDeleteStudentDrawer').addEventListener('click', () => confirmDeleteStudent(s.id || s.code, s.name));
+}
+
+async function saveStudentChanges(id) {
+  const b = $('#eSave');
+  b.disabled = true;
+  b.innerHTML = '<span class="spin"></span> جارٍ الحفظ…';
+
+  const patch = {
+    status: $('#eSt').value,
+    level: $('#eLv').value || null,
+    progress: $('#ePr').value.trim() || null,
+    instructions: $('#eIn').value.trim() || null,
+    link: $('#eLk').value.trim() || null
+  };
+
+  try {
+    // 1. Try Supabase update
+    await sb.from('msk_students').update(patch).or(`id.eq.${id},code.eq.${id}`);
+  } catch (err) {
+    console.warn('Update db fallback:', err);
+  }
+
+  // Update in local memory and local storage
+  const s = (STUDS || []).find(x => String(x.id) === String(id) || String(x.code) === String(id));
+  if (s) {
+    Object.assign(s, patch);
+    saveStudentLocally(s);
+  }
+
+  toast('تم حفظ التعديلات وظهرت في صفحة الطالب فورًا', 'ok');
+  closeL();
+  sTab();
+}
+
+/* ─── حذف الطالب مع التأكيد الأمني ─── */
+function confirmDeleteStudent(id, name) {
+  modal(`
+    <div class="text-center p-2">
+      <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-600 border border-rose-300 flex items-center justify-center text-3xl mx-auto mb-3">
+        ⚠️
+      </div>
+      <h3 class="font-amiri text-2xl text-pine-900 font-bold mb-2">تأكيد حذف الطالب</h3>
+      <p class="text-sm text-ink-muted leading-relaxed mb-6">
+        هل أنت متأكد من رغبتك في حذف الطالب <b class="text-pine-900">«${esc(name)}»</b> من المنصة؟
+        <br><span class="text-xs text-rose-700">سيتم حذف بياناته وسجل مواعيده بالكامل ولا يمكن التراجع.</span>
+      </p>
+
+      <div class="flex justify-center gap-3">
+        <button class="btn btn-outline btn-sm !rounded-xl !px-6" data-close>إلغاء</button>
+        <button id="btnConfirmDeleteFinal" class="btn btn-danger btn-sm !rounded-xl !px-6">
+          نعم، احذف الطالب
+        </button>
+      </div>
+    </div>
+  `);
+
+  $('#btnConfirmDeleteFinal').addEventListener('click', async () => {
+    const btn = $('#btnConfirmDeleteFinal');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> جارٍ الحذف…';
+
+    try {
+      // 1. Try Supabase delete
+      await sb.from('msk_students').delete().or(`id.eq.${id},code.eq.${id}`);
+    } catch (e) {
+      console.warn('Supabase delete error:', e);
+    }
+
+    // 2. Remove from local storage and memory
+    try {
+      let local = getLocalStudents();
+      local = local.filter(x => String(x.id) !== String(id) && String(x.code) !== String(id));
+      localStorage.setItem(LOCAL_STUDS_KEY, JSON.stringify(local));
+    } catch (e) {}
+
+    STUDS = (STUDS || []).filter(x => String(x.id) !== String(id) && String(x.code) !== String(id));
+
+    toast(`تم حذف الطالب «${name}» بنجاح`, 'ok');
+    closeL();
+    sTab();
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   أحداث الصفحة العامة (Delegated Click Handlers)
+   ══════════════════════════════════════════════════════════════════════════════ */
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('button');
+  const t = e.target;
+
+  if (t.closest('[data-close]') || t.classList.contains('overlay')) {
+    closeL();
+    return;
+  }
+
+  // Teacher Schedule Chips
+  const chip = e.target.closest('.chip2');
+  if (chip) {
+    const i = +chip.dataset.ci, arr = chip.dataset.arr, v = chip.dataset.v;
+    const tc = (TEACHERS || [])[i];
+    if (tc) {
+      if (!tc[arr]) tc[arr] = [];
+      const ix = tc[arr].indexOf(v);
+      if (ix > -1) tc[arr].splice(ix, 1);
+      else tc[arr].push(v);
+      chip.classList.toggle('on');
+    }
+    return;
+  }
+
+  if (!btn) return;
+
+  // Tabs on dashboard
+  if (btn.dataset.tab) {
+    TAB = btn.dataset.tab;
+    dash();
+    return;
+  }
+
+  // Logout
+  if (btn.id === 'lOut') {
+    await sb.auth.signOut();
+    TEACHERS = null;
+    STUDS = null;
+    admin();
+    return;
+  }
+
+  // Teacher actions
+  if (btn.id === 'addT') {
+    readT();
+    (TEACHERS = TEACHERS || []).push({
+      name: '',
+      gender: 'ذكر',
+      track: TRACKS[0].name,
+      days: [],
+      hours: [],
+      active: true
+    });
+    paintT();
+    return;
+  }
+
+  if (btn.id === 'saveT') {
+    saveAllT();
+    return;
+  }
+
+  if (btn.classList.contains('delT')) {
+    readT();
+    TEACHERS.splice(+btn.dataset.i, 1);
+    paintT();
+    return;
+  }
+
+  // Student actions
+  if (btn.classList.contains('editS')) {
+    openS(btn.dataset.id);
+    return;
+  }
+
+  if (btn.classList.contains('delS')) {
+    const s = (STUDS || []).find(x => String(x.id) === String(btn.dataset.id) || String(x.code) === String(btn.dataset.id));
+    confirmDeleteStudent(btn.dataset.id, s ? s.name : 'الطالب');
+    return;
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   التوجيه والراوتر (Hash Routing)
+   ══════════════════════════════════════════════════════════════════════════════ */
+async function route() {
+  const raw = (location.hash || '#/').slice(2).split('/');
+  const page = raw[0] || 'home';
+  const param = raw[1] ? decodeURIComponent(raw[1]) : null;
+
+  window.scrollTo(0, 0);
+  document.title = ({
+    join: 'التسجيل في الحلقات — ',
+    track: 'متابعتي والمقرأة — ',
+    classroom: 'المقرأة المرئية المباشرة — ',
+    admin: 'لوحة الإدارة — '
+  }[page] || '') + SITE.name + ' — منصة تعليم القرآن الكريم';
+
+  if (page === 'join') return join(param);
+  if (page === 'track') return track();
+  if (page === 'classroom') return classroom(param);
+  if (page === 'admin') return admin();
+  return home();
+}
+
+window.addEventListener('hashchange', route);
+window.addEventListener('DOMContentLoaded', () => {
+  initWelcomeScreen();
+  route();
+});
+(function() {
+  initWelcomeScreen();
+  route();
+})();
 </script>
 </body>
 </html>
-<!-- ★ نهاية مشكاة ★ لو مش شايف السطر ده يبقى اتقص: امسح وانسخ من الأول -->
