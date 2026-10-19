@@ -311,7 +311,7 @@ function applyThemeVars(key) {
   Object.entries(t.v).forEach(([k, v]) => r.setProperty(k, v));
 }
 
-const LEVEL_COLORS = ['#0F3D2C', '#0E7490', '#1E40AF', '#B45309', '#86198F'];
+const LEVEL_COLORS = ['#0F3D2C', '#0E7490', '#1E40AF', '#B45309', '#86198F', '#047857', '#7C3AED'];
 const hexA = (hex, a) => {
   const n = parseInt(hex.slice(1), 16);
   return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
@@ -330,7 +330,7 @@ const SITE_DEFAULTS = {
   season: '2026–2027',
   title: 'المسابقة الكبرى لحفظ القرآن الكريم',
   ayah: 'وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ',
-  welcome: 'ندعو أبناءنا وبناتنا إلى مشاركة مباركة في موسم هذا العام من مسابقتنا الكبرى لحفظ كتاب الله؛ خمسة مستويات تناسب مقدار الحفظ والعمر، مع توثيق مرئي للامتحانات.',
+  welcome: 'ندعو أبناءنا وبناتنا إلى مشاركة مباركة في موسم هذا العام من مسابقتنا الكبرى لحفظ كتاب الله؛ سبعة مستويات تناسب مقدار الحفظ والسن، مع توثيق مرئي للامتحانات.',
   phone: '', whatsapp: '', facebook: '', wa_link: '', telegram: '', youtube: '', logo: null, theme: 'taqwa',
   address: 'كفر يوسف حنس — مركز قلين — محافظة كفر الشيخ',
   terms: '١. يُحتسب عمر المتسابق وفق «تاريخ احتساب العمر» المعتمد من إدارة المسابقة.\n٢. مستوى واحد فقط لكل متسابق خلال الموسم.\n٣. التسميع وفق رواية حفص عن عاصم.\n٤. يجتاز المتسابق اختبارات التصفية ثم التحكيم النهائي مع توثيق فيديو للممتحنين.\n٥. صحة البيانات مسئولية ولي الأمر.\n٦. تُستخدم بيانات التسجيل لغرض تنظيم المسابقة فقط.\n٧. قرارات لجنة التحكيم نهائية.',
@@ -349,11 +349,13 @@ const SITE_DEFAULTS = {
 };
 
 const LEVELS_DEFAULT = [
-  { id: 1, name: 'المستوى الأول', desc: 'حفظ القرآن الكريم كاملًا مجوّدًا ومرتّلًا', max_age: 20, color: '#0F3D2C' },
-  { id: 2, name: 'المستوى الثاني', desc: 'حفظ القرآن الكريم كاملًا مرتّلًا', max_age: 18, color: '#0E7490' },
-  { id: 3, name: 'المستوى الثالث', desc: 'حفظ ثلاثة أرباع القرآن الكريم', max_age: 16, color: '#1E40AF' },
-  { id: 4, name: 'المستوى الرابع', desc: 'حفظ نصف القرآن الكريم', max_age: 15, color: '#B45309' },
-  { id: 5, name: 'المستوى الخامس', desc: 'حفظ عشرة أجزاء من القرآن الكريم', max_age: 13, color: '#86198F' }
+  { id: 1, name: 'المستوى الأول', desc: 'حفظ القرآن الكريم كاملًا مجوّدًا ومرتّلًا بالقراءات والتجويد', max_age: 20, color: '#0F3D2C', image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80' },
+  { id: 2, name: 'المستوى الثاني', desc: 'حفظ القرآن الكريم كاملًا مرتّلًا بحسن الصوت والتلاوة', max_age: 18, color: '#0E7490', image: 'https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=800&q=80' },
+  { id: 3, name: 'المستوى الثالث', desc: 'حفظ ثلاثة أرباع القرآن الكريم (٢٢٫٥ جزءًا)', max_age: 16, color: '#1E40AF', image: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=800&q=80' },
+  { id: 4, name: 'المستوى الرابع', desc: 'حفظ نصف القرآن الكريم (١٥ جزءًا)', max_age: 15, color: '#B45309', image: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?auto=format&fit=crop&w=800&q=80' },
+  { id: 5, name: 'المستوى الخامس', desc: 'حفظ عشرة أجزاء من القرآن الكريم', max_age: 13, color: '#86198F', image: 'https://images.unsplash.com/photo-1590076215667-875d4ef2d7ee?auto=format&fit=crop&w=800&q=80' },
+  { id: 6, name: 'المستوى السادس', desc: 'حفظ خمسة أجزاء من القرآن الكريم', max_age: 11, color: '#047857', image: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80' },
+  { id: 7, name: 'المستوى السابع', desc: 'حفظ ثلاثة أجزاء من القرآن الكريم (البراعم وقصار السور)', max_age: 9, color: '#7C3AED', image: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=800&q=80' }
 ];
 
 const S = { site: { ...SITE_DEFAULTS }, levels: [...LEVELS_DEFAULT], config: { registration_open: true, age_ref_date: '2026-10-01' } };
@@ -457,15 +459,28 @@ function toast(msg, type) {
 }
 
 function modal(html) {
-  layer.innerHTML = '<div class="overlay" data-close><div class="modal" onclick="event.stopPropagation()">' + html + '</div></div>';
+  layer.innerHTML = '<div class="overlay" data-close><div class="modal">' + html + '</div></div>';
   document.body.style.overflow = 'hidden';
 }
 
 function closeLayer() {
-  stopCameraStream();
+  try { stopCameraStream(); } catch (e) {}
   layer.innerHTML = '';
   document.body.style.overflow = '';
 }
+window.closeLayer = closeLayer;
+
+// Close modals on [data-close] button, overlay background click, or Escape key
+layer?.addEventListener('click', e => {
+  if (e.target.closest('[data-close]') || e.target.classList.contains('overlay')) {
+    closeLayer();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && layer && layer.innerHTML.trim()) {
+    closeLayer();
+  }
+});
 
 function parsePhones(v) {
   const arr = Array.isArray(v) ? v : String(v || '').split(/\r?\n|,/);
@@ -493,7 +508,23 @@ async function loadPublic() {
       if (!Array.isArray(S.site.prizes)) S.site.prizes = [];
       if (S.site.theme) applyThemeVars(S.site.theme);
     }
-    if (r.key === 'levels') S.levels = (Array.isArray(r.value) && r.value.length) ? r.value : [...LEVELS_DEFAULT];
+    if (r.key === 'levels') {
+      const loaded = Array.isArray(r.value) ? r.value : [];
+      if (loaded.length >= 7) {
+        S.levels = loaded;
+      } else if (loaded.length > 0) {
+        const existingIds = new Set(loaded.map(l => +l.id));
+        const missing = LEVELS_DEFAULT.filter(l => !existingIds.has(+l.id));
+        S.levels = [...loaded, ...missing].sort((a,b) => +a.id - +b.id);
+      } else {
+        S.levels = [...LEVELS_DEFAULT];
+      }
+      S.levels.forEach((l, idx) => {
+        if (!l.image && LEVELS_DEFAULT[idx] && LEVELS_DEFAULT[idx].image) {
+          l.image = LEVELS_DEFAULT[idx].image;
+        }
+      });
+    }
     if (r.key === 'config') S.config = { registration_open: false, age_ref_date: null, ...r.value };
   });
 }
@@ -512,11 +543,19 @@ function saveExaminerPin(id, pin) {
 /* ══════════════════════════════════════════════════════════════════════════════
    Router & Header Shell
    ══════════════════════════════════════════════════════════════════════════════ */
+window.goToRegisterLevel = function(levelId) {
+  location.hash = '#/register?level=' + levelId;
+  renderRegister(levelId);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 async function route() {
-  const raw = (location.hash || '#/').slice(2);
-  const parts = raw.split('/');
+  const hash = (location.hash || '#/').replace(/^#\/?/, '');
+  const [pathPart, queryPart] = hash.split('?');
+  const parts = pathPart.split('/').filter(Boolean);
   const page = parts[0] || 'home';
-  const param = parts[1] ? decodeURIComponent(parts[1]) : null;
+  const queryParams = new URLSearchParams(queryPart || '');
+  const param = parts[1] ? decodeURIComponent(parts[1]) : (queryParams.get('level') || queryParams.get('id') || null);
   window.scrollTo(0, 0);
 
   try {
@@ -649,32 +688,53 @@ function pubShell(content) {
 /* ══════════════════════════════════════════════════════════════════════════════
    1. الصفحة الرئيسية مع فيديو القرآن التفاعلي في المدخل
    ══════════════════════════════════════════════════════════════════════════════ */
-function levelCard(l) {
-  const color = l.color || '#0F3D2C';
+function levelCard(l, idx, total) {
+  const color = l.color || LEVEL_COLORS[idx % LEVEL_COLORS.length] || '#0F3D2C';
+  const imgUrl = l.image || (LEVELS_DEFAULT[idx] && LEVELS_DEFAULT[idx].image) || 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80';
+  const isCenteredLast = (total === 7 && idx === 6) ? 'lg:col-start-2' : '';
+
   return `
-    <a href="#/register?level=${l.id}" class="card p-5 group flex flex-col justify-between hover:border-gold-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden bg-white border-2 border-cream-200">
-      <div class="w-1.5 h-full absolute right-0 top-0" style="background-color: ${color}"></div>
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <span class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm text-cream-50 shadow-sm" style="background-color: ${color}">
+    <div onclick="goToRegisterLevel(${l.id})" class="card group flex flex-col justify-between hover:border-gold-500 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 relative overflow-hidden bg-white border-2 border-cream-200 cursor-pointer ${isCenteredLast}">
+      <!-- Level Photo Header -->
+      <div class="relative h-48 overflow-hidden bg-pine-950">
+        <img src="${esc(imgUrl)}" alt="${esc(l.name)}" class="w-full h-full object-cover group-hover:scale-108 transition-all duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'">
+        <div class="absolute inset-0 bg-gradient-to-t from-pine-950 via-pine-950/30 to-transparent"></div>
+
+        <div class="absolute top-3 right-3 flex items-center gap-1.5">
+          <span class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm text-cream-50 shadow-md backdrop-blur-sm" style="background-color: ${color}">
             ${arNum(l.id)}
           </span>
-          <span class="badge text-[11px] font-bold bg-cream-100 text-pine-900 border border-cream-200">
+          <span class="badge text-[11px] font-bold bg-white/95 text-pine-950 shadow border border-white/60 backdrop-blur-sm">
             حتى ${arNum(l.max_age)} سنة
           </span>
         </div>
-        <h3 class="font-amiri text-xl font-bold text-pine-950 group-hover:text-gold-600 transition mb-2">
-          ${esc(l.name)}
-        </h3>
-        <p class="text-xs text-ink/70 leading-relaxed mb-4">
-          ${esc(l.desc)}
-        </p>
+
+        <div class="absolute bottom-3 right-3 left-3">
+          <h3 class="font-amiri text-2xl font-bold text-cream-50 drop-shadow">
+            ${esc(l.name)}
+          </h3>
+        </div>
       </div>
-      <div class="pt-3 border-t border-cream-100 flex items-center justify-between text-xs font-bold text-pine-800 group-hover:text-gold-600 transition">
-        <span>سجل الآن بهذا المستوى</span>
-        <span class="text-sm">←</span>
+
+      <!-- Level Details & Description -->
+      <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+        <div>
+          <p class="text-xs md:text-sm text-ink/75 leading-relaxed">
+            ${esc(l.desc)}
+          </p>
+        </div>
+
+        <div class="pt-3 border-t border-cream-100 flex items-center justify-between">
+          <span class="text-xs font-bold text-pine-900 group-hover:text-gold-600 transition flex items-center gap-1">
+            <span>سجل الآن بهذا المستوى</span>
+            <span class="text-sm">←</span>
+          </span>
+          <span class="btn btn-sm !rounded-xl !py-1 !px-3.5 btn-gold text-xs font-bold shadow-sm group-hover:scale-105 transition">
+            تقديم طلب
+          </span>
+        </div>
       </div>
-    </a>
+    </div>
   `;
 }
 
@@ -766,15 +826,16 @@ function renderHome() {
       </div>
     </section>
 
-    <!-- Levels Section -->
-    <section class="max-w-6xl mx-auto px-4 py-12">
-      <div class="text-center mb-8">
+    <!-- Levels Section (المستويات السبعة: ٣ في كل سطر والأخير واحد في المنتصف) -->
+    <section class="max-w-6xl mx-auto px-4 py-16">
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-pine-900 text-gold-400 mb-3 border border-gold-500 text-2xl shadow-sm">📖</div>
         <h2 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">مستويات المسابقة السبعة</h2>
-        <p class="text-xs text-ink/60 mt-1">اضغط على أي مستوى للتسجيل مباشرة مع بيان مقدار الحفظ والسن</p>
+        <p class="text-xs md:text-sm text-ink/65 mt-1">اضغط على أي مستوى للانتقال الفوري إلى استمارة التسجيل مع بيان مقدار الحفظ والسن المعتمد</p>
       </div>
 
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mt-8">
-        ${S.levels.map(levelCard).join('')}
+      <div class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto mt-8">
+        ${S.levels.map((l, i) => levelCard(l, i, S.levels.length)).join('')}
       </div>
     </section>
 
@@ -1972,7 +2033,7 @@ function renderRegister(pre) {
 }
 
 function regFormHtml(s, cfg, preLevel) {
-  const lvOpts = S.levels.map(l => `<option value="${l.id}" ${preLevel === l.id ? 'selected' : ''}>${esc(l.name)} — ${esc(l.desc)} (حتى ${arNum(l.max_age)} عامًا)</option>`).join('');
+  const lvOpts = S.levels.map(l => `<option value="${l.id}" ${String(preLevel) === String(l.id) ? 'selected' : ''}>${esc(l.name)} — ${esc(l.desc)} (حتى ${arNum(l.max_age)} عامًا)</option>`).join('');
   const F = (k, label, inner, req, cls) => `<div class="field ${cls || ''}" data-f="${k}"><label class="label">${label}${req ? ' <span class="text-rose-700">*</span>' : ''}</label>${inner}<p class="err hidden text-xs text-rose-700 mt-1.5"></p></div>`;
   const U = (k, label, btnId, fileId, hint) => `
     <div class="field md:col-span-2" data-f="${k}">
@@ -2093,6 +2154,14 @@ function wireRegForm(preLevel) {
 
   $('#birth_date').addEventListener('change', () => { updateAge(); updateElig(); });
   $('#level_id').addEventListener('change', updateElig);
+
+  if (preLevel) {
+    const sel = $('#level_id');
+    if (sel) {
+      sel.value = String(preLevel);
+      updateElig();
+    }
+  }
 
   const showPrev = (fid, name, isPdf) => {
     const box = $('#' + fid + 'Prev');
@@ -2822,18 +2891,26 @@ function renderLevelsTab() {
   $('#dashMain').innerHTML = `
     <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
       <div>
-        <h2 class="font-amiri text-3xl text-pine-900 font-bold">المستويات والأعمار</h2>
-        <p class="text-xs text-ink/60 mt-0.5">إضافة، حذف، وتعديل المسميات ومقدار الحفظ والسن الأقصى لكل مستوى</p>
+        <h2 class="font-amiri text-3xl text-pine-900 font-bold">المستويات والأعمار والصور</h2>
+        <p class="text-xs text-ink/60 mt-0.5">تعديل المسميات ومقدار الحفظ وصور غلاف المستويات السبعة والسن الأقصى</p>
       </div>
-      <div class="flex gap-2">
-        <button type="button" id="addLevelBtn" class="btn btn-outline btn-sm !rounded-xl">+ إضافة مستوى جديد</button>
-        <button type="button" id="saveLevels" class="btn btn-primary btn-sm !rounded-xl shadow-glow-pine">💾 حفظ ونشر المستويات</button>
+      <div class="flex gap-2 flex-wrap">
+        <button type="button" id="btnReset7Levels" class="btn btn-outline btn-sm !rounded-xl text-xs">🔄 ضبط المستويات السبعة الافتراضية</button>
+        <button type="button" id="addLevelBtn" class="btn btn-outline btn-sm !rounded-xl text-xs">+ إضافة مستوى جديد</button>
+        <button type="button" id="saveLevels" class="btn btn-primary btn-sm !rounded-xl shadow-glow-pine text-xs font-bold">💾 حفظ ونشر المستويات</button>
       </div>
     </div>
-    <div id="lvBox" class="space-y-3"></div>
+    <div id="lvBox" class="space-y-4"></div>
   `;
   paintLevels();
   $('#saveLevels').addEventListener('click', saveLevels);
+  $('#btnReset7Levels')?.addEventListener('click', () => {
+    if (confirm('هل تريد استعادة المستويات السبعة الافتراضية مع صورها وتفاصيلها المعتمدة؟')) {
+      S.levels = JSON.parse(JSON.stringify(LEVELS_DEFAULT));
+      paintLevels();
+      toast('تمت استعادة المستويات السبعة الافتراضية، يرجى الضغط على زر حفظ لاعتمادها', 'ok');
+    }
+  });
   $('#addLevelBtn').addEventListener('click', () => {
     readLvDom();
     const nextId = S.levels.length ? Math.max(...S.levels.map(l => +l.id || 0)) + 1 : 1;
@@ -2842,7 +2919,8 @@ function renderLevelsTab() {
       name: `المستوى ${arNum(S.levels.length + 1)}`,
       desc: 'مقدار الحفظ المطلوب...',
       max_age: 18,
-      color: '#0F3D2C'
+      color: LEVEL_COLORS[(S.levels.length) % LEVEL_COLORS.length] || '#0F3D2C',
+      image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'
     });
     paintLevels();
   });
@@ -2859,22 +2937,33 @@ function paintLevels() {
   const box = $('#lvBox');
   if (!box) return;
   box.innerHTML = S.levels.map((l, i) => `
-    <div class="card p-4 grid gap-3 md:grid-cols-[2.5rem_1.5fr_2fr_6rem_2.5rem] items-center">
-      <b class="font-amiri text-2xl text-center text-gold-600">${arNum(i + 1)}</b>
-      <div>
-        <label class="label !text-[11px] !mb-1">اسم المستوى</label>
-        <input class="input lv-k !py-1.5 text-xs" data-i="${i}" data-k="name" value="${esc(l.name)}">
+    <div class="card p-4 space-y-3 border-2 border-cream-200 hover:border-gold-500/50 transition">
+      <div class="grid gap-3 md:grid-cols-[2.5rem_1.5fr_2fr_6rem_2.5rem] items-center">
+        <b class="font-amiri text-2xl text-center text-gold-600">${arNum(i + 1)}</b>
+        <div>
+          <label class="label !text-[11px] !mb-1 font-bold">اسم المستوى</label>
+          <input class="input lv-k !py-1.5 text-xs font-semibold" data-i="${i}" data-k="name" value="${esc(l.name)}">
+        </div>
+        <div>
+          <label class="label !text-[11px] !mb-1">الوصف والمقدار</label>
+          <input class="input lv-k !py-1.5 text-xs" data-i="${i}" data-k="desc" value="${esc(l.desc || '')}">
+        </div>
+        <div>
+          <label class="label !text-[11px] !mb-1 font-bold">السن الأقصى</label>
+          <input class="input lv-k !py-1.5 text-xs font-bold text-center" data-i="${i}" data-k="max_age" type="number" value="${esc(l.max_age)}">
+        </div>
+        <div class="pt-5 text-center">
+          <button type="button" class="ibtn ibtn-red js-lvdel" data-i="${i}" title="حذف المستوى">${ic('trash', 15)}</button>
+        </div>
       </div>
-      <div>
-        <label class="label !text-[11px] !mb-1">الوصف والمقدار</label>
-        <input class="input lv-k !py-1.5 text-xs" data-i="${i}" data-k="desc" value="${esc(l.desc || '')}">
-      </div>
-      <div>
-        <label class="label !text-[11px] !mb-1">الحد الأقصى للعمر</label>
-        <input class="input lv-k !py-1.5 text-xs font-bold" data-i="${i}" data-k="max_age" type="number" value="${esc(l.max_age)}">
-      </div>
-      <div class="pt-5 text-center">
-        <button type="button" class="ibtn ibtn-red js-lvdel" data-i="${i}" title="حذف المستوى">${ic('trash', 15)}</button>
+      <div class="flex items-center gap-3 pt-2.5 border-t border-cream-100 flex-wrap">
+        <div class="w-12 h-12 rounded-xl overflow-hidden bg-pine-950 border border-gold-500/40 shrink-0">
+          <img src="${esc(l.image || '')}" alt="" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'">
+        </div>
+        <div class="flex-1 min-w-[200px]">
+          <label class="label !text-[10px] !mb-0.5 text-ink/60">رابط صورة غلاف المستوى</label>
+          <input class="input lv-k !py-1 text-xs" data-i="${i}" data-k="image" value="${esc(l.image || '')}" placeholder="https://example.com/level-photo.jpg">
+        </div>
       </div>
     </div>
   `).join('');
