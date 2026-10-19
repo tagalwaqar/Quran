@@ -345,12 +345,7 @@ const SITE_DEFAULTS = {
     { id: 't3', name: 'م. محمد خليل', role: 'المسؤول التقني ومطور المنصة', category: 'tech', phone: '01000000003', whatsapp: '01000000003', bio: 'إدارة وتطوير المنصة الرقمية وبث الفعاليات والدعم الفني', photo: '' }
   ],
   gallery: [],
-  prizes: [
-    { id: 'p1', level_id: 1, level_name: 'المستوى الأول (القرآن كاملاً مجوداً)', rank: 'المركز الأول 🥇', title: 'درع التميز وجائزة مالية كبرى ٥٠٠٠ ج', winner_name: '', winner_photo: '' },
-    { id: 'p2', level_id: 1, level_name: 'المستوى الأول (القرآن كاملاً مجوداً)', rank: 'المركز الثاني 🥈', title: 'ميدالية الشرف ومكافأة مالية ٣٥٠٠ ج', winner_name: '', winner_photo: '' },
-    { id: 'p3', level_id: 2, level_name: 'المستوى الثاني (القرآن كاملاً مرتلاً)', rank: 'المركز الأول 🥇', title: 'درع المتسابق المتميز وجائزة مالية ٣٠٠٠ ج', winner_name: '', winner_photo: '' },
-    { id: 'p4', level_id: 3, level_name: 'المستوى الثالث (ثلاثة أرباع القرآن)', rank: 'المركز الأول 🥇', title: 'شهادة تقدير وجائزة مالية ٢٠٠٠ ج', winner_name: '', winner_photo: '' }
-  ]
+  prizes: []
 };
 
 const LEVELS_DEFAULT = [
@@ -488,9 +483,9 @@ async function loadPublic() {
   (data || []).forEach(r => {
     if (r.key === 'site') {
       S.site = { ...SITE_DEFAULTS, ...r.value };
-      if (!Array.isArray(S.site.team) || !S.site.team.length) S.site.team = [...SITE_DEFAULTS.team];
+      if (!Array.isArray(S.site.team)) S.site.team = [];
       if (!Array.isArray(S.site.gallery)) S.site.gallery = [];
-      if (!Array.isArray(S.site.prizes) || !S.site.prizes.length) S.site.prizes = [...SITE_DEFAULTS.prizes];
+      if (!Array.isArray(S.site.prizes)) S.site.prizes = [];
       if (S.site.theme) applyThemeVars(S.site.theme);
     }
     if (r.key === 'levels') S.levels = (Array.isArray(r.value) && r.value.length) ? r.value : [...LEVELS_DEFAULT];
@@ -795,33 +790,41 @@ function renderHome() {
         <p class="text-xs text-ink/65 mt-1">جوائز مالية قيّمة ودروع تميز وشهادات تقديرية معتمدة تكريماً لأهل القرآن وحفظة كتاب الله</p>
       </div>
 
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        ${(s.prizes && s.prizes.length ? s.prizes : SITE_DEFAULTS.prizes).map((p, idx) => `
-          <div class="card p-5 border-2 hover:border-gold-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden bg-gradient-to-b from-white to-cream-50 flex flex-col justify-between">
-            <div class="absolute -top-6 -end-6 w-20 h-20 bg-gold-500/10 rounded-full pointer-events-none"></div>
-            <div>
-              <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="tag bg-gold-500/15 text-gold-600 border border-gold-500/30 text-xs font-bold">${esc(p.rank || ('المركز ' + arNum(idx + 1)))}</span>
-                <span class="text-xs text-ink/50 font-bold">${esc(p.level_name || 'المستوى ' + arNum(p.level_id || 1))}</span>
+      ${s.prizes && s.prizes.length ? `
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          ${s.prizes.map((p, idx) => `
+            <div class="card p-5 border-2 hover:border-gold-500 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden bg-gradient-to-b from-white to-cream-50 flex flex-col justify-between">
+              <div class="absolute -top-6 -end-6 w-20 h-20 bg-gold-500/10 rounded-full pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <span class="tag bg-gold-500/15 text-gold-600 border border-gold-500/30 text-xs font-bold">${esc(p.rank || ('المركز ' + arNum(idx + 1)))}</span>
+                  <span class="text-xs text-ink/50 font-bold">${esc(p.level_name || 'المستوى ' + arNum(p.level_id || 1))}</span>
+                </div>
+                <h3 class="font-amiri text-xl font-bold text-pine-900 mb-2">${esc(p.title || 'جائزة المركز')}</h3>
               </div>
-              <h3 class="font-amiri text-xl font-bold text-pine-900 mb-2">${esc(p.title || 'جائزة المركز')}</h3>
-            </div>
 
-            ${p.winner_name ? `
-              <div class="mt-4 pt-3 border-t border-cream-200/80 bg-gold-500/10 rounded-xl p-3 text-center">
-                <span class="text-[11px] text-gold-600 font-bold block mb-1">🎉 الفائز بالجائزة:</span>
-                ${p.winner_photo ? `<img src="${esc(p.winner_photo)}" alt="${esc(p.winner_name)}" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-gold-500 mb-1.5 shadow">` : ''}
-                <b class="text-sm text-pine-950 block">${esc(p.winner_name)}</b>
-              </div>
-            ` : `
-              <div class="mt-4 pt-3 border-t border-cream-200/80 flex items-center justify-between text-xs text-ink/60">
-                <span>المنافسة جارية</span>
-                <span class="text-gold-600 font-bold">بانتظار التحكيم ⏳</span>
-              </div>
-            `}
-          </div>
-        `).join('')}
-      </div>
+              ${p.winner_name ? `
+                <div class="mt-4 pt-3 border-t border-cream-200/80 bg-gold-500/10 rounded-xl p-3 text-center">
+                  <span class="text-[11px] text-gold-600 font-bold block mb-1">🎉 الفائز بالجائزة:</span>
+                  ${p.winner_photo ? `<img src="${esc(p.winner_photo)}" alt="${esc(p.winner_name)}" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-gold-500 mb-1.5 shadow">` : ''}
+                  <b class="text-sm text-pine-950 block">${esc(p.winner_name)}</b>
+                </div>
+              ` : `
+                <div class="mt-4 pt-3 border-t border-cream-200/80 flex items-center justify-between text-xs text-ink/60">
+                  <span>المنافسة جارية</span>
+                  <span class="text-gold-600 font-bold">بانتظار التحكيم ⏳</span>
+                </div>
+              `}
+            </div>
+          `).join('')}
+        </div>
+      ` : `
+        <div class="text-center py-10 bg-white border border-dashed border-cream-200 rounded-3xl p-8 max-w-xl mx-auto shadow-sm">
+          <span class="text-4xl mb-2 block">🏆</span>
+          <p class="font-amiri text-lg font-bold text-pine-900">سيتم الإعلان عن جوائز المسابقة قريباً</p>
+          <p class="text-xs text-ink/60 mt-1">تُحدد إدارة المسابقة جوائز ومكافآت المراكز الأولى لكل مستوى وتُنشر هنا فور اعتمادها</p>
+        </div>
+      `}
     </section>
 
     <!-- Gallery Section -->
@@ -3411,7 +3414,12 @@ function renderPrizesTab() {
         <h2 class="font-amiri text-3xl text-pine-900 font-bold">توزيع جوائز وتكريمات المسابقة</h2>
         <p class="text-xs text-ink/60 mt-0.5">تحديد جوائز كل مستوى، الرتب والمكافآت، وإعلان أسماء وصور الفائزين المكرّمين</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
+        ${prizes.length ? `
+          <button id="btnDeleteAllPrizes" class="btn btn-danger btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5">
+            ${ic('trash', 14)} <span>حذف كل الجوائز</span>
+          </button>
+        ` : ''}
         <button id="btnAddPrize" class="btn btn-outline btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5">
           ${ic('plus', 15)} <span>إضافة جائزة جديدة</span>
         </button>
@@ -3478,6 +3486,7 @@ function renderPrizesTab() {
   `;
 
   $('#btnAddPrize')?.addEventListener('click', () => openPrizeModal());
+  $('#btnDeleteAllPrizes')?.addEventListener('click', () => deleteAllPrizes());
   $('#btnSavePrizes')?.addEventListener('click', savePrizesToDb);
 }
 
@@ -3607,11 +3616,20 @@ window.openPrizeModal = function(id) {
   };
 };
 
-window.deletePrize = function(id) {
+window.deletePrize = async function(id) {
   if (!confirm('هل تريد بالتأكيد حذف هذه الجائزة؟')) return;
   S.site.prizes = (S.site.prizes || []).filter(x => x.id !== id);
   renderPrizesTab();
-  savePrizesToDb();
+  await savePrizesToDb();
+  toast('تم حذف الجائزة بنجاح', 'ok');
+};
+
+window.deleteAllPrizes = async function() {
+  if (!confirm('هل أنت متأكد تماماً من رغبتك في حذف وتفريغ جميع الجوائز؟ لن تظهر أي جوائز إلا ما تضيفه أنت.')) return;
+  S.site.prizes = [];
+  renderPrizesTab();
+  await savePrizesToDb();
+  toast('تم تفريغ وحذف جميع الجوائز بنجاح', 'ok');
 };
 
 async function savePrizesToDb() {
