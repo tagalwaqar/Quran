@@ -433,7 +433,12 @@ const I = {
   award: '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
   video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
   palette: '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/>',
-  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+  telegram: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  youtube: '<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
+  play: '<polygon points="5 3 19 12 5 21 5 3"/>',
+  folder: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>'
 };
 
 const ic = (n, s = 18) => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 inline-block align-middle">' + (I[n] || '') + '</svg>';
@@ -545,6 +550,11 @@ async function route() {
       setTimeout(() => document.getElementById('liveSection')?.scrollIntoView({ behavior: 'smooth' }), 100);
       return;
     }
+    if (page === 'social') {
+      renderHome();
+      setTimeout(() => document.getElementById('socialSection')?.scrollIntoView({ behavior: 'smooth' }), 100);
+      return;
+    }
     return renderHome();
   } catch (e) {
     console.error('Route error:', e);
@@ -592,6 +602,7 @@ function pubShell(content) {
           <a href="#teamSection" class="btn btn-outline-light btn-sm !rounded-xl hidden xl:inline-flex text-xs">فريق الإدارة</a>
           <a href="#gallerySection" class="btn btn-outline-light btn-sm !rounded-xl hidden lg:inline-flex text-xs">الفعاليات</a>
           <a href="#prizesSection" class="btn btn-outline-light btn-sm !rounded-xl hidden md:inline-flex text-xs">الجوائز</a>
+          <a href="#socialSection" class="btn btn-outline-light btn-sm !rounded-xl hidden xl:inline-flex text-xs">قنوات التواصل</a>
           <a href="#/examiner" class="btn btn-outline-gold btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm">
             <span>🕌</span>
             <span class="hidden sm:inline">بوابة المشايخ</span>
@@ -608,12 +619,23 @@ function pubShell(content) {
       <div class="w-12 h-12 mx-auto mb-2">${MUSHAF_SVG}</div>
       <p class="font-amiri text-2xl text-gold-400 font-bold">${esc(s.title)}</p>
       <p class="text-sm mt-1 text-cream-100/90">${esc(s.org_name)} — ${esc(s.partner)}</p>
-      <div class="flex justify-center flex-wrap gap-4 text-xs mt-4">
+
+      <!-- Social Media Icons in Footer -->
+      <div class="flex items-center justify-center gap-2.5 my-4">
+        ${s.facebook ? `<a href="${esc(s.facebook)}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-white/10 hover:bg-blue-600 text-cream-50 flex items-center justify-center transition" title="فيسبوك">${ic('facebook', 16)}</a>` : ''}
+        ${s.telegram ? `<a href="${esc(s.telegram)}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-white/10 hover:bg-sky-500 text-cream-50 flex items-center justify-center transition" title="تليجرام">${ic('telegram', 16)}</a>` : ''}
+        ${(s.whatsapp || s.wa_link) ? `<a href="${esc(s.wa_link || waLink(s.whatsapp))}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-white/10 hover:bg-emerald-600 text-cream-50 flex items-center justify-center transition" title="واتساب">${ic('chat', 16)}</a>` : ''}
+        ${s.youtube ? `<a href="${esc(s.youtube.startsWith('http') ? s.youtube : ('https://www.youtube.com/' + s.youtube))}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-white/10 hover:bg-red-600 text-cream-50 flex items-center justify-center transition" title="يوتيوب">${ic('youtube', 16)}</a>` : ''}
+      </div>
+
+      <div class="flex justify-center flex-wrap gap-4 text-xs mt-2">
         <a href="#teamSection" class="underline decoration-gold-500 text-gold-400/90">فريق الإدارة والمنسقين</a>
         <span>•</span>
         <a href="#gallerySection" class="underline decoration-gold-500 text-gold-400/90">معرض الفعاليات</a>
         <span>•</span>
         <a href="#prizesSection" class="underline decoration-gold-500 text-gold-400/90">جوائز المسابقة</a>
+        <span>•</span>
+        <a href="#socialSection" class="underline decoration-gold-500 text-gold-400/90">قنوات التواصل</a>
         <span>•</span>
         <a href="#/examiner" class="text-gold-400 underline font-bold">بوابة المشايخ الممتحنين</a>
         <span>•</span>
@@ -827,41 +849,81 @@ function renderHome() {
       `}
     </section>
 
-    <!-- Gallery Section -->
+    <!-- Gallery Section (Photos & Videos with Category Partitioning) -->
     <section id="gallerySection" class="bg-cream-50 border-y border-cream-200 py-16">
       <div class="max-w-6xl mx-auto px-4">
-        <div class="text-center mb-10">
+        <div class="text-center mb-8">
           <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-pine-900 text-gold-400 mb-3 border border-gold-500 text-2xl shadow-sm">📸</div>
-          <h2 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">معرض صور وتوثيق فعاليات المسابقة</h2>
-          <p class="text-xs text-ink/65 mt-1">لقطات مصورة توثق اختبارات المتسابقين، لجان المشايخ، وتكريم الفائزين</p>
+          <h2 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">معرض صور وفيديوهات الفعاليات</h2>
+          <p class="text-xs text-ink/65 mt-1">توثيق شامل للاختبارات، لجان المشايخ، الفيديوهات المرئية، وتكريم الفائزين</p>
         </div>
 
-        ${s.gallery && s.gallery.length ? `
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            ${s.gallery.map((g, idx) => `
-              <div class="group relative rounded-2xl overflow-hidden border border-cream-200 bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer" onclick="openPhotoLightbox('${esc(g.url)}', '${esc(g.caption || '')}', '${esc(g.date || '')}')">
-                <div class="aspect-square bg-pine-950 overflow-hidden relative">
-                  <img src="${esc(g.url)}" alt="${esc(g.caption || 'صورة فعالية')}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy">
-                  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-3">
-                    <span class="text-cream-50 text-xs font-semibold flex items-center gap-1.5">${ic('eye', 15)} <span>تكبير الصورة</span></span>
-                  </div>
-                </div>
-                ${g.caption ? `
-                  <div class="p-2.5">
-                    <p class="text-xs font-bold text-pine-950 truncate">${esc(g.caption)}</p>
-                    ${g.date ? `<span class="text-[10px] text-ink/50">${esc(g.date)}</span>` : ''}
-                  </div>
-                ` : ''}
+        ${(() => {
+          const gallery = s.gallery || [];
+          if (!gallery.length) {
+            return `
+              <div class="text-center py-10 bg-white border border-dashed border-cream-200 rounded-3xl p-8 max-w-xl mx-auto">
+                <span class="text-4xl mb-2 block">📷</span>
+                <p class="font-amiri text-lg font-bold text-pine-900">أرشيف صور وفيديوهات الفعاليات قيد التحديث</p>
+                <p class="text-xs text-ink/60 mt-1">سيتم نشر وتوثيق لقطات الاختبارات والحفل الختامي فور انطلاقها</p>
               </div>
-            `).join('')}
-          </div>
-        ` : `
-          <div class="text-center py-10 bg-white border border-dashed border-cream-200 rounded-3xl p-8 max-w-xl mx-auto">
-            <span class="text-4xl mb-2 block">📷</span>
-            <p class="font-amiri text-lg font-bold text-pine-900">أرشيف صور الفعاليات قيد التحديث</p>
-            <p class="text-xs text-ink/60 mt-1">سيتم نشر وتوثيق صور لجان الاختبارات والحفل الختامي فور انطلاقها</p>
-          </div>
-        `}
+            `;
+          }
+
+          const cats = ['الكل', ...new Set(gallery.map(g => g.category || 'عام').filter(Boolean))];
+
+          return `
+            <!-- Category Filter Pills -->
+            ${cats.length > 2 ? `
+              <div class="flex items-center justify-center gap-2 mb-8 flex-wrap" id="pubGalleryFilterBar">
+                ${cats.map((cat, i) => `
+                  <button type="button" class="pub-gallery-filter-btn btn btn-sm !rounded-xl text-xs font-semibold ${i === 0 ? 'btn-primary' : 'btn-outline'}" onclick="filterPublicGallery('${esc(cat)}')">
+                    ${cat === 'الكل' ? '🌟 الكل' : (cat.includes('فيديو') ? '📹 ' : '📁 ') + esc(cat)}
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <!-- Media Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" id="pubGalleryGrid">
+              ${gallery.map(g => {
+                const isVid = g.type === 'video';
+                const thumb = getMediaThumb(g);
+                return `
+                  <div class="pub-gallery-item group relative rounded-2xl overflow-hidden border border-cream-200 bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between" data-category="${esc(g.category || 'عام')}" onclick="${isVid ? `openVideoModal('${esc(g.url)}', '${esc(g.caption || '')}')` : `openPhotoLightbox('${esc(g.url)}', '${esc(g.caption || '')}', '${esc(g.date || '')}')`}">
+                    <div class="aspect-square bg-pine-950 overflow-hidden relative">
+                      <img src="${esc(thumb)}" alt="${esc(g.caption || 'فعالية')}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy">
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-3">
+                        <span class="text-cream-50 text-xs font-semibold flex items-center gap-1.5">
+                          ${isVid ? `${ic('play', 15)} <span>تشغيل الفيديو</span>` : `${ic('eye', 15)} <span>تكبير الصورة</span>`}
+                        </span>
+                      </div>
+                      ${isVid ? `
+                        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <span class="w-12 h-12 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-125 transition duration-300">
+                            ${ic('play', 20)}
+                          </span>
+                        </div>
+                        <span class="absolute top-2 start-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow">فيديو 📹</span>
+                      ` : ''}
+                      ${g.category ? `
+                        <span class="absolute top-2 end-2 bg-pine-950/80 backdrop-blur-sm text-gold-300 border border-gold-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md shadow">
+                          ${esc(g.category)}
+                        </span>
+                      ` : ''}
+                    </div>
+                    ${(g.caption || g.date) ? `
+                      <div class="p-3">
+                        ${g.caption ? `<p class="text-xs font-bold text-pine-950 truncate">${esc(g.caption)}</p>` : ''}
+                        ${g.date ? `<span class="text-[10px] text-ink/50 block mt-0.5">${esc(g.date)}</span>` : ''}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        })()}
       </div>
     </section>
 
@@ -920,17 +982,121 @@ function renderHome() {
       </div>
     </section>
 
+    <!-- Social Media Section (منصات وقنوات التواصل الرسمية) -->
+    <section id="socialSection" class="bg-gradient-to-b from-pine-950 via-pine-900 to-pine-950 text-cream-50 py-16 border-y border-gold-500/40 relative overflow-hidden">
+      <div class="pat-gold absolute inset-0 pointer-events-none opacity-15"></div>
+      <div class="relative max-w-6xl mx-auto px-4">
+        <div class="text-center mb-10">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gold-500/20 text-gold-400 mb-3 border border-gold-500/40 text-2xl shadow-glow-gold">📢</div>
+          <h2 class="font-amiri text-3xl md:text-4xl text-gold-400 font-bold">قنوات التواصل والمنصات الرسمية</h2>
+          <p class="text-xs md:text-sm text-cream-200/80 mt-1 max-w-2xl mx-auto">تابعوا تغطيات المسابقة لحظة بلحظة، إعلانات الجداول والكشوفات، والبث المباشر عبر قنواتنا المعتمدة</p>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
+          <!-- Facebook Card -->
+          <a href="${esc(s.facebook || '#')}" target="_blank" rel="noopener noreferrer" class="group card p-5 bg-white/5 border border-white/10 hover:border-blue-500 rounded-2xl transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between ${!s.facebook ? 'opacity-50 pointer-events-none' : ''}">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-blue-600/25 text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition border border-blue-500/30">
+                ${ic('facebook', 24)}
+              </div>
+              <h3 class="font-amiri text-xl font-bold text-cream-50 mb-1">صفحة فيسبوك</h3>
+              <p class="text-xs text-cream-200/70 leading-relaxed mb-4">الأخبار اليومية، ألبومات الصور، والتغطية الإعلامية للفعاليات</p>
+            </div>
+            <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-blue-400 font-bold">
+              <span>${s.facebook ? 'متابعة الصفحة' : 'قريباً'}</span>
+              <span>←</span>
+            </div>
+          </a>
+
+          <!-- Telegram Card -->
+          <a href="${esc(s.telegram || '#')}" target="_blank" rel="noopener noreferrer" class="group card p-5 bg-white/5 border border-white/10 hover:border-sky-400 rounded-2xl transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between ${!s.telegram ? 'opacity-50 pointer-events-none' : ''}">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-sky-500/25 text-sky-400 flex items-center justify-center mb-3 group-hover:scale-110 transition border border-sky-400/30">
+                ${ic('telegram', 24)}
+              </div>
+              <h3 class="font-amiri text-xl font-bold text-cream-50 mb-1">قناة تليجرام</h3>
+              <p class="text-xs text-cream-200/70 leading-relaxed mb-4">كشوفات أسماء المتسابقين، مواعيد الاختبارات، والنتائج المعتمدة</p>
+            </div>
+            <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-sky-400 font-bold">
+              <span>${s.telegram ? 'الانضمام للقناة' : 'قريباً'}</span>
+              <span>←</span>
+            </div>
+          </a>
+
+          <!-- WhatsApp Card -->
+          <a href="${esc(s.wa_link || (s.whatsapp ? waLink(s.whatsapp) : '#'))}" target="_blank" rel="noopener noreferrer" class="group card p-5 bg-white/5 border border-white/10 hover:border-emerald-500 rounded-2xl transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between ${!(s.wa_link || s.whatsapp) ? 'opacity-50 pointer-events-none' : ''}">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-emerald-500/25 text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition border border-emerald-400/30">
+                ${ic('chat', 24)}
+              </div>
+              <h3 class="font-amiri text-xl font-bold text-cream-50 mb-1">مجتمع واتساب</h3>
+              <p class="text-xs text-cream-200/70 leading-relaxed mb-4">التواصل السريع، استفسارات أولياء الأمور، وإشعارات اللجان</p>
+            </div>
+            <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-emerald-400 font-bold">
+              <span>${(s.wa_link || s.whatsapp) ? 'مراسلة واتساب' : 'قريباً'}</span>
+              <span>←</span>
+            </div>
+          </a>
+
+          <!-- YouTube Card -->
+          <a href="${esc(s.youtube ? (s.youtube.startsWith('http') ? s.youtube : ('https://www.youtube.com/' + s.youtube)) : '#')}" target="_blank" rel="noopener noreferrer" class="group card p-5 bg-white/5 border border-white/10 hover:border-red-500 rounded-2xl transition duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between ${!s.youtube ? 'opacity-50 pointer-events-none' : ''}">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-red-500/25 text-red-400 flex items-center justify-center mb-3 group-hover:scale-110 transition border border-red-500/30">
+                ${ic('youtube', 24)}
+              </div>
+              <h3 class="font-amiri text-xl font-bold text-cream-50 mb-1">قناة يوتيوب</h3>
+              <p class="text-xs text-cream-200/70 leading-relaxed mb-4">البث المباشر، توثيق الاختبارات، ومقاطع التلاوات المتميزة</p>
+            </div>
+            <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-red-400 font-bold">
+              <span>${s.youtube ? 'الاشتراك بالقناة' : 'قريباً'}</span>
+              <span>←</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- Contact & Inquiries -->
     <section class="max-w-6xl mx-auto px-4 py-12">
       <div class="text-center mb-8">
         <h2 class="font-amiri text-3xl text-pine-900 font-bold">التواصل والاستفسارات</h2>
       </div>
-      <div class="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
         ${contactCards(s)}
       </div>
     </section>
   `);
 }
+
+function getMediaThumb(g) {
+  if (g.type === 'video') {
+    if (g.thumbnail) return g.thumbnail;
+    const m = (g.url || '').match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|live\/)([^#\&\?]*)/);
+    if (m && m[1] && m[1].length >= 11) {
+      return 'https://img.youtube.com/vi/' + m[1].slice(0, 11) + '/hqdefault.jpg';
+    }
+  }
+  return g.url || '';
+}
+
+window.filterPublicGallery = function(cat) {
+  document.querySelectorAll('.pub-gallery-filter-btn').forEach(btn => {
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-outline');
+    const txt = btn.textContent.trim();
+    if (txt.includes(cat) || (cat === 'الكل' && txt.includes('الكل'))) {
+      btn.classList.add('btn-primary');
+      btn.classList.remove('btn-outline');
+    }
+  });
+  document.querySelectorAll('.pub-gallery-item').forEach(el => {
+    if (cat === 'الكل' || el.dataset.category === cat) {
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+};
 
 window.openPhotoLightbox = function(url, caption, date) {
   modal(`
@@ -945,59 +1111,44 @@ window.openPhotoLightbox = function(url, caption, date) {
   `);
 };
 
-function toggleVideoSound() {
-  const iframe = $('#heroQuranVideo');
-  if (iframe) {
-    iframe.src = 'https://www.youtube-nocookie.com/embed/oIXynH-7F1o?autoplay=1&controls=1&rel=0';
-    toast('تم بدء تشغيل تلاوة سورة مريم', 'ok');
-  }
-}
-
-function levelCard(lv, i) {
-  const odd = i % 2 === 0;
-  const bg = odd ? '#F5E9C9' : '#556B2F';
-  const bd = odd ? '#C9A227' : '#8F9F5F';
-  const tc = odd ? '#8A6D1C' : '#E0C468';
-  const sc = odd ? '#7A5C14' : '#D8E3C0';
-
-  return `
-    <a href="#/register/${lv.id}" class="card block overflow-hidden group transition hover:-translate-y-1.5 hover:shadow-xl rounded-2xl" style="background:${bg};border:2px solid ${bd}">
-      <div class="relative h-32" style="${patBg(odd ? '#C9A227' : '#556B2F')}">
-        ${lv.image ? `<img src="${esc(lv.image)}" alt="${esc(lv.name)}" class="absolute inset-0 w-full h-full object-cover">` : ''}
-        <span class="absolute inset-0" style="background:linear-gradient(to top,${hexA(bd, .55)},transparent 70%)"></span>
-        <span class="medallion absolute bottom-2 start-2 !w-11 !h-11 !text-xl" style="background:rgba(255,255,255,.2);color:${tc};border-color:${bd}">
-          ${arNum(i + 1)}
-        </span>
+window.openVideoModal = function(url, caption) {
+  const embedUrl = toYoutubeEmbed(url);
+  modal(`
+    <div class="p-2">
+      <div class="flex items-center justify-between mb-3 border-b border-cream-200 pb-2">
+        <h4 class="font-amiri text-xl text-pine-900 font-bold truncate">${esc(caption || 'فيديو من فعاليات المسابقة')}</h4>
+        <button class="text-ink/40 hover:text-ink text-xl leading-none" data-close>×</button>
       </div>
-      <div class="p-4 text-center">
-        <h3 class="font-amiri font-bold text-lg" style="color:${tc}">${esc(lv.name)}</h3>
-        <p class="text-[12px] leading-relaxed mt-2 min-h-[3.2rem]" style="color:${sc}">${esc(lv.desc)}</p>
-        <div class="mt-3 flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs border" style="border-color:${bd};background:rgba(255,255,255,.3)">
-          <span style="color:${sc}">الحد الأقصى للعمر</span>
-          <b style="color:${tc}">${arNum(lv.max_age)} عامًا</b>
-        </div>
-        <div class="mt-3.5 flex items-center justify-center gap-1.5 text-xs font-bold transition-all group-hover:gap-3" style="color:${tc}">
-          <span>التسجيل في هذا المستوى</span>
-          <span>←</span>
-        </div>
+      <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-gold-500/40 shadow-2xl relative mb-3">
+        <iframe class="w-full h-full" src="${esc(embedUrl)}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
-    </a>
-  `;
-}
+      <div class="flex justify-end">
+        <button class="btn btn-outline btn-sm !rounded-xl !px-6" data-close>إغلاق</button>
+      </div>
+    </div>
+  `);
+};
 
 function contactCards(s) {
   const cards = [];
-  const ph = parsePhones(s.phone), wa = parsePhones(s.whatsapp);
+  const ph = parsePhones(s.phone), wa = parsePhones(s.whatsapp || s.wa_link);
   if (ph.length) {
-    cards.push('<div class="card p-6 text-center"><span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">' + ic('phone', 22) + '</span><p class="text-xs text-ink/50 mt-3">هاتف الإدارة</p><div class="mt-1 space-y-1">' + ph.map(p => '<a href="tel:' + p.digits + '" class="font-semibold text-pine-800 hover:underline block"><span dir="ltr">' + esc(p.num) + '</span></a>').join('') + '</div></div>');
+    cards.push('<div class="card p-5 text-center hover:shadow-md transition"><span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">' + ic('phone', 22) + '</span><p class="text-xs text-ink/50 mt-3">هاتف الإدارة</p><div class="mt-1 space-y-1">' + ph.map(p => '<a href="tel:' + p.digits + '" class="font-semibold text-pine-800 hover:underline block text-xs"><span dir="ltr">' + esc(p.num) + '</span></a>').join('') + '</div></div>');
   }
-  if (wa.length) {
-    cards.push('<div class="card p-6 text-center"><span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">' + ic('chat', 22) + '</span><p class="text-xs text-ink/50 mt-3">واتساب</p><div class="mt-1 space-y-1">' + wa.map(p => '<a href="' + waLink(p.digits) + '" target="_blank" rel="noopener" class="font-semibold text-pine-800 hover:underline block"><span dir="ltr">' + esc(p.num) + '</span></a>').join('') + '</div></div>');
+  if (wa.length || s.wa_link) {
+    const link = s.wa_link && s.wa_link.startsWith('http') ? s.wa_link : (wa.length ? waLink(wa[0].digits) : '#');
+    cards.push('<div class="card p-5 text-center hover:shadow-md transition"><span class="w-12 h-12 rounded-full bg-emerald-800 text-cream-50 inline-flex items-center justify-center">' + ic('chat', 22) + '</span><p class="text-xs text-ink/50 mt-3">واتساب المسابقة</p><a href="' + esc(link) + '" target="_blank" rel="noopener" class="font-semibold text-emerald-800 hover:underline block mt-1 text-xs">تواصل فوري ←</a></div>');
+  }
+  if (s.telegram) {
+    cards.push('<div class="card p-5 text-center hover:shadow-md transition"><span class="w-12 h-12 rounded-full bg-sky-700 text-cream-50 inline-flex items-center justify-center">' + ic('telegram', 22) + '</span><p class="text-xs text-ink/50 mt-3">قناة تليجرام</p><a href="' + esc(s.telegram) + '" target="_blank" rel="noopener" class="font-semibold text-sky-700 hover:underline block mt-1 text-xs">فتح القناة ←</a></div>');
+  }
+  if (s.facebook) {
+    cards.push('<div class="card p-5 text-center hover:shadow-md transition"><span class="w-12 h-12 rounded-full bg-blue-800 text-cream-50 inline-flex items-center justify-center">' + ic('facebook', 22) + '</span><p class="text-xs text-ink/50 mt-3">صفحة فيسبوك</p><a href="' + esc(s.facebook) + '" target="_blank" rel="noopener" class="font-semibold text-blue-800 hover:underline block mt-1 text-xs">متابعة الصفحة ←</a></div>');
   }
   if (s.address) {
-    cards.push('<div class="card p-6 text-center"><span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">' + ic('pin', 22) + '</span><p class="text-xs text-ink/50 mt-3">المقر</p><p class="font-semibold text-pine-800 mt-1 text-xs leading-relaxed">' + esc(s.address) + '</p></div>');
+    cards.push('<div class="card p-5 text-center hover:shadow-md transition"><span class="w-12 h-12 rounded-full bg-pine-800 text-gold-400 inline-flex items-center justify-center">' + ic('pin', 22) + '</span><p class="text-xs text-ink/50 mt-3">المقر والعنوان</p><p class="font-semibold text-pine-800 mt-1 text-xs leading-relaxed">' + esc(s.address) + '</p></div>');
   }
-  return cards.join('') || '<div class="col-span-3 text-center text-xs text-ink/60">تُعلن قنوات الاتصال قريبًا</div>';
+  return cards.join('') || '<div class="col-span-4 text-center text-xs text-ink/60">تُعلن قنوات الاتصال قريبًا</div>';
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -2842,13 +2993,20 @@ function renderSettingsTab() {
 
     <!-- 6. Contact & Social -->
     <div class="card p-6 mb-5 space-y-4">
-      <h3 class="font-amiri text-xl text-pine-900 font-bold border-b border-cream-200 pb-2">معلومات التواصل والمقر</h3>
+      <div class="flex items-center justify-between border-b border-cream-200 pb-2">
+        <h3 class="font-amiri text-xl text-pine-900 font-bold flex items-center gap-2">
+          <span>📢</span>
+          <span>منصات التواصل الاجتماعي والمقر</span>
+        </h3>
+        <span class="text-xs text-ink/60">تظهر في قسم مخصص بالصفحة الرئيسية وفي رأس وتذييل الموقع</span>
+      </div>
       <div class="grid md:grid-cols-2 gap-4 text-xs">
-        <div><label class="label">رقم الهاتف</label><input id="st_phone" class="input" value="${esc(s.phone || '')}"></div>
-        <div><label class="label">رقم الواتساب الرسمي</label><input id="st_whatsapp" class="input" value="${esc(s.whatsapp || '')}"></div>
-        <div><label class="label">رابط صفحة فيسبوك</label><input id="st_facebook" class="input" value="${esc(s.facebook || '')}"></div>
-        <div><label class="label">رابط قناة يوتيوب</label><input id="st_youtube" class="input" value="${esc(s.youtube || '')}"></div>
-        <div class="md:col-span-2"><label class="label">العنوان والمقر</label><input id="st_address" class="input" value="${esc(s.address || '')}"></div>
+        <div><label class="label">رابط صفحة فيسبوك</label><input id="st_facebook" class="input" placeholder="https://facebook.com/..." value="${esc(s.facebook || '')}"></div>
+        <div><label class="label">رابط قناة تليجرام</label><input id="st_telegram" class="input" placeholder="https://t.me/..." value="${esc(s.telegram || '')}"></div>
+        <div><label class="label">رقم أو رابط واتساب الرسمي</label><input id="st_whatsapp" class="input" placeholder="010... أو https://chat.whatsapp.com/..." value="${esc(s.whatsapp || s.wa_link || '')}"></div>
+        <div><label class="label">رابط قناة يوتيوب</label><input id="st_youtube" class="input" placeholder="https://youtube.com/..." value="${esc(s.youtube || '')}"></div>
+        <div><label class="label">رقم هاتف الإدارة</label><input id="st_phone" class="input" placeholder="010..." value="${esc(s.phone || '')}"></div>
+        <div><label class="label">العنوان والمقر</label><input id="st_address" class="input" placeholder="المقر والمركز..." value="${esc(s.address || '')}"></div>
       </div>
     </div>
   `;
@@ -2869,7 +3027,9 @@ function renderSettingsTab() {
       live_active: $('#st_live_active').checked,
       phone: $('#st_phone').value.trim(),
       whatsapp: $('#st_whatsapp').value.trim(),
+      wa_link: $('#st_whatsapp').value.trim(),
       facebook: $('#st_facebook').value.trim(),
+      telegram: $('#st_telegram').value.trim(),
       youtube: $('#st_youtube').value.trim(),
       address: $('#st_address').value.trim()
     };
@@ -3166,15 +3326,35 @@ async function saveTeamToDb() {
 /* ══════════════════════════════════════════════════════════════════════════════
    إدارة البث المباشر ومعرض الفعاليات (Media Tab)
    ══════════════════════════════════════════════════════════════════════════════ */
+const DEFAULT_GALLERY_CATS = [
+  'حفل الافتتاح',
+  'اختبارات المستويات',
+  'لجان التحكيم',
+  'الحفل الختامي وتكريم الفائزين',
+  'كواليس وتنظيم',
+  'فيديوهات ولقاءات مرئية',
+  'عام'
+];
+
+function getGalleryCategories() {
+  const custom = (S.site.gallery || []).map(g => g.category).filter(Boolean);
+  return Array.from(new Set([...DEFAULT_GALLERY_CATS, ...custom]));
+}
+
 function renderMediaTab() {
   const s = S.site;
   const gallery = Array.isArray(s.gallery) ? s.gallery : [];
+  const photosCount = gallery.filter(g => g.type !== 'video').length;
+  const videosCount = gallery.filter(g => g.type === 'video').length;
+
+  // Collect unique categories present in actual gallery items
+  const activeCats = ['الكل', ...new Set(gallery.map(g => g.category || 'عام').filter(Boolean))];
 
   $('#dashMain').innerHTML = `
     <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
       <div>
-        <h2 class="font-amiri text-3xl text-pine-900 font-bold">الفعاليات والبث المباشر</h2>
-        <p class="text-xs text-ink/60 mt-0.5">بث مباشر ليوتيوب، وتوثيق صور الاختبارات وتكريمات المتسابقين</p>
+        <h2 class="font-amiri text-3xl text-pine-900 font-bold">الفعاليات وتوثيق المسابقة</h2>
+        <p class="text-xs text-ink/60 mt-0.5">بث مباشر، رفع جماعي لصور الفعاليات، إضافة فيديوهات، وتقسيم المعرض إلى ألبومات وتصنيفات</p>
       </div>
       <button id="btnSaveMediaAll" class="btn btn-primary btn-sm !rounded-xl shadow-glow-pine">
         💾 حفظ ونشر التعديلات
@@ -3223,50 +3403,109 @@ function renderMediaTab() {
       </div>
     </div>
 
-    <!-- 2. Event Gallery Card -->
-    <div class="card p-6 space-y-4">
-      <div class="flex items-center justify-between border-b border-cream-200 pb-3 flex-wrap gap-2">
+    <!-- 2. Event Media & Gallery Card -->
+    <div class="card p-6 space-y-5">
+      <div class="flex items-center justify-between border-b border-cream-200 pb-4 flex-wrap gap-3">
         <div class="flex items-center gap-2.5">
-          <span class="w-10 h-10 rounded-xl bg-gold-500/15 text-gold-600 flex items-center justify-center text-xl">📸</span>
+          <span class="w-10 h-10 rounded-xl bg-gold-500/15 text-gold-600 flex items-center justify-center text-xl">🖼️</span>
           <div>
-            <h3 class="font-amiri text-xl text-pine-900 font-bold">معرض صور وتوثيق الفعاليات (${arNum(gallery.length)} صورة)</h3>
-            <p class="text-xs text-ink/60">ارفع صور الاختبارات، لجان التحكيم، وتسليم الجوائز لعرضها في المعرض العام</p>
+            <h3 class="font-amiri text-xl text-pine-900 font-bold">
+              معرض الفعاليات (${arNum(gallery.length)} عنصر)
+            </h3>
+            <p class="text-xs text-ink/60">
+              📸 ${arNum(photosCount)} صورة &bull; 📹 ${arNum(videosCount)} فيديو &bull; مقسمة حسب الألبومات والتصنيفات
+            </p>
           </div>
         </div>
-        <button id="btnOpenAddPhoto" class="btn btn-outline btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5">
-          ${ic('upload', 15)} <span>رفع صورة جديدة</span>
-        </button>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="btnOpenBatchPhoto" class="btn btn-primary btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-glow-pine">
+            <span>📸 رفع صور متعددة (دفعة واحدة)</span>
+          </button>
+          <button id="btnOpenAddVideo" class="btn btn-outline btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5 border-rose-300 text-rose-700 hover:bg-rose-50">
+            <span>📹 إضافة فيديو</span>
+          </button>
+          <button id="btnOpenAddPhoto" class="btn btn-outline btn-sm !rounded-xl text-xs font-bold flex items-center gap-1.5">
+            <span>🖼️ صورة فردية / رابط</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Photos Grid -->
+      <!-- Categories / Albums Filter Tabs -->
       ${gallery.length ? `
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          ${gallery.map((g, idx) => `
-            <div class="group relative rounded-2xl overflow-hidden border border-cream-200 bg-white shadow-sm flex flex-col justify-between">
-              <div class="aspect-square bg-pine-950 overflow-hidden relative cursor-pointer" onclick="openPhotoLightbox('${esc(g.url)}', '${esc(g.caption || '')}', '${esc(g.date || '')}')">
-                <img src="${esc(g.url)}" alt="${esc(g.caption || 'صورة')}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
-                  ${ic('eye', 14)} <span>معاينة</span>
+        <div class="flex items-center gap-2 overflow-x-auto pb-1" id="adminGalleryFilterBar">
+          <span class="text-xs font-bold text-pine-950 shrink-0 ml-1">الألبومات:</span>
+          ${activeCats.map((cat, idx) => {
+            const count = cat === 'الكل' ? gallery.length : gallery.filter(g => (g.category || 'عام') === cat).length;
+            return `
+              <button type="button" class="admin-gallery-filter-btn btn btn-sm !rounded-xl text-xs font-semibold shrink-0 ${idx === 0 ? 'btn-primary' : 'btn-outline'}" onclick="filterAdminGallery('${esc(cat)}')">
+                ${cat === 'الكل' ? '🌟 الكل' : `📁 ${esc(cat)}`} (${arNum(count)})
+              </button>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+
+      <!-- Media Grid -->
+      ${gallery.length ? `
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="adminGalleryGrid">
+          ${gallery.map((g, idx) => {
+            const isVid = g.type === 'video';
+            const thumb = getMediaThumb(g);
+            const cat = g.category || 'عام';
+            const idVal = g.id || `idx_${idx}`;
+            return `
+              <div class="admin-gallery-item group relative rounded-2xl overflow-hidden border border-cream-200 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between" data-admin-cat="${esc(cat)}">
+                <div class="aspect-square bg-pine-950 overflow-hidden relative cursor-pointer" onclick="${isVid ? `openVideoModal('${esc(g.url)}', '${esc(g.caption || '')}')` : `openPhotoLightbox('${esc(g.url)}', '${esc(g.caption || '')}', '${esc(g.date || '')}')`}">
+                  <img src="${esc(thumb)}" alt="${esc(g.caption || '')}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%2316382c\\'/></svg>'">
+
+                  ${isVid ? `
+                    <div class="absolute inset-0 bg-black/35 flex items-center justify-center">
+                      <div class="w-10 h-10 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                        ${ic('play', 18)}
+                      </div>
+                    </div>
+                    <span class="absolute top-2 right-2 badge !bg-rose-600 text-white text-[10px] font-bold shadow">📹 فيديو</span>
+                  ` : `
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                      ${ic('eye', 14)} <span>معاينة</span>
+                    </div>
+                  `}
+
+                  <span class="absolute bottom-2 right-2 badge !bg-pine-950/80 text-cream-100 text-[10px] font-normal backdrop-blur-sm truncate max-w-[85%]">
+                    📁 ${esc(cat)}
+                  </span>
+                </div>
+
+                <div class="p-2.5">
+                  <p class="text-xs font-bold text-pine-950 truncate" title="${esc(g.caption || '')}">${esc(g.caption || 'بدون عنوان')}</p>
+                  <div class="flex items-center justify-between text-[11px] text-ink/50 mt-1.5 pt-1.5 border-t border-cream-100">
+                    <span class="truncate">${esc(g.date || '')}</span>
+                    <button class="text-rose-600 hover:text-rose-800 p-1 rounded hover:bg-rose-50 transition" onclick="event.stopPropagation(); deleteGalleryItem('${esc(idVal)}', ${idx})" title="حذف العنصر">
+                      ${ic('trash', 14)}
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="p-2.5">
-                <p class="text-xs font-bold text-pine-950 truncate">${esc(g.caption || 'بدون عنوان')}</p>
-                <div class="flex items-center justify-between text-[11px] text-ink/50 mt-1">
-                  <span>${esc(g.date || '')}</span>
-                  <button class="text-rose-600 hover:text-rose-800 font-bold text-xs" onclick="deleteGalleryPhoto(${idx})" title="حذف الصورة">
-                    ${ic('trash', 13)}
-                  </button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       ` : `
         <div class="text-center py-12 border border-dashed border-cream-200 rounded-2xl p-6 bg-cream-50/50">
-          <span class="text-3xl mb-1 block">🖼️</span>
-          <p class="font-amiri text-lg font-bold text-pine-900">لا توجد صور في المعرض بعد</p>
-          <p class="text-xs text-ink/60 mt-1 mb-3">اضغط على زر «رفع صورة جديدة» لإضافة لقطات من فعاليات المسابقة</p>
-          <button class="btn btn-primary btn-sm !rounded-xl" onclick="openAddPhotoModal()">+ رفع أول صورة</button>
+          <span class="text-4xl mb-2 block">🖼️</span>
+          <p class="font-amiri text-xl font-bold text-pine-900">لا توجد فعاليات في المعرض بعد</p>
+          <p class="text-xs text-ink/60 mt-1 mb-4 max-w-md mx-auto">
+            يمكنك رفع مجموعة صور دفعة واحدة أو إضافة مقاطع فيديو من فعاليات وحفلات المسابقة مقسمة حسب الألبومات
+          </p>
+          <div class="flex justify-center gap-2 flex-wrap">
+            <button class="btn btn-primary btn-sm !rounded-xl" onclick="openAddBatchPhotosModal()">
+              📸 رفع صور متعددة دفعة واحدة
+            </button>
+            <button class="btn btn-outline btn-sm !rounded-xl" onclick="openAddVideoModal()">
+              📹 إضافة فيديو
+            </button>
+          </div>
         </div>
       `}
     </div>
@@ -3282,7 +3521,10 @@ function renderMediaTab() {
     box.innerHTML = `<iframe class="w-full h-full" src="${esc(toYoutubeEmbed(url))}" frameborder="0" allowfullscreen></iframe>`;
   });
 
+  $('#btnOpenBatchPhoto')?.addEventListener('click', openAddBatchPhotosModal);
+  $('#btnOpenAddVideo')?.addEventListener('click', openAddVideoModal);
   $('#btnOpenAddPhoto')?.addEventListener('click', openAddPhotoModal);
+
   $('#btnSaveMediaAll')?.addEventListener('click', async () => {
     S.site.live_url = $('#m_live_url').value.trim();
     S.site.live_title = $('#m_live_title').value.trim();
@@ -3291,22 +3533,366 @@ function renderMediaTab() {
   });
 }
 
-window.openAddPhotoModal = function() {
+/* فلترة معرض الإدارة حسب الألبوم */
+window.filterAdminGallery = function(cat) {
+  document.querySelectorAll('.admin-gallery-filter-btn').forEach(btn => {
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-outline');
+    const txt = btn.textContent.trim();
+    if (txt.includes(cat) || (cat === 'الكل' && txt.includes('الكل'))) {
+      btn.classList.add('btn-primary');
+      btn.classList.remove('btn-outline');
+    }
+  });
+
+  document.querySelectorAll('.admin-gallery-item').forEach(el => {
+    if (cat === 'الكل' || el.dataset.adminCat === cat) {
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+};
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   نافذة رفع صور متعددة (دفعة واحدة) مع اختيار وتخصيص الألبوم
+   ══════════════════════════════════════════════════════════════════════════════ */
+window.openAddBatchPhotosModal = function() {
+  const existingCats = getGalleryCategories();
+
   modal(`
-    <div>
-      <div class="flex items-center justify-between border-b border-cream-200 pb-3 mb-4">
+    <div class="space-y-4">
+      <div class="flex items-center justify-between border-b border-cream-200 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-gold-500/15 text-gold-600 flex items-center justify-center text-lg">📸</span>
+          <h3 class="font-amiri text-2xl text-pine-900 font-bold">رفع صور متعددة للفعاليات (دفعة واحدة)</h3>
+        </div>
+        <button class="text-ink/40 hover:text-ink text-xl leading-none" data-close>×</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <!-- File Picker -->
+        <div>
+          <label class="label font-bold text-pine-900">اختيار ملفات الصور من جهازك (يمكنك تحديد عدة صور معاً) <span class="text-rose-600">*</span></label>
+          <input type="file" id="gp_batch_files" multiple accept="image/*" class="text-xs w-full file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-pine-800 file:text-cream-50 file:font-semibold hover:file:bg-pine-700 cursor-pointer border border-cream-200 rounded-xl p-2.5 bg-white">
+          <span class="text-[11px] text-ink/50 mt-1 block">اضغط مع الاستمرار على Ctrl أو Shift لتحديد عدة صور دفعة واحدة</span>
+        </div>
+
+        <!-- Selected Preview Info -->
+        <div id="gp_batch_selection_info" class="hidden p-3 bg-cream-50 border border-cream-200 rounded-xl space-y-2">
+          <div class="flex items-center justify-between font-bold text-pine-900 text-xs">
+            <span id="gp_batch_count_txt">تم اختيار 0 صور</span>
+            <span id="gp_batch_size_txt" class="text-ink/50 font-normal"></span>
+          </div>
+          <div id="gp_batch_thumb_strip" class="flex items-center gap-2 overflow-x-auto py-1"></div>
+        </div>
+
+        <!-- Album / Category Selection -->
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="label font-bold text-pine-900">الألبوم / التصنيف <span class="text-rose-600">*</span></label>
+            <select id="gp_batch_category" class="input">
+              ${existingCats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+              <option value="__NEW__">➕ إضافة ألبوم / تصنيف جديد...</option>
+            </select>
+          </div>
+
+          <div id="gp_batch_new_cat_wrap" class="hidden">
+            <label class="label font-bold text-gold-700">اكتب اسم الألبوم الجديد</label>
+            <input id="gp_batch_new_cat" class="input border-gold-400 bg-gold-50/30" placeholder="مثال: ورش عمل المتسابقين...">
+          </div>
+        </div>
+
+        <!-- Common Caption -->
+        <div>
+          <label class="label font-bold text-pine-900">عنوان أو وصف موحد للصور المرفوعة (اختياري)</label>
+          <input id="gp_batch_caption" class="input" placeholder="مثال: لقطات من اختبارات الجزء الثلاثين">
+          <span class="text-[11px] text-ink/50 mt-1 block">إذا تُرك فارغاً سيتم استخدام اسم الملف لكل صورة تلقائياً، وإذا كُتب سيتم ترقيم الصور تسلسلياً</span>
+        </div>
+
+        <!-- Date -->
+        <div>
+          <label class="label font-bold text-pine-900">تاريخ الفعالية</label>
+          <input id="gp_batch_date" type="date" class="input" value="${todayISO()}">
+        </div>
+
+        <!-- Progress Box -->
+        <div id="gp_batch_progress_box" class="hidden p-3.5 rounded-xl bg-gold-50/80 border border-gold-300 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-pine-950">
+            <span id="gp_batch_progress_txt">جاري تحضير ورفع الصور...</span>
+            <span id="gp_batch_progress_pct" class="font-mono text-gold-700">0%</span>
+          </div>
+          <div class="w-full bg-cream-200 h-2.5 rounded-full overflow-hidden">
+            <div id="gp_batch_progress_bar" class="bg-gold-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6 pt-3 border-t border-cream-200">
+        <button id="btnCancelBatch" class="btn btn-outline btn-sm !rounded-xl" data-close>إلغاء</button>
+        <button id="btnSubmitBatchPhotos" class="btn btn-primary btn-sm !rounded-xl !px-6 shadow-glow-pine">
+          🚀 بدء رفع الصور
+        </button>
+      </div>
+    </div>
+  `);
+
+  const catSelect = $('#gp_batch_category');
+  const newCatWrap = $('#gp_batch_new_cat_wrap');
+  catSelect?.addEventListener('change', () => {
+    if (catSelect.value === '__NEW__') {
+      newCatWrap.classList.remove('hidden');
+      $('#gp_batch_new_cat')?.focus();
+    } else {
+      newCatWrap.classList.add('hidden');
+    }
+  });
+
+  const fileInput = $('#gp_batch_files');
+  fileInput?.addEventListener('change', () => {
+    const files = Array.from(fileInput.files || []);
+    const infoBox = $('#gp_batch_selection_info');
+    const strip = $('#gp_batch_thumb_strip');
+    if (!files.length) {
+      infoBox?.classList.add('hidden');
+      return;
+    }
+
+    infoBox?.classList.remove('hidden');
+    const totalSizeMB = (files.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(1);
+    $('#gp_batch_count_txt').textContent = `تم اختيار ${arNum(files.length)} صورة`;
+    $('#gp_batch_size_txt').textContent = `(الحجم التقريبي: ${arNum(totalSizeMB)} ميجابايت)`;
+
+    strip.innerHTML = '';
+    files.slice(0, 10).forEach(file => {
+      const url = URL.createObjectURL(file);
+      const img = document.createElement('img');
+      img.src = url;
+      img.className = 'w-12 h-12 rounded-lg object-cover border border-cream-300 shrink-0';
+      strip.appendChild(img);
+    });
+    if (files.length > 10) {
+      const more = document.createElement('span');
+      more.className = 'text-xs text-ink/60 shrink-0 self-center font-bold px-2';
+      more.textContent = `+${arNum(files.length - 10)} أخرى`;
+      strip.appendChild(more);
+    }
+  });
+
+  $('#btnSubmitBatchPhotos').onclick = async () => {
+    const files = Array.from(fileInput?.files || []);
+    if (!files.length) return toast('يرجى اختيار صورة واحدة على الأقل لرفعها', 'err');
+
+    let category = catSelect.value;
+    if (category === '__NEW__') {
+      category = ($('#gp_batch_new_cat')?.value || '').trim();
+      if (!category) return toast('يرجى كتابة اسم الألبوم الجديد', 'err');
+    }
+
+    const caption = ($('#gp_batch_caption')?.value || '').trim();
+    const dateVal = $('#gp_batch_date')?.value || '';
+    const formattedDate = dateVal ? fmtDate(dateVal) : '';
+
+    const btnSubmit = $('#btnSubmitBatchPhotos');
+    const btnCancel = $('#btnCancelBatch');
+    const progBox = $('#gp_batch_progress_box');
+    const progBar = $('#gp_batch_progress_bar');
+    const progTxt = $('#gp_batch_progress_txt');
+    const progPct = $('#gp_batch_progress_pct');
+
+    btnSubmit.disabled = true;
+    btnCancel.disabled = true;
+    progBox.classList.remove('hidden');
+
+    if (!Array.isArray(S.site.gallery)) S.site.gallery = [];
+
+    const total = files.length;
+    let successCount = 0;
+
+    for (let i = 0; i < total; i++) {
+      const f = files[i];
+      const pct = Math.round(((i) / total) * 100);
+      progBar.style.width = pct + '%';
+      progPct.textContent = pct + '%';
+      progTxt.textContent = `جاري ضغط ورفع صورة (${arNum(i + 1)} من ${arNum(total)})...`;
+
+      try {
+        const compressed = await compressImg(f, 1600);
+        const path = await uploadApp('gallery', compressed);
+        const url = await getAppFileUrl(path, APPB);
+
+        const photoCaption = caption 
+          ? (total > 1 ? `${caption} (${arNum(i + 1)})` : caption)
+          : f.name.replace(/\.[^/.]+$/, '');
+
+        S.site.gallery.unshift({
+          id: 'g_' + Date.now() + '_' + i + '_' + Math.random().toString(36).substr(2, 4),
+          type: 'image',
+          url: url || path,
+          caption: photoCaption,
+          category: category,
+          date: formattedDate
+        });
+        successCount++;
+      } catch (err) {
+        console.error('Error uploading file', f.name, err);
+      }
+    }
+
+    progBar.style.width = '100%';
+    progPct.textContent = '100%';
+    progTxt.textContent = `تم رفع ${arNum(successCount)} صورة بنجاح!`;
+
+    setTimeout(async () => {
+      closeLayer();
+      renderMediaTab();
+      await saveMediaToDb();
+      toast(`تم بنجاح إضافة ${arNum(successCount)} صورة إلى ألبوم «${category}»`, 'ok');
+    }, 400);
+  };
+};
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   نافذة إضافة فيديو أو لقاء مرئي للفعاليات
+   ══════════════════════════════════════════════════════════════════════════════ */
+window.openAddVideoModal = function() {
+  const existingCats = getGalleryCategories();
+
+  modal(`
+    <div class="space-y-4">
+      <div class="flex items-center justify-between border-b border-cream-200 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-lg">📹</span>
+          <h3 class="font-amiri text-2xl text-pine-900 font-bold">إضافة فيديو أو لقاء مرئي للفعاليات</h3>
+        </div>
+        <button class="text-ink/40 hover:text-ink text-xl leading-none" data-close>×</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="label font-bold text-pine-900">رابط الفيديو على YouTube <span class="text-rose-600">*</span></label>
+          <input id="gv_url" class="input" placeholder="https://www.youtube.com/watch?v=... أو https://youtu.be/...">
+          <span class="text-[11px] text-ink/50 mt-1 block">يمكنك نسخ رابط الفيديو من المتصفح أو تطبيق يوتيوب</span>
+        </div>
+
+        <!-- Video Live Preview -->
+        <div id="gv_preview_box" class="aspect-video rounded-xl bg-black/5 border border-cream-200 overflow-hidden flex items-center justify-center text-ink/40 text-xs">
+          أدخل رابط YouTube أعلاه للمعاينة الفورية
+        </div>
+
+        <div>
+          <label class="label font-bold text-pine-900">عنوان أو وصف الفيديو <span class="text-rose-600">*</span></label>
+          <input id="gv_caption" class="input" placeholder="مثال: كلمة فضيلة الشيخ رئيس لجان التحكيم في الحفل الختامي">
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="label font-bold text-pine-900">الألبوم / التصنيف <span class="text-rose-600">*</span></label>
+            <select id="gv_category" class="input">
+              <option value="فيديوهات ولقاءات مرئية" selected>فيديوهات ولقاءات مرئية</option>
+              ${existingCats.filter(c => c !== 'فيديوهات ولقاءات مرئية').map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+              <option value="__NEW__">➕ إضافة ألبوم / تصنيف جديد...</option>
+            </select>
+          </div>
+
+          <div id="gv_new_cat_wrap" class="hidden">
+            <label class="label font-bold text-gold-700">اكتب اسم الألبوم الجديد</label>
+            <input id="gv_new_cat" class="input border-gold-400 bg-gold-50/30" placeholder="مثال: لقاءات الفائزين...">
+          </div>
+        </div>
+
+        <div>
+          <label class="label font-bold text-pine-900">تاريخ الفعالية</label>
+          <input id="gv_date" type="date" class="input" value="${todayISO()}">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6 pt-3 border-t border-cream-200">
+        <button class="btn btn-outline btn-sm !rounded-xl" data-close>إلغاء</button>
+        <button id="btnSubmitAddVideo" class="btn btn-primary btn-sm !rounded-xl !px-6 shadow-glow-pine">
+          📹 إضافة الفيديو للمعرض
+        </button>
+      </div>
+    </div>
+  `);
+
+  const catSelect = $('#gv_category');
+  const newCatWrap = $('#gv_new_cat_wrap');
+  catSelect?.addEventListener('change', () => {
+    if (catSelect.value === '__NEW__') {
+      newCatWrap.classList.remove('hidden');
+      $('#gv_new_cat')?.focus();
+    } else {
+      newCatWrap.classList.add('hidden');
+    }
+  });
+
+  const urlInput = $('#gv_url');
+  const previewBox = $('#gv_preview_box');
+  urlInput?.addEventListener('input', () => {
+    const val = urlInput.value.trim();
+    if (!val) {
+      previewBox.innerHTML = 'أدخل رابط YouTube أعلاه للمعاينة الفورية';
+      return;
+    }
+    const embed = toYoutubeEmbed(val);
+    previewBox.innerHTML = `<iframe class="w-full h-full" src="${esc(embed)}" frameborder="0" allowfullscreen></iframe>`;
+  });
+
+  $('#btnSubmitAddVideo').onclick = async () => {
+    const url = urlInput?.value.trim();
+    const caption = ($('#gv_caption')?.value || '').trim();
+    if (!url) return toast('يرجى كتابة رابط الفيديو على YouTube', 'err');
+    if (!caption) return toast('يرجى كتابة عنوان أو وصف للفيديو', 'err');
+
+    let category = catSelect.value;
+    if (category === '__NEW__') {
+      category = ($('#gv_new_cat')?.value || '').trim();
+      if (!category) return toast('يرجى كتابة اسم الألبوم الجديد', 'err');
+    }
+
+    const dateVal = $('#gv_date')?.value || '';
+    const formattedDate = dateVal ? fmtDate(dateVal) : '';
+
+    if (!Array.isArray(S.site.gallery)) S.site.gallery = [];
+
+    S.site.gallery.unshift({
+      id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      type: 'video',
+      url: url,
+      caption: caption,
+      category: category,
+      date: formattedDate
+    });
+
+    closeLayer();
+    renderMediaTab();
+    await saveMediaToDb();
+    toast('تمت إضافة الفيديو بنجاح إلى المعرض', 'ok');
+  };
+};
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   نافذة إضافة صورة فردية أو عبر رابط مباشر مع تحديد الألبوم
+   ══════════════════════════════════════════════════════════════════════════════ */
+window.openAddPhotoModal = function() {
+  const existingCats = getGalleryCategories();
+
+  modal(`
+    <div class="space-y-4">
+      <div class="flex items-center justify-between border-b border-cream-200 pb-3">
         <h3 class="font-amiri text-2xl text-pine-900 font-bold">إضافة صورة جديدة لمعرض الفعاليات</h3>
         <button class="text-ink/40 hover:text-ink text-xl leading-none" data-close>×</button>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <div class="space-y-3.5 text-xs">
         <div>
-          <label class="label">اختيار ملف الصورة من جهازك <span class="text-rose-600">*</span></label>
+          <label class="label font-bold text-pine-900">اختيار ملف الصورة من جهازك <span class="text-rose-600">*</span></label>
           <input type="file" id="gp_file" accept="image/*" class="text-xs w-full file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-pine-800 file:text-cream-50 file:font-semibold hover:file:bg-pine-700 cursor-pointer border border-cream-200 rounded-xl p-2 bg-white">
         </div>
 
         <div>
-          <label class="label">أو أدخل رابط الصورة مباشرة</label>
+          <label class="label font-bold text-pine-900">أو أدخل رابط الصورة مباشرة</label>
           <input id="gp_url" class="input" placeholder="https://example.com/photo.jpg">
         </div>
 
@@ -3315,12 +3901,27 @@ window.openAddPhotoModal = function() {
         </div>
 
         <div>
-          <label class="label">عنوان أو وصف الصورة <span class="text-rose-600">*</span></label>
+          <label class="label font-bold text-pine-900">عنوان أو وصف الصورة <span class="text-rose-600">*</span></label>
           <input id="gp_caption" class="input" placeholder="مثال: لقطة من اختبارات المستوى الأول برواية حفص">
         </div>
 
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="label font-bold text-pine-900">الألبوم / التصنيف <span class="text-rose-600">*</span></label>
+            <select id="gp_category" class="input">
+              ${existingCats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+              <option value="__NEW__">➕ إضافة ألبوم / تصنيف جديد...</option>
+            </select>
+          </div>
+
+          <div id="gp_new_cat_wrap" class="hidden">
+            <label class="label font-bold text-gold-700">اكتب اسم الألبوم الجديد</label>
+            <input id="gp_new_cat" class="input border-gold-400 bg-gold-50/30" placeholder="مثال: صور اليوم الأول...">
+          </div>
+        </div>
+
         <div>
-          <label class="label">تاريخ الفعالية</label>
+          <label class="label font-bold text-pine-900">تاريخ الفعالية</label>
           <input id="gp_date" type="date" class="input" value="${todayISO()}">
         </div>
       </div>
@@ -3335,6 +3936,16 @@ window.openAddPhotoModal = function() {
   `);
 
   let currentPhotoUrl = '';
+  const catSelect = $('#gp_category');
+  const newCatWrap = $('#gp_new_cat_wrap');
+  catSelect?.addEventListener('change', () => {
+    if (catSelect.value === '__NEW__') {
+      newCatWrap.classList.remove('hidden');
+      $('#gp_new_cat')?.focus();
+    } else {
+      newCatWrap.classList.add('hidden');
+    }
+  });
 
   $('#gp_file')?.addEventListener('change', async e => {
     const file = e.target.files[0];
@@ -3368,27 +3979,62 @@ window.openAddPhotoModal = function() {
     if (!url) return toast('يرجى اختيار صورة أو إدخال رابطها أولاً', 'err');
     if (!caption) return toast('يرجى كتابة عنوان أو وصف للصورة', 'err');
 
+    let category = catSelect.value;
+    if (category === '__NEW__') {
+      category = ($('#gp_new_cat')?.value || '').trim();
+      if (!category) return toast('يرجى كتابة اسم الألبوم الجديد', 'err');
+    }
+
     if (!Array.isArray(S.site.gallery)) S.site.gallery = [];
     S.site.gallery.unshift({
-      id: 'g_' + Date.now(),
+      id: 'g_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      type: 'image',
       url: url,
       caption: caption,
+      category: category,
       date: date ? fmtDate(date) : ''
     });
 
     closeLayer();
     renderMediaTab();
     await saveMediaToDb();
+    toast('تمت إضافة الصورة بنجاح إلى المعرض', 'ok');
   };
 };
 
+/* حذف عنصر (صورة أو فيديو) من المعرض */
+window.deleteGalleryItem = function(idVal, idx) {
+  const item = (S.site.gallery || []).find((g, i) => (g.id ? g.id === idVal : i === idx));
+  const title = item ? (item.caption || (item.type === 'video' ? 'الفيديو' : 'الصورة')) : 'هذا العنصر';
+
+  modal(`
+    <div class="text-center p-2">
+      <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-3xl mx-auto mb-3">🗑️</div>
+      <h3 class="font-amiri text-2xl text-pine-900 font-bold mb-2">تأكيد حذف العنصر</h3>
+      <p class="text-sm text-ink/70 leading-relaxed mb-4">
+        هل أنت متأكد من حذف «<b class="text-pine-900">${esc(title)}</b>» نهائياً من معرض الفعاليات؟
+      </p>
+      <div class="flex justify-center gap-2">
+        <button class="btn btn-outline btn-sm !rounded-xl" data-close>إلغاء</button>
+        <button id="mDoDelGalleryItem" class="btn btn-danger btn-sm !rounded-xl !px-6">نعم، تأكيد الحذف</button>
+      </div>
+    </div>
+  `);
+
+  $('#mDoDelGalleryItem').onclick = async () => {
+    if (Array.isArray(S.site.gallery)) {
+      S.site.gallery = S.site.gallery.filter((g, i) => (g.id ? g.id !== idVal : i !== idx));
+      closeLayer();
+      renderMediaTab();
+      await saveMediaToDb();
+      toast('تم حذف العنصر من المعرض بنجاح', 'ok');
+    }
+  };
+};
+
+/* دعم التوافق مع الكود القديم */
 window.deleteGalleryPhoto = function(idx) {
-  if (!confirm('هل تريد بالتأكيد حذف هذه الصورة من المعرض؟')) return;
-  if (Array.isArray(S.site.gallery)) {
-    S.site.gallery.splice(idx, 1);
-    renderMediaTab();
-    saveMediaToDb();
-  }
+  window.deleteGalleryItem(`idx_${idx}`, idx);
 };
 
 async function saveMediaToDb() {
