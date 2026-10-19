@@ -158,6 +158,32 @@ html{scroll-behavior:smooth}
 .rtable td::before{content:attr(data-l);color:#8a8f7e;font-size:.72rem;font-weight:600;flex-shrink:0}
 .rtable td:last-child::before{content:''}.rtable td:last-child{border-bottom:none}}
 @media print{body>#app,body>#toasts,.qcp-btn{display:none!important}#layer .overlay{position:static;background:#fff;padding:0;display:block;animation:none}#layer .modal{box-shadow:none;border:1px solid #EFE7D2;max-width:100%}#layer .m-actions{display:none!important}}
+
+/* News Ticker & Announcement Styles */
+.news-ticker-bar {
+  background: rgb(var(--pine-900-rgb, 10 37 27));
+  border-bottom: 1.5px solid rgba(201,162,39,.35);
+}
+.ticker-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent);
+}
+.ticker-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: ticker-slide 38s linear infinite;
+}
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+@keyframes ticker-slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 </style>
 </head>
 <body class="bg-cream-100 font-sans text-ink antialiased">
@@ -359,6 +385,17 @@ const SITE_DEFAULTS = {
   live_url: '',
   live_title: 'البث المباشر لفعاليات واختبارات المسابقة الكبرى',
   live_active: false,
+  ticker_active: true,
+  ticker_title: 'آخر الأخبار والتنبيهات',
+  ticker_text: 'مرحباً بكم في منصة المسابقة الكبرى لحفظ القرآن الكريم • باب التسجيل مفتوح لجميع المستويات السبعة • تابعوا مواعيد التصفيات وجداول الاختبارات أولاً بأول',
+  announcement_active: true,
+  announcement_badge: 'بيان هام وعاجل',
+  announcement_date: '',
+  announcement_title: 'تنويه هام بشأن مواعيد وإجراءات اختبارات التصفية',
+  announcement_text: 'تهيب إدارة المسابقة الكبرى لحفظ القرآن الكريم بجميع المتسابقين وأولياء الأمور الكرام الالتزام بالحضور في المواعيد المقررة لكل مستوى، مع إحضار أصل شهادة الميلاد والرقم القومي للمطابقة، ومتابعة حالة الطلب عبر بوابة المتابعة بالمنصة.',
+  announcement_photo: '',
+  announcement_btn_text: 'استمارة التسجيل والمتابعة',
+  announcement_btn_url: '#/track',
   team: [
     { id: 't1', name: 'الشيخ / إبراهيم عبد الله', role: 'رئيس مجلس الإدارة والمشرف العام', category: 'management', phone: '01000000001', whatsapp: '01000000001', bio: 'إمام وخطيب ومشرف عام على الأنشطة الدعوية والقرآنية بمركز قلين', photo: '' },
     { id: 't2', name: 'أ. أحمد يوسف', role: 'المنسق العام للمسابقة ولجان المتابعة', category: 'coordination', phone: '01000000002', whatsapp: '01000000002', bio: 'مسؤول تنظيم لجان الاختبارات واستقبال المتسابقين والتنسيق الإداري', photo: '' },
@@ -440,6 +477,7 @@ const I = {
   check: '<polyline points="20 6 9 17 4 12"/>',
   x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/>',
+  bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
   trash: '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/>',
   eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
   upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
@@ -528,6 +566,7 @@ async function loadPublic() {
       if (!Array.isArray(S.site.prizes)) S.site.prizes = [];
       if (S.site.theme) applyThemeVars(S.site.theme);
       if (S.site.logo) S.site.logo = toPublicMediaUrl(S.site.logo);
+      if (S.site.announcement_photo) S.site.announcement_photo = toPublicMediaUrl(S.site.announcement_photo);
       (S.site.team || []).forEach(m => {
         if (m.photo) m.photo = toPublicMediaUrl(m.photo);
       });
@@ -665,6 +704,12 @@ function pubShell(content) {
           </span>
         </a>
         <nav class="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
+          ${(s.announcement_active !== false && s.announcement_title) ? `
+            <a href="#officialAnnouncementSection" class="btn btn-sm !rounded-xl text-xs font-bold bg-gradient-to-r from-rose-700 to-rose-600 text-white hover:opacity-90 flex items-center gap-1.5 shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+              <span>تنويه هام</span>
+            </a>
+          ` : ''}
           ${hasLive ? `
             <a href="#liveSection" class="btn btn-sm !rounded-xl text-xs font-bold bg-rose-700 text-white hover:bg-rose-600 flex items-center gap-1 shadow-sm animate-pulse">
               <span class="w-2 h-2 rounded-full bg-white"></span>
@@ -686,6 +731,22 @@ function pubShell(content) {
         </nav>
       </div>
       <div class="gold-strip"></div>
+      ${(s.ticker_active !== false && s.ticker_text) ? `
+        <div class="news-ticker-bar text-cream-50 text-xs py-1.5 px-3 flex items-center shadow-inner relative overflow-hidden select-none">
+          <div class="flex items-center gap-1.5 bg-gradient-to-r from-gold-600 to-gold-500 text-pine-950 px-2.5 py-0.5 rounded-lg font-bold shrink-0 z-10 shadow-sm text-[11px]">
+            <span class="inline-block animate-pulse">📢</span>
+            <span class="hidden sm:inline">${esc(s.ticker_title || 'آخر الأخبار')}</span>
+          </div>
+          <div class="overflow-hidden flex-1 relative ms-3 ticker-container">
+            <div class="ticker-track">
+              <span class="ticker-item font-medium text-cream-100">${esc(s.ticker_text)}</span>
+              <span class="ticker-sep text-gold-400 font-bold mx-8">✦</span>
+              <span class="ticker-item font-medium text-cream-100">${esc(s.ticker_text)}</span>
+              <span class="ticker-sep text-gold-400 font-bold mx-8">✦</span>
+            </div>
+          </div>
+        </div>
+      ` : ''}
     </header>
     ${content}
     <footer class="bg-pine-950 text-cream-200/70 text-center py-10 border-t-2 border-gold-500/60">
@@ -861,6 +922,73 @@ function renderHome() {
         </div>
       </div>
     </section>
+
+    <!-- قسم البيان والتوجيهات الهامة من إدارة المسابقة -->
+    ${(s.announcement_active !== false && (s.announcement_title || s.announcement_text || s.announcement_photo)) ? `
+      <section id="officialAnnouncementSection" class="relative max-w-5xl mx-auto px-4 -mt-8 mb-12 z-20">
+        <div class="card p-6 md:p-8 border-2 border-gold-500/90 bg-white/95 backdrop-blur-md shadow-2xl rounded-3xl relative overflow-hidden ring-4 ring-gold-500/15">
+          
+          <!-- زخرفة إسلامية وشارة البيان -->
+          <div class="flex items-center justify-between gap-3 mb-5 border-b border-cream-200 pb-3 flex-wrap">
+            <div class="flex items-center gap-2.5">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-rose-700 to-rose-600 text-white shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                <span>${esc(s.announcement_badge || 'بيان هام وعاجل')}</span>
+              </span>
+              ${s.announcement_date ? `
+                <span class="text-xs text-ink/60 font-semibold bg-cream-100/80 px-2.5 py-0.5 rounded-lg border border-cream-200">
+                  بتاريخ: ${esc(s.announcement_date)}
+                </span>
+              ` : ''}
+            </div>
+            <span class="text-xs text-gold-600 font-bold flex items-center gap-1.5 bg-gold-500/10 px-2.5 py-1 rounded-lg border border-gold-500/30">
+              <span>🏛️</span>
+              <span>إدارة المسابقة الكبرى — ${esc(s.org_name)}</span>
+            </span>
+          </div>
+
+          <!-- تفاصيل ومحتوى البيان: نص وصورة جانبية -->
+          <div class="${s.announcement_photo ? 'grid md:grid-cols-12 gap-6 items-center' : ''}">
+            
+            <div class="${s.announcement_photo ? 'md:col-span-7' : ''} space-y-3.5">
+              ${s.announcement_title ? `
+                <h2 class="font-amiri text-2xl md:text-3xl font-bold text-pine-900 leading-snug">
+                  ${esc(s.announcement_title)}
+                </h2>
+              ` : ''}
+              
+              ${s.announcement_text ? `
+                <div class="text-xs md:text-sm text-ink/85 leading-relaxed whitespace-pre-line bg-cream-50/70 p-4 rounded-2xl border border-cream-200/80 font-sans">
+                  ${esc(s.announcement_text)}
+                </div>
+              ` : ''}
+
+              ${(s.announcement_btn_text && s.announcement_btn_url) ? `
+                <div class="pt-2">
+                  <a href="${esc(s.announcement_btn_url)}" target="${s.announcement_btn_url.startsWith('http') ? '_blank' : '_self'}" class="btn btn-gold btn-sm !rounded-xl !px-5 font-bold shadow-md inline-flex items-center gap-2">
+                    <span>${esc(s.announcement_btn_text)}</span>
+                    <span class="text-sm">←</span>
+                  </a>
+                </div>
+              ` : ''}
+            </div>
+
+            ${s.announcement_photo ? `
+              <div class="md:col-span-5">
+                <div class="rounded-2xl overflow-hidden border-2 border-gold-500/60 shadow-lg bg-pine-950 group relative cursor-pointer" onclick="openPhotoLightbox('${esc(s.announcement_photo)}', '${esc(s.announcement_title || 'صورة البيان')}')" title="اضغط لتكبير الصورة">
+                  <img src="${esc(s.announcement_photo)}" alt="${esc(s.announcement_title || 'صورة البيان')}" class="w-full h-auto max-h-72 object-contain mx-auto group-hover:scale-105 transition duration-300">
+                  <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[1px]">
+                    <span class="text-base">🔍</span>
+                    <span>اضغط لتكبير الصورة وعرضها كاملة</span>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+          </div>
+        </div>
+      </section>
+    ` : ''}
 
     <!-- Levels Section (المستويات السبعة: ٣ في كل سطر والأخير واحد في المنتصف) -->
     <section class="max-w-6xl mx-auto px-4 py-16">
@@ -2620,6 +2748,7 @@ function renderDash() {
             ${navBtn('regs', 'users', 'المتسابقون', A.regs ? A.regs.length : 0)}
             ${navBtn('examiners', 'users', 'المشايخ والأرقام السرية', A.examiners ? A.examiners.length : 0)}
             ${navBtn('levels', 'file', 'المستويات والأعمار')}
+            ${navBtn('news', 'bell', 'البيانات الهامة وشريط الأخبار')}
             ${navBtn('team', 'users', 'فريق الإدارة والمنسقين', (S.site.team || []).length)}
             ${navBtn('media', 'image', 'الفعاليات والبث المباشر', (S.site.gallery || []).length)}
             ${navBtn('prizes', 'award', 'توزيع الجوائز والتكريم', (S.site.prizes || []).length)}
@@ -2643,6 +2772,7 @@ function renderTab() {
     regs: renderRegsTab,
     examiners: renderExaminersTab,
     levels: renderLevelsTab,
+    news: renderNewsTab,
     settings: renderSettingsTab,
     team: renderTeamTab,
     media: renderMediaTab,
@@ -3219,6 +3349,20 @@ function renderSettingsTab() {
       <button type="button" id="saveSettings" class="btn btn-primary btn-sm !rounded-xl shadow-glow-pine">💾 حفظ ونشر كل الإعدادات</button>
     </div>
 
+    <!-- بطاقة سريعة للبيانات الهامة وشريط الأخبار -->
+    <div class="card p-4 mb-5 bg-gradient-to-l from-gold-500/15 via-cream-50 to-white border-2 border-gold-500/50 flex items-center justify-between gap-4 flex-wrap shadow-sm">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📢</span>
+        <div>
+          <b class="text-sm font-bold text-pine-900 block">البيانات الهامة وشريط الأخبار للمنصة</b>
+          <span class="text-xs text-ink/65">يمكنك كتابة بيانات رسمية مع صور وتفعيل شريط الأخبار العاجلة المتحرك بأعلى المنصة</span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" onclick="A.tab='news'; renderDash();">
+        📢 فتح شريط الأخبار والبيانات ←
+      </button>
+    </div>
+
     <!-- 1. Theme Selector -->
     <div class="card p-6 mb-5 space-y-4">
       <div class="flex items-center justify-between border-b border-cream-200 pb-3 flex-wrap gap-2">
@@ -3645,6 +3789,349 @@ async function saveTeamToDb() {
     if (error) throw error;
     toast('تم حفظ وتحديث بيانات الفريق بنجاح', 'ok');
   } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   إدارة البيانات الهامة وشريط الأخبار (News & Announcements Tab)
+   ══════════════════════════════════════════════════════════════════════════════ */
+async function saveNewsTabToDb() {
+  try {
+    const { error } = await sb.from('app_settings').upsert([
+      { key: 'site', value: S.site }
+    ], { onConflict: 'key' });
+    if (error) throw error;
+    toast('تم حفظ ونشر البيان وشريط الأخبار بنجاح', 'ok');
+  } catch (e) {
+    toast('تعذر الحفظ: ' + e.message, 'err');
+  }
+}
+
+function renderNewsTab() {
+  const s = S.site;
+  const todayStr = fmtDate(todayISO());
+
+  $('#dashMain').innerHTML = `
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+      <div>
+        <h2 class="font-amiri text-3xl text-pine-900 font-bold">إدارة البيانات الهامة وشريط الأخبار</h2>
+        <p class="text-xs text-ink/60 mt-0.5">تحكم كامل في شريط الأخبار العاجلة في أعلى الموقع ونشر البيانات والتوجيهات الرسمية مع الصور في واجهة المنصة</p>
+      </div>
+      <button type="button" id="btnSaveNewsTabTop" class="btn btn-primary btn-sm !rounded-xl shadow-glow-pine">
+        💾 حفظ ونشر التغييرات فوراً
+      </button>
+    </div>
+
+    <!-- 1. بطاقة شريط الأخبار العاجلة -->
+    <div class="card p-6 mb-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-cream-200 pb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📢</span>
+          <div>
+            <h3 class="font-amiri text-xl text-pine-900 font-bold">شريط الأخبار المتحرك (News Ticker)</h3>
+            <p class="text-xs text-ink/60 mt-0.5">شريط إخباري متحرك في أعلى المنصة لعرض التنبيهات والأخبار العاجلة للزوار</p>
+          </div>
+        </div>
+        <label class="check !mt-0 bg-cream-50 px-3 py-1.5 rounded-xl border border-cream-200">
+          <input type="checkbox" id="nt_active" ${s.ticker_active !== false ? 'checked' : ''}>
+          <span class="font-bold text-xs text-pine-900">تفعيل ظهور شريط الأخبار</span>
+        </label>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 text-xs">
+        <div>
+          <label class="label">عنوان أو تصنيف الشريط</label>
+          <input id="nt_title" class="input" placeholder="مثال: آخر الأخبار والتنبيهات" value="${esc(s.ticker_title || 'آخر الأخبار والتنبيهات')}">
+        </div>
+        <div class="md:col-span-2">
+          <label class="label">نصوص وأخبار الشريط (افصل بين الأخبار بنقطة • أو رمز |)</label>
+          <textarea id="nt_text" rows="2" class="input" placeholder="اكتب الأخبار هنا، مثال: فتح باب التسجيل لمسابقة القرآن الكريم • آخر موعد لاستلام الطلبات الجمعة القادمة • ...">${esc(s.ticker_text || '')}</textarea>
+        </div>
+      </div>
+
+      <!-- Live Preview for News Ticker -->
+      <div class="mt-3 p-3 bg-cream-50 rounded-2xl border border-cream-200">
+        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار:</span>
+        <div class="news-ticker-bar text-cream-50 text-xs py-1.5 px-3 flex items-center rounded-xl shadow-inner overflow-hidden select-none">
+          <div class="flex items-center gap-1.5 bg-gradient-to-r from-gold-600 to-gold-500 text-pine-950 px-2 py-0.5 rounded-lg font-bold shrink-0 text-[10px]">
+            <span>📢</span>
+            <span id="nt_prev_title">${esc(s.ticker_title || 'آخر الأخبار')}</span>
+          </div>
+          <div class="overflow-hidden flex-1 relative ms-3 ticker-container">
+            <div class="ticker-track">
+              <span id="nt_prev_text1" class="ticker-item font-medium text-cream-100">${esc(s.ticker_text || 'لا توجد أخبار مكتوبة حالياً')}</span>
+              <span class="ticker-sep text-gold-400 font-bold mx-8">✦</span>
+              <span id="nt_prev_text2" class="ticker-item font-medium text-cream-100">${esc(s.ticker_text || 'لا توجد أخبار مكتوبة حالياً')}</span>
+              <span class="ticker-sep text-gold-400 font-bold mx-8">✦</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. بطاقة البيان والتنويه الهام في واجهة المنصة -->
+    <div class="card p-6 mb-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-cream-200 pb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🚨</span>
+          <div>
+            <h3 class="font-amiri text-xl text-pine-900 font-bold">البيان والتوجيهات الهامة في واجهة المنصة</h3>
+            <p class="text-xs text-ink/60 mt-0.5">قسم بارز يظهر في بداية الصفحة الرئيسية للمنصة لنشر التعليمات الرسمية والقرارات مع الصور المرفقة</p>
+          </div>
+        </div>
+        <label class="check !mt-0 bg-cream-50 px-3 py-1.5 rounded-xl border border-cream-200">
+          <input type="checkbox" id="ann_active" ${s.announcement_active !== false ? 'checked' : ''}>
+          <span class="font-bold text-xs text-rose-700">تفعيل وإظهار البيان في الصفحة الرئيسية</span>
+        </label>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="label">شارة / تصنيف البيان</label>
+            <div class="flex gap-2">
+              <input id="ann_badge" class="input flex-1" placeholder="مثال: بيان هام وعاجل" value="${esc(s.announcement_badge || 'بيان هام وعاجل')}">
+              <select class="input !w-auto text-[11px]" id="ann_badge_preset">
+                <option value="">اقتراحات...</option>
+                <option value="بيان هام وعاجل">بيان هام وعاجل</option>
+                <option value="تنويه إداري">تنويه إداري</option>
+                <option value="جدول مواعيد الاختبارات">جدول مواعيد الاختبارات</option>
+                <option value="إعلان نتائج التصفيات">إعلان نتائج التصفيات</option>
+                <option value="توجيهات وإرشادات">توجيهات وإرشادات</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="label">تاريخ البيان</label>
+            <input id="ann_date" class="input" placeholder="مثال: ${todayStr}" value="${esc(s.announcement_date || todayStr)}">
+          </div>
+        </div>
+
+        <div>
+          <label class="label">عنوان البيان الرئيسي <span class="text-rose-600">*</span></label>
+          <input id="ann_title" class="input !text-sm font-bold" placeholder="مثال: تنويه هام لجميع المتسابقين بخصوص موعد ومقر لجان التحكيم" value="${esc(s.announcement_title || '')}">
+        </div>
+
+        <div>
+          <label class="label">نص وتفاصيل البيان (يدعم الفقرات والأبعاد)</label>
+          <textarea id="ann_text" rows="4" class="input leading-relaxed" placeholder="اكتب نص البيان والتعليمات كاملة هنا...">${esc(s.announcement_text || '')}</textarea>
+        </div>
+
+        <!-- الصورة المرفقة مع البيان -->
+        <div class="p-4 bg-cream-50 rounded-2xl border border-cream-200 space-y-3">
+          <label class="label font-bold text-pine-900">الصورة المرفقة مع البيان (اختياري - جدول مواعيد، إعلان رسمي، ملصق، أو صورة توضيحية)</label>
+          
+          <div class="flex items-center gap-4 flex-wrap">
+            <div id="ann_photo_prev" class="w-24 h-24 rounded-2xl bg-white border-2 border-gold-500/50 overflow-hidden shrink-0 flex items-center justify-center text-2xl shadow-sm">
+              ${s.announcement_photo ? `<img src="${esc(s.announcement_photo)}" class="w-full h-full object-cover">` : '🖼️'}
+            </div>
+            
+            <div class="flex-1 min-w-[220px] space-y-2">
+              <div class="flex items-center gap-2">
+                <input type="file" id="ann_photo_file" accept="image/*" class="text-xs file:mr-2 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:bg-pine-800 file:text-cream-50 file:font-semibold hover:file:bg-pine-700 cursor-pointer">
+                <button type="button" id="ann_photo_clear" class="btn btn-outline btn-sm !rounded-xl text-rose-600 text-xs ${s.announcement_photo ? '' : 'hidden'}">
+                  حذف الصورة
+                </button>
+              </div>
+              <input id="ann_photo_url" class="input !py-1.5 text-xs font-mono" placeholder="أو اكتب رابط الصورة المباشر مباشرة..." value="${esc(s.announcement_photo || '')}">
+              <p class="text-[11px] text-ink/50">يمكنك رفع صورة من جهازك بضغطة زر وسيتم ضغطها ورفعها وتخزينها تلقائياً</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- زر الإجراء الاختياري -->
+        <div class="grid md:grid-cols-2 gap-4 pt-1">
+          <div>
+            <label class="label">نص زر إضافي مع البيان (اختياري)</label>
+            <input id="ann_btn_text" class="input" placeholder="مثال: تحميل جدول المواعيد / استمارة التسجيل" value="${esc(s.announcement_btn_text || '')}">
+          </div>
+          <div>
+            <label class="label">رابط الزر (رابط ويب أو رابط قسم)</label>
+            <input id="ann_btn_url" class="input" placeholder="مثال: #/track أو https://..." value="${esc(s.announcement_btn_url || '')}">
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Preview for Official Announcement -->
+      <div class="mt-6 pt-4 border-t border-cream-200">
+        <span class="text-xs font-bold text-pine-900 block mb-3 flex items-center gap-1.5">
+          <span>👁️</span>
+          <span>معاينة حية لشكل البيان كما سيظهر في الصفحة الرئيسية للمنصة:</span>
+        </span>
+        
+        <div id="ann_preview_container" class="card p-6 md:p-7 border-2 border-gold-500 bg-white shadow-lg rounded-2xl relative">
+          <div class="flex items-center justify-between gap-3 mb-4 border-b border-cream-200 pb-2.5 flex-wrap">
+            <div class="flex items-center gap-2">
+              <span id="ann_prev_badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-700 text-white shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                <span>${esc(s.announcement_badge || 'بيان هام وعاجل')}</span>
+              </span>
+              <span id="ann_prev_date" class="text-xs text-ink/60 font-semibold">بتاريخ: ${esc(s.announcement_date || todayStr)}</span>
+            </div>
+            <span class="text-xs text-gold-600 font-bold">🏛️ إدارة المسابقة الكبرى</span>
+          </div>
+
+          <div id="ann_prev_grid" class="${s.announcement_photo ? 'grid md:grid-cols-12 gap-5 items-center' : ''}">
+            <div id="ann_prev_text_col" class="${s.announcement_photo ? 'md:col-span-7' : ''} space-y-3">
+              <h2 id="ann_prev_title" class="font-amiri text-2xl font-bold text-pine-900 leading-snug">
+                ${esc(s.announcement_title || 'عنوان البيان هنا')}
+              </h2>
+              <div id="ann_prev_text" class="text-xs md:text-sm text-ink/80 leading-relaxed whitespace-pre-line bg-cream-50/70 p-3.5 rounded-xl border border-cream-200">
+                ${esc(s.announcement_text || 'نص البيان وتفاصيله ستظهر هنا...')}
+              </div>
+              <div id="ann_prev_btn_wrap" class="${(s.announcement_btn_text && s.announcement_btn_url) ? '' : 'hidden'} pt-1">
+                <span id="ann_prev_btn" class="btn btn-gold btn-sm !rounded-xl !px-4 text-xs font-bold inline-flex items-center gap-1.5">
+                  <span id="ann_prev_btn_label">${esc(s.announcement_btn_text || 'انقر هنا')}</span>
+                  <span>←</span>
+                </span>
+              </div>
+            </div>
+            <div id="ann_prev_photo_col" class="${s.announcement_photo ? 'md:col-span-5' : 'hidden'}">
+              <div class="rounded-xl overflow-hidden border-2 border-gold-500/60 shadow-md bg-pine-950">
+                <img id="ann_prev_photo_img" src="${esc(s.announcement_photo || '')}" class="w-full h-auto max-h-60 object-contain mx-auto">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- زر الحفظ السفلي -->
+    <div class="flex justify-end gap-3 mt-4">
+      <button type="button" id="btnSaveNewsTabBottom" class="btn btn-primary btn-sm !rounded-xl !px-8 shadow-glow-pine">
+        💾 حفظ ونشر التغييرات فوراً
+      </button>
+    </div>
+  `;
+
+  function syncAnnouncementPreview() {
+    const badge = $('#ann_badge')?.value.trim() || 'بيان هام وعاجل';
+    const date = $('#ann_date')?.value.trim() || todayStr;
+    const title = $('#ann_title')?.value.trim() || 'عنوان البيان هنا';
+    const text = $('#ann_text')?.value.trim() || 'نص البيان وتفاصيله ستظهر هنا...';
+    const photo = $('#ann_photo_url')?.value.trim();
+    const btnText = $('#ann_btn_text')?.value.trim();
+    const btnUrl = $('#ann_btn_url')?.value.trim();
+
+    if ($('#ann_prev_badge')) $('#ann_prev_badge').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span><span>${esc(badge)}</span>`;
+    if ($('#ann_prev_date')) $('#ann_prev_date').textContent = 'بتاريخ: ' + date;
+    if ($('#ann_prev_title')) $('#ann_prev_title').textContent = title;
+    if ($('#ann_prev_text')) $('#ann_prev_text').textContent = text;
+
+    const btnWrap = $('#ann_prev_btn_wrap');
+    if (btnWrap) {
+      if (btnText && btnUrl) {
+        btnWrap.classList.remove('hidden');
+        if ($('#ann_prev_btn_label')) $('#ann_prev_btn_label').textContent = btnText;
+      } else {
+        btnWrap.classList.add('hidden');
+      }
+    }
+
+    const grid = $('#ann_prev_grid');
+    const textCol = $('#ann_prev_text_col');
+    const photoCol = $('#ann_prev_photo_col');
+    const photoImg = $('#ann_prev_photo_img');
+
+    if (grid && textCol && photoCol && photoImg) {
+      if (photo) {
+        grid.className = 'grid md:grid-cols-12 gap-5 items-center';
+        textCol.className = 'md:col-span-7 space-y-3';
+        photoCol.className = 'md:col-span-5';
+        photoImg.src = photo;
+      } else {
+        grid.className = '';
+        textCol.className = 'space-y-3';
+        photoCol.className = 'hidden';
+      }
+    }
+  }
+
+  function syncTickerPreview() {
+    const title = $('#nt_title')?.value.trim() || 'آخر الأخبار';
+    const text = $('#nt_text')?.value.trim() || 'لا توجد أخبار مكتوبة حالياً';
+    if ($('#nt_prev_title')) $('#nt_prev_title').textContent = title;
+    if ($('#nt_prev_text1')) $('#nt_prev_text1').textContent = text;
+    if ($('#nt_prev_text2')) $('#nt_prev_text2').textContent = text;
+  }
+
+  // Bind live updates
+  ['ann_badge', 'ann_date', 'ann_title', 'ann_text', 'ann_btn_text', 'ann_btn_url'].forEach(id => {
+    $('#' + id)?.addEventListener('input', syncAnnouncementPreview);
+  });
+  $('#ann_badge_preset')?.addEventListener('change', e => {
+    if (e.target.value) {
+      const badgeInput = $('#ann_badge');
+      if (badgeInput) badgeInput.value = e.target.value;
+      syncAnnouncementPreview();
+    }
+  });
+
+  ['nt_title', 'nt_text'].forEach(id => {
+    $('#' + id)?.addEventListener('input', syncTickerPreview);
+  });
+
+  $('#ann_photo_url')?.addEventListener('input', e => {
+    const val = e.target.value.trim();
+    if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = val ? `<img src="${esc(val)}" class="w-full h-full object-cover">` : '🖼️';
+    if (val) $('#ann_photo_clear')?.classList.remove('hidden');
+    else $('#ann_photo_clear')?.classList.add('hidden');
+    syncAnnouncementPreview();
+  });
+
+  $('#ann_photo_file')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      toast('جاري ضغط ورفع صورة البيان...', 'ok');
+      const compressed = await compressImg(file, 1600);
+      const path = await uploadApp('announcement', compressed);
+      const url = await getAppFileUrl(path, APPB);
+      const finalUrl = url || path;
+      if ($('#ann_photo_url')) $('#ann_photo_url').value = finalUrl;
+      if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = `<img src="${finalUrl}" class="w-full h-full object-cover">`;
+      $('#ann_photo_clear')?.classList.remove('hidden');
+      toast('تم رفع الصورة بنجاح', 'ok');
+      syncAnnouncementPreview();
+    } catch (err) {
+      toast('تعذر رفع الصورة: ' + err.message, 'err');
+    }
+  });
+
+  $('#ann_photo_clear')?.addEventListener('click', () => {
+    if ($('#ann_photo_url')) $('#ann_photo_url').value = '';
+    if ($('#ann_photo_file')) $('#ann_photo_file').value = '';
+    if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = '🖼️';
+    $('#ann_photo_clear')?.classList.add('hidden');
+    syncAnnouncementPreview();
+  });
+
+  const doSave = async (btn) => {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin"></span> جاري الحفظ…';
+    }
+    S.site.ticker_active = $('#nt_active')?.checked ?? true;
+    S.site.ticker_title = $('#nt_title')?.value.trim() || 'آخر الأخبار والتنبيهات';
+    S.site.ticker_text = $('#nt_text')?.value.trim() || '';
+
+    S.site.announcement_active = $('#ann_active')?.checked ?? true;
+    S.site.announcement_badge = $('#ann_badge')?.value.trim() || 'بيان هام وعاجل';
+    S.site.announcement_date = $('#ann_date')?.value.trim() || '';
+    S.site.announcement_title = $('#ann_title')?.value.trim() || '';
+    S.site.announcement_text = $('#ann_text')?.value.trim() || '';
+    S.site.announcement_photo = $('#ann_photo_url')?.value.trim() || '';
+    S.site.announcement_btn_text = $('#ann_btn_text')?.value.trim() || '';
+    S.site.announcement_btn_url = $('#ann_btn_url')?.value.trim() || '';
+
+    await saveNewsTabToDb();
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '💾 حفظ ونشر التغييرات فوراً';
+    }
+  };
+
+  $('#btnSaveNewsTabTop')?.addEventListener('click', function() { doSave(this); });
+  $('#btnSaveNewsTabBottom')?.addEventListener('click', function() { doSave(this); });
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
