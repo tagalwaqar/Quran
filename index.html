@@ -898,7 +898,7 @@ function pubShell(content) {
 
       <!-- شريط الأخبار بتصميم ولون وخط مميز وحركة مستمرة لا نهائية بدون انقطاع -->
       ${(s.ticker_active !== false && s.ticker_text) ? `
-        <div class="news-ticker-bar py-2 px-3 sm:px-4 flex items-center shadow-lg relative overflow-hidden select-none">
+        <div class="news-ticker-bar py-2 px-3 sm:px-4 flex items-center shadow-lg relative overflow-hidden select-none" style="--ticker-speed: ${+(s.ticker_speed) || 55}s">
           <div class="ticker-badge-distinct flex items-center gap-1.5 px-3 py-1 rounded-xl shrink-0 z-20 text-[11px] sm:text-xs shadow-md">
             <span class="inline-block animate-bounce text-xs">⚡</span>
             <span>${esc(s.ticker_title || 'آخر الأخبار')}</span>
@@ -4100,21 +4100,43 @@ function renderNewsTab() {
         </label>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-4 text-xs">
-        <div>
+      <div class="grid md:grid-cols-12 gap-4 text-xs">
+        <div class="md:col-span-4">
           <label class="label">عنوان أو تصنيف الشريط</label>
           <input id="nt_title" class="input" placeholder="مثال: آخر الأخبار والتنبيهات" value="${esc(s.ticker_title || 'آخر الأخبار والتنبيهات')}">
         </div>
-        <div class="md:col-span-2">
+        <div class="md:col-span-8">
           <label class="label">نصوص وأخبار الشريط (افصل بين الأخبار بنقطة • أو رمز |)</label>
           <textarea id="nt_text" rows="2" class="input" placeholder="اكتب الأخبار هنا، مثال: فتح باب التسجيل لمسابقة القرآن الكريم • آخر موعد لاستلام الطلبات الجمعة القادمة • ...">${esc(s.ticker_text || '')}</textarea>
+        </div>
+        
+        <!-- التحكم في سرعة حركة شريط الأخبار -->
+        <div class="md:col-span-12 bg-cream-100/70 p-3.5 rounded-2xl border border-cream-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⏱️</span>
+            <div>
+              <b class="text-xs text-pine-900 block font-bold">التحكم في سرعة حركة شريط الأخبار:</b>
+              <span class="text-[11px] text-ink/60">يمكنك اختيار سرعة جاهزة أو تحريك المؤشر لتحديد السرعة المناسبة تماماً</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex gap-1.5" id="speedPresetBtns">
+              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) >= 70 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(75)">🐢 بطيئة وهادئة (75 ث)</button>
+              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) === 55 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(55)">🚶 سرعة وسط معتدلة (55 ث)</button>
+              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) <= 35 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(35)">⚡ سريعة (35 ث)</button>
+            </div>
+            <div class="flex items-center gap-2 bg-white px-3 py-1 rounded-xl border border-cream-200">
+              <input type="range" id="nt_speed" min="20" max="100" step="5" value="${+(s.ticker_speed) || 55}" class="w-28 accent-pine-800 cursor-pointer">
+              <span id="nt_speed_val" class="text-xs font-bold font-mono text-pine-900 min-w-[50px] text-center">${+(s.ticker_speed) || 55} ثانية</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Live Preview for News Ticker -->
       <div class="mt-3 p-3 bg-cream-50 rounded-2xl border border-cream-200">
-        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار:</span>
-        <div class="news-ticker-bar py-2 px-3 flex items-center rounded-xl shadow-lg overflow-hidden select-none">
+        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار بالسرعة المحددة:</span>
+        <div id="nt_preview_bar" class="news-ticker-bar py-2 px-3 flex items-center rounded-xl shadow-lg overflow-hidden select-none" style="--ticker-speed: ${+(s.ticker_speed) || 55}s">
           <div class="ticker-badge-distinct flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg shrink-0 text-[10px]">
             <span>⚡</span>
             <span id="nt_prev_title">${esc(s.ticker_title || 'آخر الأخبار')}</span>
@@ -4338,6 +4360,30 @@ function renderNewsTab() {
     $('#' + id)?.addEventListener('input', syncTickerPreview);
   });
 
+  window.setTickerSpeedPreset = function(sec) {
+    const input = $('#nt_speed');
+    const label = $('#nt_speed_val');
+    if (input) input.value = sec;
+    if (label) label.textContent = sec + ' ثانية';
+    const preview = $('#nt_preview_bar');
+    if (preview) preview.style.setProperty('--ticker-speed', sec + 's');
+    $$('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
+    if (sec >= 70) $$('.speed-preset-btn')[0]?.classList.add('!bg-pine-800', '!text-white');
+    else if (sec === 55) $$('.speed-preset-btn')[1]?.classList.add('!bg-pine-800', '!text-white');
+    else if (sec <= 35) $$('.speed-preset-btn')[2]?.classList.add('!bg-pine-800', '!text-white');
+  };
+
+  $('#nt_speed')?.addEventListener('input', e => {
+    const val = +e.target.value;
+    if ($('#nt_speed_val')) $('#nt_speed_val').textContent = val + ' ثانية';
+    const preview = $('#nt_preview_bar');
+    if (preview) preview.style.setProperty('--ticker-speed', val + 's');
+    $$('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
+    if (val >= 70) $$('.speed-preset-btn')[0]?.classList.add('!bg-pine-800', '!text-white');
+    else if (val === 55) $$('.speed-preset-btn')[1]?.classList.add('!bg-pine-800', '!text-white');
+    else if (val <= 35) $$('.speed-preset-btn')[2]?.classList.add('!bg-pine-800', '!text-white');
+  });
+
   $('#ann_photo_url')?.addEventListener('input', e => {
     const val = e.target.value.trim();
     if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = val ? `<img src="${esc(val)}" class="w-full h-full object-cover">` : '🖼️';
@@ -4380,6 +4426,7 @@ function renderNewsTab() {
     }
     S.site.ticker_active = $('#nt_active')?.checked ?? true;
     S.site.ticker_title = $('#nt_title')?.value.trim() || 'آخر الأخبار والتنبيهات';
+    S.site.ticker_speed = +($('#nt_speed')?.value) || 55;
     S.site.ticker_text = $('#nt_text')?.value.trim() || '';
 
     S.site.announcement_active = $('#ann_active')?.checked ?? true;
