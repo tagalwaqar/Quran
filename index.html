@@ -13,68 +13,10 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='18' fill='%230F3D2C' transform='rotate(45 16 16)'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23C9A227' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://ctgrlgdughobzxvqmwnn.supabase.co" crossorigin>
-<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-<link rel="dns-prefetch" href="https://images.unsplash.com">
-<link rel="dns-prefetch" href="https://img.youtube.com">
-<link rel="dns-prefetch" href="https://www.youtube-nocookie.com">
-<link rel="dns-prefetch" href="https://cdn.islamic.network">
-<link rel="dns-prefetch" href="https://cdn.mp3quran.net">
-<link rel="dns-prefetch" href="https://download.quranicaudio.com">
-<!-- خطوط مخففة: وزن أقل لكل خط => توفير ~280KB -->
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@600;800&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
-<!-- Tailwind: async حتى لا يحجب العرض الأولي للصفحة -->
-<script src="https://cdn.tailwindcss.com" async></script>
-<!-- Supabase: متزامن لأن السكربت الأصلي يعتمد عليه فوراً في const sb -->
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- QRCode: تحميل مؤجل عند الطلب فقط -->
-<script>
-window.__loadQRCode = function(cb) {
-  if (window.qrcode) return cb && cb();
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';
-  s.async = true;
-  s.onload = function() { cb && cb(); };
-  document.head.appendChild(s);
-};
-// Lazy facade لفيديو اليوتيوب الرئيسي — لا يُحمّل حتى النقر
-window.loadHeroVideo = function() {
-  var f = document.getElementById('heroVideoFacade');
-  if (!f || f.dataset.loaded) return;
-  f.dataset.loaded = '1';
-  var ifr = document.createElement('iframe');
-  ifr.className = 'w-full h-full';
-  ifr.src = 'https://www.youtube-nocookie.com/embed/oIXynH-7F1o?autoplay=1&controls=1&rel=0&modestbranding=1';
-  ifr.title = 'تلاوة قرآن كريم خاشعة — سورة مريم للشيخ محمود خليل الحصري';
-  ifr.setAttribute('frameborder', '0');
-  ifr.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-  ifr.setAttribute('allowfullscreen', '');
-  f.innerHTML = '';
-  f.appendChild(ifr);
-};
-document.addEventListener('keydown', function(e) {
-  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.id === 'heroVideoFacade') {
-    e.preventDefault(); window.loadHeroVideo();
-  }
-});
-// Lazy facade للبث المباشر — لا يُحمّل حتى النقر
-window.loadLiveStream = function() {
-  var box = document.getElementById('liveStreamBox');
-  if (!box || box.dataset.loaded) return;
-  box.dataset.loaded = '1';
-  var url = box.getAttribute('data-live-url') || '';
-  if (!url) return;
-  var ifr = document.createElement('iframe');
-  ifr.className = 'w-full h-full';
-  ifr.src = url + (url.indexOf('?') > -1 ? '&' : '?') + 'autoplay=1';
-  ifr.title = 'البث المباشر';
-  ifr.setAttribute('frameborder', '0');
-  ifr.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-  ifr.setAttribute('allowfullscreen', '');
-  box.innerHTML = '';
-  box.appendChild(ifr);
-};
-</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 
 <script>
 tailwind.config = {
@@ -356,24 +298,6 @@ header {
 #mobNavBackdrop {
   z-index: 999;
 }
-
-/* دعم تفضيل تقليل الحركة لمن يحتاجون ذلك */
-@media (prefers-reduced-motion: reduce) {
-  .ticker-group,
-  .record-live-dot,
-  .qcp-btn.playing,
-  [class*="animate-pulse"],
-  [class*="animate-ping"],
-  [class*="animate-bounce"] {
-    animation: none !important;
-  }
-  html { scroll-behavior: auto !important; }
-  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-}
-
-.ticker-wrapper.paused .ticker-group {
-  animation-play-state: paused !important;
-}
 </style>
 </head>
 <body class="bg-cream-100 font-sans text-ink antialiased">
@@ -609,26 +533,6 @@ const LEVELS_DEFAULT = [
 const S = { site: { ...SITE_DEFAULTS }, levels: [...LEVELS_DEFAULT], config: { registration_open: true, age_ref_date: '2026-10-01' } };
 const A = { tab: 'regs', regs: null, examiners: [], q: '', fLevel: '', fStatus: '' };
 const SELECTED_REGS = new Set();
-window.S = S;
-window.A = A;
-window.SELECTED_REGS = SELECTED_REGS;
-
-function setTickerSpeedPreset(sec) {
-  sec = +sec || 55;
-  if (S.site) S.site.ticker_speed = sec;
-  const input = document.getElementById('nt_speed');
-  const label = document.getElementById('nt_speed_val');
-  if (input) input.value = sec;
-  if (label) label.textContent = sec + ' ثانية';
-  const preview = document.getElementById('nt_preview_bar');
-  if (preview) preview.style.setProperty('--ticker-speed', sec + 's');
-  document.querySelectorAll('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
-  const presetBtns = document.querySelectorAll('.speed-preset-btn');
-  if (sec >= 70 && presetBtns[0]) presetBtns[0].classList.add('!bg-pine-800', '!text-white');
-  else if (sec === 55 && presetBtns[1]) presetBtns[1].classList.add('!bg-pine-800', '!text-white');
-  else if (sec <= 35 && presetBtns[2]) presetBtns[2].classList.add('!bg-pine-800', '!text-white');
-}
-window.setTickerSpeedPreset = setTickerSpeedPreset;
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -719,10 +623,8 @@ function toast(msg, type) {
   const t = document.createElement('div');
   t.className = 'toast ' + (type || '');
   t.innerHTML = '<span>' + esc(msg) + '</span>';
-  const box = $('#toasts') || document.body;
-  box.appendChild(t);
-  const rAF = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
-  rAF(() => t.classList.add('show'));
+  $('#toasts').appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
   setTimeout(() => {
     t.classList.remove('show');
     setTimeout(() => t.remove(), 350);
@@ -917,7 +819,7 @@ function renderFatal(e) {
 
 function pubShell(content) {
   const s = S.site;
-  const logoHtml = s.logo ? '<img loading="lazy" src="' + s.logo + '" alt="شعار" class="w-full h-full object-contain">' : '<span class="block w-full h-full">' + MUSHAF_SVG + '</span>';
+  const logoHtml = s.logo ? '<img src="' + s.logo + '" alt="شعار" class="w-full h-full object-contain">' : '<span class="block w-full h-full">' + MUSHAF_SVG + '</span>';
   const hasLive = !!(s.live_active || s.live_url);
 
   return `
@@ -996,7 +898,7 @@ function pubShell(content) {
 
       <!-- شريط الأخبار بتصميم ولون وخط مميز وحركة مستمرة لا نهائية بدون انقطاع -->
       ${(s.ticker_active !== false && s.ticker_text) ? `
-        <div class="news-ticker-bar py-2 px-3 sm:px-4 flex items-center shadow-lg relative overflow-hidden select-none" style="--ticker-speed: ${+(s.ticker_speed) || 55}s">
+        <div class="news-ticker-bar py-2 px-3 sm:px-4 flex items-center shadow-lg relative overflow-hidden select-none">
           <div class="ticker-badge-distinct flex items-center gap-1.5 px-3 py-1 rounded-xl shrink-0 z-20 text-[11px] sm:text-xs shadow-md">
             <span class="inline-block animate-bounce text-xs">⚡</span>
             <span>${esc(s.ticker_title || 'آخر الأخبار')}</span>
@@ -1199,7 +1101,7 @@ function levelCard(l, idx, total) {
 function renderHome() {
   const s = S.site, cfg = S.config;
   const openNow = cfg.registration_open && !!cfg.age_ref_date;
-  const logoHtml = s.logo ? '<img loading="lazy" src="' + s.logo + '" class="w-full h-full object-contain" alt="">' : '<span class="block w-full h-full">' + MUSHAF_SVG + '</span>';
+  const logoHtml = s.logo ? '<img src="' + s.logo + '" class="w-full h-full object-contain" alt="">' : '<span class="block w-full h-full">' + MUSHAF_SVG + '</span>';
 
   app.innerHTML = pubShell(`
     <section class="relative bg-pine-950 text-cream-50 overflow-hidden py-14 md:py-20 border-b border-gold-500/40">
@@ -1242,20 +1144,15 @@ function renderHome() {
               <span class="text-[11px] text-cream-200/60">عالية الدقة</span>
             </div>
 
-            <div class="aspect-video relative overflow-hidden bg-black flex items-center justify-center cursor-pointer group" id="heroVideoFacade" onclick="loadHeroVideo()" role="button" tabindex="0" aria-label="تشغيل فيديو تلاوة سورة مريم">
-              <img src="https://img.youtube.com/vi/oIXynH-7F1o/hqdefault.jpg" 
-                   alt="تلاوة قرآن كريم خاشعة — سورة مريم للشيخ محمود خليل الحصري" 
-                   class="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-                   loading="lazy">
-              <div class="absolute inset-0 bg-gradient-to-t from-pine-950/70 via-transparent to-pine-950/30 pointer-events-none"></div>
-              <button class="absolute inset-0 flex items-center justify-center" aria-label="تشغيل الفيديو" type="button">
-                <span class="w-20 h-20 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-rose-500 transition duration-300">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-                </span>
-              </button>
-              <span class="absolute bottom-3 right-3 bg-pine-950/80 text-gold-400 text-[11px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm border border-gold-500/30 pointer-events-none">
-                ▶ اضغط للتشغيل — سورة مريم للشيخ الحصري
-              </span>
+            <div class="aspect-video relative overflow-hidden bg-black flex items-center justify-center">
+              <iframe id="heroQuranVideo" 
+                class="w-full h-full" 
+                src="https://www.youtube-nocookie.com/embed/oIXynH-7F1o?autoplay=0&controls=1&rel=0&modestbranding=1" 
+                title="تلاوة قرآن كريم خاشعة — سورة مريم للشيخ محمود خليل الحصري" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+              </iframe>
             </div>
 
             <div class="p-2.5 bg-pine-950/90 text-center text-xs text-cream-200/80 border-t border-white/10 flex items-center justify-between px-4 flex-wrap gap-2">
@@ -1342,7 +1239,7 @@ function renderHome() {
             ${s.announcement_photo ? `
               <div class="md:col-span-5">
                 <div class="rounded-2xl overflow-hidden border-2 border-gold-500/60 shadow-lg bg-pine-950 group relative cursor-pointer" onclick="openPhotoLightbox('${esc(s.announcement_photo)}', '${esc(s.announcement_title || 'صورة البيان')}')" title="اضغط لتكبير الصورة">
-                  <img loading="lazy" src="${esc(s.announcement_photo)}" alt="${esc(s.announcement_title || 'صورة البيان')}" class="w-full h-auto max-h-72 object-contain mx-auto group-hover:scale-105 transition duration-300">
+                  <img src="${esc(s.announcement_photo)}" alt="${esc(s.announcement_title || 'صورة البيان')}" class="w-full h-auto max-h-72 object-contain mx-auto group-hover:scale-105 transition duration-300">
                   <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[1px]">
                     <span class="text-base">🔍</span>
                     <span>اضغط لتكبير الصورة وعرضها كاملة</span>
@@ -1415,16 +1312,8 @@ function renderHome() {
             </a>
           </div>
 
-          <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-gold-500/40 shadow-inner relative" id="liveStreamBox" data-live-url="${esc(toYoutubeEmbed(s.live_url))}">
-            <button class="absolute inset-0 flex items-center justify-center bg-pine-950 text-cream-50 hover:bg-pine-900 transition" onclick="loadLiveStream()" aria-label="تشغيل البث المباشر" type="button">
-              <span class="text-center px-4">
-                <span class="block w-20 h-20 rounded-full bg-rose-600 mx-auto mb-3 flex items-center justify-center shadow-2xl hover:scale-110 transition">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-                </span>
-                <span class="text-sm font-bold block">▶ اضغط لبدء البث المباشر</span>
-                <span class="text-[11px] text-cream-200/70 block mt-1">لا يُحمّل موارد يوتيوب حتى تضغط</span>
-              </span>
-            </button>
+          <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-gold-500/40 shadow-inner relative">
+            <iframe class="w-full h-full" src="${esc(toYoutubeEmbed(s.live_url))}" title="البث المباشر" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
           <p class="mt-3 text-center text-xs text-cream-200/70">تابع اختبارات وتلاوات المتسابقين مباشرة، وأجواء التحكيم أمام المشايخ الكرام</p>
         </div>
@@ -1456,7 +1345,7 @@ function renderHome() {
               ${p.winner_name ? `
                 <div class="mt-4 pt-3 border-t border-cream-200/80 bg-gold-500/10 rounded-xl p-3 text-center">
                   <span class="text-[11px] text-gold-600 font-bold block mb-1">🎉 الفائز بالجائزة:</span>
-                  ${p.winner_photo ? `<img loading="lazy" src="${esc(toPublicMediaUrl(p.winner_photo))}" alt="${esc(p.winner_name)}" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-gold-500 mb-1.5 shadow" onerror="this.style.display='none'">` : ''}
+                  ${p.winner_photo ? `<img src="${esc(toPublicMediaUrl(p.winner_photo))}" alt="${esc(p.winner_name)}" class="w-14 h-14 rounded-full mx-auto object-cover border-2 border-gold-500 mb-1.5 shadow" onerror="this.style.display='none'">` : ''}
                   <b class="text-sm text-pine-950 block">${esc(p.winner_name)}</b>
                 </div>
               ` : `
@@ -1545,7 +1434,7 @@ function renderHome() {
             <div>
               <div class="flex items-start gap-3.5 mb-3.5">
                 <div class="w-14 h-14 rounded-2xl overflow-hidden bg-pine-900/10 border-2 border-gold-500/50 shrink-0 flex items-center justify-center text-pine-800 text-xl font-bold shadow-sm">
-                  ${m.photo ? `<img loading="lazy" src="${esc(toPublicMediaUrl(m.photo))}" alt="${esc(m.name)}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span>${esc((m.name || 'ع')[0])}</span>'">` : `<span>${esc((m.name || 'ع')[0])}</span>`}
+                  ${m.photo ? `<img src="${esc(toPublicMediaUrl(m.photo))}" alt="${esc(m.name)}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span>${esc((m.name || 'ع')[0])}</span>'">` : `<span>${esc((m.name || 'ع')[0])}</span>`}
                 </div>
                 <div class="min-w-0 flex-1">
                   <span class="tag text-[10px] font-bold border mb-1 ${teamCategoryColor(m.category)}">${esc(teamCategoryName(m.category))}</span>
@@ -1699,7 +1588,7 @@ window.openPhotoLightbox = function(url, caption, date) {
   modal(`
     <div class="p-2 text-center">
       <div class="relative max-h-[75vh] flex items-center justify-center bg-black/95 rounded-2xl overflow-hidden mb-3 p-2">
-        <img loading="lazy" src="${esc(url)}" class="max-h-[70vh] max-w-full object-contain rounded-xl" alt="${esc(caption || 'صورة')}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'">
+        <img src="${esc(url)}" class="max-h-[70vh] max-w-full object-contain rounded-xl" alt="${esc(caption || 'صورة')}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'">
       </div>
       ${caption ? `<h4 class="font-amiri text-xl text-pine-900 font-bold mb-1">${esc(caption)}</h4>` : ''}
       ${date ? `<p class="text-xs text-ink/60 mb-3">تاريخ التوثيق: ${esc(date)}</p>` : ''}
@@ -2624,7 +2513,7 @@ async function doTrack() {
             <!-- الصورة الشخصية للمتسابق -->
             <div class="relative shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-gold-500 shadow-md bg-pine-900 flex items-center justify-center">
               ${photoUrl ? `
-                <img loading="lazy" src="${esc(photoUrl)}" alt="${esc(data.full_name)}" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300" onclick="modal('<div class=\\'m-head\\'>الصورة الشخصية للمتسابق</div><div class=\\'text-center\\'><img src=\\'${esc(photoUrl)}\\' class=\\'max-h-[70vh] max-w-full rounded-xl mx-auto shadow-lg\\'></div><div class=\\'m-actions\\'><button class=\\'btn btn-outline btn-sm\\' data-close>إغلاق</button></div>')" title="اضغط للتكبير">
+                <img src="${esc(photoUrl)}" alt="${esc(data.full_name)}" class="w-full h-full object-cover cursor-pointer hover:scale-105 transition duration-300" onclick="modal('<div class=\\'m-head\\'>الصورة الشخصية للمتسابق</div><div class=\\'text-center\\'><img src=\\'${esc(photoUrl)}\\' class=\\'max-h-[70vh] max-w-full rounded-xl mx-auto shadow-lg\\'></div><div class=\\'m-actions\\'><button class=\\'btn btn-outline btn-sm\\' data-close>إغلاق</button></div>')" title="اضغط للتكبير">
               ` : `
                 <div class="flex flex-col items-center justify-center text-gold-400 p-2 text-center select-none">
                   <span class="text-2xl mb-0.5">👤</span>
@@ -3109,26 +2998,6 @@ const navBtn = (tab, icn, label, count) => `
   </button>
 `;
 
-function switchTab(tab) {
-  if (!tab) return;
-  A.tab = tab;
-  const main = document.getElementById('dashMain');
-  if (main) {
-    document.querySelectorAll('aside [data-tab]').forEach(btn => {
-      if (btn.dataset.tab === tab) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-    main.scrollTop = 0;
-    renderTab();
-  } else {
-    renderDash();
-  }
-}
-window.switchTab = switchTab;
-
 function renderDash() {
   app.innerHTML = `
     <div class="min-h-screen flex flex-col md:flex-row bg-cream-100">
@@ -3160,7 +3029,6 @@ function renderDash() {
   `;
   renderTab();
 }
-window.renderDash = renderDash;
 
 function renderTab() {
   ({
@@ -3174,7 +3042,6 @@ function renderTab() {
     prizes: renderPrizesTab
   }[A.tab] || renderRegsTab)();
 }
-window.renderTab = renderTab;
 
 const statCard = (n, t, c) => `
   <div class="card p-4 text-center">
@@ -3690,7 +3557,7 @@ function paintLevels() {
       </div>
       <div class="flex items-center gap-3 pt-2.5 border-t border-cream-100 flex-wrap">
         <div class="w-12 h-12 rounded-xl overflow-hidden bg-pine-950 border border-gold-500/40 shrink-0">
-          <img loading="lazy" src="${esc(l.image || '')}" alt="" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'">
+          <img src="${esc(l.image || '')}" alt="" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'">
         </div>
         <div class="flex-1 min-w-[200px]">
           <label class="label !text-[10px] !mb-0.5 text-ink/60">رابط صورة غلاف المستوى</label>
@@ -3733,7 +3600,6 @@ function selectTheme(key) {
   }
   toast('تم تفعيل ثيم ' + THEMES[key].name, 'ok');
 }
-window.selectTheme = selectTheme;
 
 function renderSettingsTab() {
   const s = S.site, c = S.config;
@@ -3755,7 +3621,7 @@ function renderSettingsTab() {
           <span class="text-xs text-ink/65">يمكنك كتابة بيانات رسمية مع صور وتفعيل شريط الأخبار العاجلة المتحرك بأعلى المنصة</span>
         </div>
       </div>
-      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" data-tab="news" onclick="switchTab('news');">
+      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" onclick="A.tab='news'; renderDash();">
         📢 فتح شريط الأخبار والبيانات ←
       </button>
     </div>
@@ -3876,12 +3742,7 @@ function renderSettingsTab() {
     </div>
   `;
 
-  $('#saveSettings').addEventListener('click', async function() {
-    const btn = this;
-    const oldText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span> جاري الحفظ…';
-
+  $('#saveSettings').addEventListener('click', async () => {
     const site = {
       ...S.site,
       theme: $('#st_theme').value || 'taqwa',
@@ -3917,12 +3778,7 @@ function renderSettingsTab() {
       S.site = site; S.config = config;
       applyThemeVars(site.theme);
       toast('تم حفظ ونشر جميع الإعدادات وهوية المنصة بنجاح', 'ok');
-    } catch (e) {
-      toast('تعذر الحفظ: ' + e.message, 'err');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = oldText;
-    }
+    } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
   });
 }
 
@@ -3985,7 +3841,7 @@ function renderTeamTab() {
             <div>
               <div class="flex items-start gap-3.5 mb-3">
                 <div class="w-14 h-14 rounded-2xl overflow-hidden bg-pine-900/10 border-2 border-gold-500/50 shrink-0 flex items-center justify-center text-pine-800 text-xl font-bold shadow-sm">
-                  ${m.photo ? `<img loading="lazy" src="${esc(m.photo)}" alt="${esc(m.name)}" class="w-full h-full object-cover">` : `<span>${esc((m.name || 'ع')[0])}</span>`}
+                  ${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}" class="w-full h-full object-cover">` : `<span>${esc((m.name || 'ع')[0])}</span>`}
                 </div>
                 <div class="min-w-0 flex-1">
                   <span class="tag text-[10px] font-bold border mb-1 ${teamCategoryColor(m.category)}">${esc(teamCategoryName(m.category))}</span>
@@ -4093,7 +3949,7 @@ window.openTeamModal = function(id) {
           <label class="label">الصورة الشخصية (رفع ملف أو رابط مباشر)</label>
           <div class="flex items-center gap-3">
             <div id="tm_photo_prev" class="w-14 h-14 rounded-2xl bg-cream-100 border border-cream-200 overflow-hidden shrink-0 flex items-center justify-center text-xl font-bold">
-              ${m.photo ? `<img loading="lazy" src="${esc(m.photo)}" class="w-full h-full object-cover">` : '👤'}
+              ${m.photo ? `<img src="${esc(m.photo)}" class="w-full h-full object-cover">` : '👤'}
             </div>
             <div class="flex-1 space-y-1.5">
               <input type="file" id="tm_photo_file" accept="image/*" class="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-pine-800 file:text-cream-50 file:font-semibold hover:file:bg-pine-700 cursor-pointer">
@@ -4121,7 +3977,7 @@ window.openTeamModal = function(id) {
       const path = await uploadApp('team', compressed);
       const url = await getAppFileUrl(path, APPB);
       $('#tm_photo_url').value = url || path;
-      $('#tm_photo_prev').innerHTML = `<img loading="lazy" src="${url || path}" class="w-full h-full object-cover">`;
+      $('#tm_photo_prev').innerHTML = `<img src="${url || path}" class="w-full h-full object-cover">`;
       toast('تم رفع الصورة بنجاح', 'ok');
     } catch (err) {
       toast('تعذر رفع الصورة: ' + err.message, 'err');
@@ -4130,7 +3986,7 @@ window.openTeamModal = function(id) {
 
   $('#tm_photo_url')?.addEventListener('input', e => {
     const val = e.target.value.trim();
-    $('#tm_photo_prev').innerHTML = val ? `<img loading="lazy" src="${esc(val)}" class="w-full h-full object-cover">` : '👤';
+    $('#tm_photo_prev').innerHTML = val ? `<img src="${esc(val)}" class="w-full h-full object-cover">` : '👤';
   });
 
   $('#btnSaveMemberAction').onclick = async () => {
@@ -4244,43 +4100,21 @@ function renderNewsTab() {
         </label>
       </div>
 
-      <div class="grid md:grid-cols-12 gap-4 text-xs">
-        <div class="md:col-span-4">
+      <div class="grid md:grid-cols-3 gap-4 text-xs">
+        <div>
           <label class="label">عنوان أو تصنيف الشريط</label>
           <input id="nt_title" class="input" placeholder="مثال: آخر الأخبار والتنبيهات" value="${esc(s.ticker_title || 'آخر الأخبار والتنبيهات')}">
         </div>
-        <div class="md:col-span-8">
+        <div class="md:col-span-2">
           <label class="label">نصوص وأخبار الشريط (افصل بين الأخبار بنقطة • أو رمز |)</label>
           <textarea id="nt_text" rows="2" class="input" placeholder="اكتب الأخبار هنا، مثال: فتح باب التسجيل لمسابقة القرآن الكريم • آخر موعد لاستلام الطلبات الجمعة القادمة • ...">${esc(s.ticker_text || '')}</textarea>
-        </div>
-        
-        <!-- التحكم في سرعة حركة شريط الأخبار -->
-        <div class="md:col-span-12 bg-cream-100/70 p-3.5 rounded-2xl border border-cream-200 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5">
-            <span class="text-xl">⏱️</span>
-            <div>
-              <b class="text-xs text-pine-900 block font-bold">التحكم في سرعة حركة شريط الأخبار:</b>
-              <span class="text-[11px] text-ink/60">يمكنك اختيار سرعة جاهزة أو تحريك المؤشر لتحديد السرعة المناسبة تماماً</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 flex-wrap">
-            <div class="flex gap-1.5" id="speedPresetBtns">
-              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) >= 70 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(75)">🐢 بطيئة وهادئة (75 ث)</button>
-              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) === 55 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(55)">🚶 سرعة وسط معتدلة (55 ث)</button>
-              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) <= 35 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(35)">⚡ سريعة (35 ث)</button>
-            </div>
-            <div class="flex items-center gap-2 bg-white px-3 py-1 rounded-xl border border-cream-200">
-              <input type="range" id="nt_speed" min="20" max="100" step="5" value="${+(s.ticker_speed) || 55}" class="w-28 accent-pine-800 cursor-pointer">
-              <span id="nt_speed_val" class="text-xs font-bold font-mono text-pine-900 min-w-[50px] text-center">${+(s.ticker_speed) || 55} ثانية</span>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- Live Preview for News Ticker -->
       <div class="mt-3 p-3 bg-cream-50 rounded-2xl border border-cream-200">
-        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار بالسرعة المحددة:</span>
-        <div id="nt_preview_bar" class="news-ticker-bar py-2 px-3 flex items-center rounded-xl shadow-lg overflow-hidden select-none" style="--ticker-speed: ${+(s.ticker_speed) || 55}s">
+        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار:</span>
+        <div class="news-ticker-bar py-2 px-3 flex items-center rounded-xl shadow-lg overflow-hidden select-none">
           <div class="ticker-badge-distinct flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg shrink-0 text-[10px]">
             <span>⚡</span>
             <span id="nt_prev_title">${esc(s.ticker_title || 'آخر الأخبار')}</span>
@@ -4357,7 +4191,7 @@ function renderNewsTab() {
           
           <div class="flex items-center gap-4 flex-wrap">
             <div id="ann_photo_prev" class="w-24 h-24 rounded-2xl bg-white border-2 border-gold-500/50 overflow-hidden shrink-0 flex items-center justify-center text-2xl shadow-sm">
-              ${s.announcement_photo ? `<img loading="lazy" src="${esc(s.announcement_photo)}" class="w-full h-full object-cover">` : '🖼️'}
+              ${s.announcement_photo ? `<img src="${esc(s.announcement_photo)}" class="w-full h-full object-cover">` : '🖼️'}
             </div>
             
             <div class="flex-1 min-w-[220px] space-y-2">
@@ -4422,7 +4256,7 @@ function renderNewsTab() {
             </div>
             <div id="ann_prev_photo_col" class="${s.announcement_photo ? 'md:col-span-5' : 'hidden'}">
               <div class="rounded-xl overflow-hidden border-2 border-gold-500/60 shadow-md bg-pine-950">
-                <img loading="lazy" id="ann_prev_photo_img" src="${esc(s.announcement_photo || '')}" class="w-full h-auto max-h-60 object-contain mx-auto">
+                <img id="ann_prev_photo_img" src="${esc(s.announcement_photo || '')}" class="w-full h-auto max-h-60 object-contain mx-auto">
               </div>
             </div>
           </div>
@@ -4504,33 +4338,9 @@ function renderNewsTab() {
     $('#' + id)?.addEventListener('input', syncTickerPreview);
   });
 
-  window.setTickerSpeedPreset = function(sec) {
-    const input = $('#nt_speed');
-    const label = $('#nt_speed_val');
-    if (input) input.value = sec;
-    if (label) label.textContent = sec + ' ثانية';
-    const preview = $('#nt_preview_bar');
-    if (preview) preview.style.setProperty('--ticker-speed', sec + 's');
-    $$('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
-    if (sec >= 70) $$('.speed-preset-btn')[0]?.classList.add('!bg-pine-800', '!text-white');
-    else if (sec === 55) $$('.speed-preset-btn')[1]?.classList.add('!bg-pine-800', '!text-white');
-    else if (sec <= 35) $$('.speed-preset-btn')[2]?.classList.add('!bg-pine-800', '!text-white');
-  };
-
-  $('#nt_speed')?.addEventListener('input', e => {
-    const val = +e.target.value;
-    if ($('#nt_speed_val')) $('#nt_speed_val').textContent = val + ' ثانية';
-    const preview = $('#nt_preview_bar');
-    if (preview) preview.style.setProperty('--ticker-speed', val + 's');
-    $$('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
-    if (val >= 70) $$('.speed-preset-btn')[0]?.classList.add('!bg-pine-800', '!text-white');
-    else if (val === 55) $$('.speed-preset-btn')[1]?.classList.add('!bg-pine-800', '!text-white');
-    else if (val <= 35) $$('.speed-preset-btn')[2]?.classList.add('!bg-pine-800', '!text-white');
-  });
-
   $('#ann_photo_url')?.addEventListener('input', e => {
     const val = e.target.value.trim();
-    if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = val ? `<img loading="lazy" src="${esc(val)}" class="w-full h-full object-cover">` : '🖼️';
+    if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = val ? `<img src="${esc(val)}" class="w-full h-full object-cover">` : '🖼️';
     if (val) $('#ann_photo_clear')?.classList.remove('hidden');
     else $('#ann_photo_clear')?.classList.add('hidden');
     syncAnnouncementPreview();
@@ -4546,7 +4356,7 @@ function renderNewsTab() {
       const url = await getAppFileUrl(path, APPB);
       const finalUrl = url || path;
       if ($('#ann_photo_url')) $('#ann_photo_url').value = finalUrl;
-      if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = `<img loading="lazy" src="${finalUrl}" class="w-full h-full object-cover">`;
+      if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = `<img src="${finalUrl}" class="w-full h-full object-cover">`;
       $('#ann_photo_clear')?.classList.remove('hidden');
       toast('تم رفع الصورة بنجاح', 'ok');
       syncAnnouncementPreview();
@@ -4570,7 +4380,6 @@ function renderNewsTab() {
     }
     S.site.ticker_active = $('#nt_active')?.checked ?? true;
     S.site.ticker_title = $('#nt_title')?.value.trim() || 'آخر الأخبار والتنبيهات';
-    S.site.ticker_speed = +($('#nt_speed')?.value) || 55;
     S.site.ticker_text = $('#nt_text')?.value.trim() || '';
 
     S.site.announcement_active = $('#ann_active')?.checked ?? true;
@@ -4728,7 +4537,7 @@ function renderMediaTab() {
             return `
               <div class="admin-gallery-item group relative rounded-2xl overflow-hidden border border-cream-200 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between" data-admin-cat="${esc(cat)}">
                 <div class="aspect-square bg-pine-950 overflow-hidden relative cursor-pointer" onclick="${isVid ? `openVideoModal('${esc(g.url)}', '${esc(g.caption || '')}')` : `openPhotoLightbox('${esc(g.url)}', '${esc(g.caption || '')}', '${esc(g.date || '')}')`}">
-                  <img loading="lazy" src="${esc(thumb)}" alt="${esc(g.caption || '')}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%2316382c\\'/></svg>'">
+                  <img src="${esc(thumb)}" alt="${esc(g.caption || '')}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%2316382c\\'/></svg>'">
 
                   ${isVid ? `
                     <div class="absolute inset-0 bg-black/35 flex items-center justify-center">
@@ -4827,7 +4636,7 @@ window.filterAdminGallery = function(cat) {
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة رفع صور متعددة (دفعة واحدة) مع اختيار وتخصيص الألبوم
    ══════════════════════════════════════════════════════════════════════════════ */
-function openAddBatchPhotosModal() {
+window.openAddBatchPhotosModal = function() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -5020,13 +4829,12 @@ function openAddBatchPhotosModal() {
       toast(`تم بنجاح إضافة ${arNum(successCount)} صورة إلى ألبوم «${category}»`, 'ok');
     }, 400);
   };
-}
-window.openAddBatchPhotosModal = openAddBatchPhotosModal;
+};
 
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة إضافة فيديو أو لقاء مرئي للفعاليات
    ══════════════════════════════════════════════════════════════════════════════ */
-function openAddVideoModal() {
+window.openAddVideoModal = function() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -5141,13 +4949,12 @@ function openAddVideoModal() {
     await saveMediaToDb();
     toast('تمت إضافة الفيديو بنجاح إلى المعرض', 'ok');
   };
-}
-window.openAddVideoModal = openAddVideoModal;
+};
 
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة إضافة صورة فردية أو عبر رابط مباشر مع تحديد الألبوم
    ══════════════════════════════════════════════════════════════════════════════ */
-function openAddPhotoModal() {
+window.openAddPhotoModal = function() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -5229,7 +5036,7 @@ function openAddPhotoModal() {
       const url = await getAppFileUrl(path, APPB);
       currentPhotoUrl = url || path;
       $('#gp_url').value = currentPhotoUrl;
-      $('#gp_preview').innerHTML = `<img loading="lazy" src="${currentPhotoUrl}" class="w-full h-full object-contain">`;
+      $('#gp_preview').innerHTML = `<img src="${currentPhotoUrl}" class="w-full h-full object-contain">`;
       toast('تم رفع الصورة بنجاح', 'ok');
     } catch (err) {
       toast('تعذر رفع الصورة: ' + err.message, 'err');
@@ -5239,7 +5046,7 @@ function openAddPhotoModal() {
   $('#gp_url')?.addEventListener('input', e => {
     currentPhotoUrl = e.target.value.trim();
     if (currentPhotoUrl) {
-      $('#gp_preview').innerHTML = `<img loading="lazy" src="${esc(currentPhotoUrl)}" class="w-full h-full object-contain">`;
+      $('#gp_preview').innerHTML = `<img src="${esc(currentPhotoUrl)}" class="w-full h-full object-contain">`;
     }
   });
 
@@ -5272,11 +5079,10 @@ function openAddPhotoModal() {
     await saveMediaToDb();
     toast('تمت إضافة الصورة بنجاح إلى المعرض', 'ok');
   };
-}
-window.openAddPhotoModal = openAddPhotoModal;
+};
 
 /* حذف عنصر (صورة أو فيديو) من المعرض */
-function deleteGalleryItem(idVal, idx) {
+window.deleteGalleryItem = function(idVal, idx) {
   const item = (S.site.gallery || []).find((g, i) => (g.id ? g.id === idVal : i === idx));
   const title = item ? (item.caption || (item.type === 'video' ? 'الفيديو' : 'الصورة')) : 'هذا العنصر';
 
@@ -5303,14 +5109,12 @@ function deleteGalleryItem(idVal, idx) {
       toast('تم حذف العنصر من المعرض بنجاح', 'ok');
     }
   };
-}
-window.deleteGalleryItem = deleteGalleryItem;
+};
 
 /* دعم التوافق مع الكود القديم */
-function deleteGalleryPhoto(idx) {
-  deleteGalleryItem(`idx_${idx}`, idx);
-}
-window.deleteGalleryPhoto = deleteGalleryPhoto;
+window.deleteGalleryPhoto = function(idx) {
+  window.deleteGalleryItem(`idx_${idx}`, idx);
+};
 
 async function saveMediaToDb() {
   try {
@@ -5371,7 +5175,7 @@ function renderPrizesTab() {
 
               ${p.winner_name ? `
                 <div class="mt-4 pt-3 border-t border-cream-200/80 bg-gold-500/10 rounded-xl p-3 flex items-center gap-3">
-                  ${p.winner_photo ? `<img loading="lazy" src="${esc(p.winner_photo)}" class="w-12 h-12 rounded-full object-cover border border-gold-500 shrink-0">` : '<span class="w-12 h-12 rounded-full bg-gold-500/20 text-gold-600 flex items-center justify-center font-bold text-lg shrink-0">🏆</span>'}
+                  ${p.winner_photo ? `<img src="${esc(p.winner_photo)}" class="w-12 h-12 rounded-full object-cover border border-gold-500 shrink-0">` : '<span class="w-12 h-12 rounded-full bg-gold-500/20 text-gold-600 flex items-center justify-center font-bold text-lg shrink-0">🏆</span>'}
                   <div class="min-w-0 flex-1">
                     <span class="text-[10px] text-gold-600 font-bold block">الفائز بالجائزة:</span>
                     <b class="text-xs text-pine-950 block truncate">${esc(p.winner_name)}</b>
@@ -5411,7 +5215,7 @@ function renderPrizesTab() {
   $('#btnSavePrizes')?.addEventListener('click', savePrizesToDb);
 }
 
-function openPrizeModal(id) {
+window.openPrizeModal = function(id) {
   const isEdit = !!id;
   const p = isEdit ? (S.site.prizes || []).find(x => x.id === id) : {
     id: 'p_' + Date.now(),
@@ -5462,7 +5266,7 @@ function openPrizeModal(id) {
               <label class="label">صورة الفائز أو التكريم</label>
               <div class="flex items-center gap-3">
                 <div id="pz_photo_prev" class="w-12 h-12 rounded-xl bg-cream-100 border border-cream-200 overflow-hidden shrink-0 flex items-center justify-center text-lg">
-                  ${p.winner_photo ? `<img loading="lazy" src="${esc(p.winner_photo)}" class="w-full h-full object-cover">` : '🏆'}
+                  ${p.winner_photo ? `<img src="${esc(p.winner_photo)}" class="w-full h-full object-cover">` : '🏆'}
                 </div>
                 <div class="flex-1 space-y-1">
                   <input type="file" id="pz_photo_file" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-xl file:border-0 file:bg-pine-800 file:text-cream-50 file:font-semibold hover:file:bg-pine-700 cursor-pointer">
@@ -5492,7 +5296,7 @@ function openPrizeModal(id) {
       const path = await uploadApp('winner', compressed);
       const url = await getAppFileUrl(path, APPB);
       $('#pz_photo_url').value = url || path;
-      $('#pz_photo_prev').innerHTML = `<img loading="lazy" src="${url || path}" class="w-full h-full object-cover">`;
+      $('#pz_photo_prev').innerHTML = `<img src="${url || path}" class="w-full h-full object-cover">`;
       toast('تم رفع الصورة بنجاح', 'ok');
     } catch (err) {
       toast('تعذر رفع الصورة: ' + err.message, 'err');
@@ -5501,7 +5305,7 @@ function openPrizeModal(id) {
 
   $('#pz_photo_url')?.addEventListener('input', e => {
     const val = e.target.value.trim();
-    $('#pz_photo_prev').innerHTML = val ? `<img loading="lazy" src="${esc(val)}" class="w-full h-full object-cover">` : '🏆';
+    $('#pz_photo_prev').innerHTML = val ? `<img src="${esc(val)}" class="w-full h-full object-cover">` : '🏆';
   });
 
   $('#btnSubmitPrize').onclick = async () => {
@@ -5535,26 +5339,23 @@ function openPrizeModal(id) {
     renderPrizesTab();
     await savePrizesToDb();
   };
-}
-window.openPrizeModal = openPrizeModal;
+};
 
-async function deletePrize(id) {
+window.deletePrize = async function(id) {
   if (!confirm('هل تريد بالتأكيد حذف هذه الجائزة؟')) return;
   S.site.prizes = (S.site.prizes || []).filter(x => x.id !== id);
   renderPrizesTab();
   await savePrizesToDb();
   toast('تم حذف الجائزة بنجاح', 'ok');
-}
-window.deletePrize = deletePrize;
+};
 
-async function deleteAllPrizes() {
+window.deleteAllPrizes = async function() {
   if (!confirm('هل أنت متأكد تماماً من رغبتك في حذف وتفريغ جميع الجوائز؟ لن تظهر أي جوائز إلا ما تضيفه أنت.')) return;
   S.site.prizes = [];
   renderPrizesTab();
   await savePrizesToDb();
   toast('تم تفريغ وحذف جميع الجوائز بنجاح', 'ok');
-}
-window.deleteAllPrizes = deleteAllPrizes;
+};
 
 async function savePrizesToDb() {
   try {
@@ -5566,7 +5367,7 @@ async function savePrizesToDb() {
   } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
 }
 
-function confirmDeleteReg(id) {
+window.confirmDeleteReg = function(id) {
   const r = (A.regs || []).find(x => x.id === id);
   if (!r) return;
   modal(`
@@ -5592,10 +5393,8 @@ function confirmDeleteReg(id) {
       renderRegsTab();
     } catch (e) { toast('تعذر الحذف: ' + e.message, 'err'); }
   };
-}
-window.confirmDeleteReg = confirmDeleteReg;
-
-function confirmDeleteSelectedRegs() {
+};
+window.confirmDeleteSelectedRegs = function() {
   const ids = Array.from(SELECTED_REGS);
   if (!ids.length) return toast('لم تحدد أي متسابقين لحذفهم', 'err');
 
@@ -5631,8 +5430,7 @@ function confirmDeleteSelectedRegs() {
       btn.innerHTML = 'نعم، حذف الكل المحدد';
     }
   };
-}
-window.confirmDeleteSelectedRegs = confirmDeleteSelectedRegs;
+};
 
 function exportRegsCsv() {
   const rows = filteredRegs();
@@ -5861,7 +5659,8 @@ document.addEventListener('click', async e => {
   if (!btn) return;
 
   if (btn.dataset.tab) {
-    switchTab(btn.dataset.tab);
+    A.tab = btn.dataset.tab;
+    renderDash();
     return;
   }
   if (btn.id === 'logoutBtn') {
@@ -6329,26 +6128,6 @@ document.addEventListener('change', async e => {
   try { await loadPublic(); } catch (e) {}
   applyThemeVars(currentThemeKey());
   route();
-})();
-</script>
-<script>
-// إيقاف animations عند عدم الظهور في الشاشة لتوفير الموارد
-(function() {
-  if (!('IntersectionObserver' in window)) return;
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.target.classList) {
-        if (e.isIntersecting) {
-          e.target.classList.remove('paused');
-        } else {
-          e.target.classList.add('paused');
-        }
-      }
-    });
-  }, { rootMargin: '50px' });
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.ticker-wrapper').forEach(function(el) { io.observe(el); });
-  });
 })();
 </script>
 </body>
