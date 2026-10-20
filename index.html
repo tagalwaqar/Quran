@@ -194,6 +194,12 @@ html, body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+/* لوحة الإدارة على الديسكتوب — الـ aside ثابت والـ body هو الـ scroll */
+@media (min-width: 768px) {
+  body:has(#dashMain) {
+    overflow-y: auto;
+  }
+}
 button, a, input, select, textarea {
   touch-action: manipulation;
 }
@@ -3044,6 +3050,7 @@ function switchTab(tab) {
       }
     });
     main.scrollTop = 0;
+    window.scrollTo(0, 0);
     renderTab();
   } else {
     renderDash();
@@ -3053,8 +3060,8 @@ window.switchTab = switchTab;
 
 function renderDash() {
   app.innerHTML = `
-    <div class="min-h-screen flex flex-col md:flex-row bg-cream-100">
-      <aside class="bg-pine-950 text-cream-50 md:w-64 shrink-0 md:sticky md:top-0 md:h-screen p-4 flex flex-col justify-between border-inline-end border-gold-500/30">
+    <div class="flex flex-col md:flex-row bg-cream-100 min-h-screen">
+      <aside class="bg-pine-950 text-cream-50 md:w-64 shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto p-4 flex flex-col justify-between border-inline-end border-gold-500/30">
         <div>
           <div class="flex items-center gap-2.5 pb-4 mb-4 border-b border-white/10">
             <span class="w-8 h-8 rounded-lg bg-pine-900 border border-gold-500 flex items-center justify-center p-0.5">${MUSHAF_SVG}</span>
@@ -3077,7 +3084,7 @@ function renderDash() {
           <button id="logoutBtn" class="side-link !py-2 text-rose-300">🚪 خروج</button>
         </div>
       </aside>
-      <main id="dashMain" class="flex-1 min-w-0 p-4 md:p-8 overflow-y-auto"></main>
+      <main id="dashMain" class="flex-1 min-w-0 p-4 md:p-8"></main>
     </div>
   `;
   renderTab();
@@ -3275,7 +3282,8 @@ function openDetail(id) {
 
   layer.innerHTML = `
     <div class="overlay" data-close></div>
-    <aside class="drawer">
+    <aside class="drawer">`;
+  document.body.style.overflow = 'hidden';
       <div class="bg-pine-950 text-cream-50 p-5 sticky top-0 z-10 flex items-start justify-between border-b border-gold-500/30">
         <div>
           <span class="text-xs text-gold-400 font-mono font-bold">${esc(r.reg_no)}</span>
