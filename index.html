@@ -246,7 +246,7 @@ header {
   align-items: center;
   flex-shrink: 0;
   white-space: nowrap;
-  animation: ticker-smooth-ltr 28s linear infinite;
+  animation: ticker-smooth-ltr var(--ticker-speed, 55s) linear infinite;
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -501,6 +501,7 @@ const SITE_DEFAULTS = {
   live_active: false,
   ticker_active: true,
   ticker_title: 'آخر الأخبار والتنبيهات',
+  ticker_speed: 55,
   ticker_text: 'مرحباً بكم في منصة المسابقة الكبرى لحفظ القرآن الكريم • باب التسجيل مفتوح لجميع المستويات السبعة • تابعوا مواعيد التصفيات وجداول الاختبارات أولاً بأول',
   announcement_active: true,
   announcement_badge: 'بيان هام وعاجل',
