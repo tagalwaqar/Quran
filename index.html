@@ -3282,8 +3282,7 @@ function openDetail(id) {
 
   layer.innerHTML = `
     <div class="overlay" data-close></div>
-    <aside class="drawer">`;
-  document.body.style.overflow = 'hidden';
+    <aside class="drawer">
       <div class="bg-pine-950 text-cream-50 p-5 sticky top-0 z-10 flex items-start justify-between border-b border-gold-500/30">
         <div>
           <span class="text-xs text-gold-400 font-mono font-bold">${esc(r.reg_no)}</span>
@@ -3444,6 +3443,7 @@ function openDetail(id) {
       </div>
     </aside>
   `;
+  document.body.style.overflow = 'hidden';
 }
 
 function renderExaminersTab() {
