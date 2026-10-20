@@ -533,6 +533,26 @@ const LEVELS_DEFAULT = [
 const S = { site: { ...SITE_DEFAULTS }, levels: [...LEVELS_DEFAULT], config: { registration_open: true, age_ref_date: '2026-10-01' } };
 const A = { tab: 'regs', regs: null, examiners: [], q: '', fLevel: '', fStatus: '' };
 const SELECTED_REGS = new Set();
+window.S = S;
+window.A = A;
+window.SELECTED_REGS = SELECTED_REGS;
+
+function setTickerSpeedPreset(sec) {
+  sec = +sec || 55;
+  if (S.site) S.site.ticker_speed = sec;
+  const input = document.getElementById('nt_speed');
+  const label = document.getElementById('nt_speed_val');
+  if (input) input.value = sec;
+  if (label) label.textContent = sec + ' ثانية';
+  const preview = document.getElementById('nt_preview_bar');
+  if (preview) preview.style.setProperty('--ticker-speed', sec + 's');
+  document.querySelectorAll('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
+  const presetBtns = document.querySelectorAll('.speed-preset-btn');
+  if (sec >= 70 && presetBtns[0]) presetBtns[0].classList.add('!bg-pine-800', '!text-white');
+  else if (sec === 55 && presetBtns[1]) presetBtns[1].classList.add('!bg-pine-800', '!text-white');
+  else if (sec <= 35 && presetBtns[2]) presetBtns[2].classList.add('!bg-pine-800', '!text-white');
+}
+window.setTickerSpeedPreset = setTickerSpeedPreset;
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -623,8 +643,10 @@ function toast(msg, type) {
   const t = document.createElement('div');
   t.className = 'toast ' + (type || '');
   t.innerHTML = '<span>' + esc(msg) + '</span>';
-  $('#toasts').appendChild(t);
-  requestAnimationFrame(() => t.classList.add('show'));
+  const box = $('#toasts') || document.body;
+  box.appendChild(t);
+  const rAF = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
+  rAF(() => t.classList.add('show'));
   setTimeout(() => {
     t.classList.remove('show');
     setTimeout(() => t.remove(), 350);
@@ -2998,6 +3020,26 @@ const navBtn = (tab, icn, label, count) => `
   </button>
 `;
 
+function switchTab(tab) {
+  if (!tab) return;
+  A.tab = tab;
+  const main = document.getElementById('dashMain');
+  if (main) {
+    document.querySelectorAll('aside [data-tab]').forEach(btn => {
+      if (btn.dataset.tab === tab) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    main.scrollTop = 0;
+    renderTab();
+  } else {
+    renderDash();
+  }
+}
+window.switchTab = switchTab;
+
 function renderDash() {
   app.innerHTML = `
     <div class="min-h-screen flex flex-col md:flex-row bg-cream-100">
@@ -3029,6 +3071,7 @@ function renderDash() {
   `;
   renderTab();
 }
+window.renderDash = renderDash;
 
 function renderTab() {
   ({
@@ -3042,6 +3085,7 @@ function renderTab() {
     prizes: renderPrizesTab
   }[A.tab] || renderRegsTab)();
 }
+window.renderTab = renderTab;
 
 const statCard = (n, t, c) => `
   <div class="card p-4 text-center">
@@ -3600,6 +3644,7 @@ function selectTheme(key) {
   }
   toast('تم تفعيل ثيم ' + THEMES[key].name, 'ok');
 }
+window.selectTheme = selectTheme;
 
 function renderSettingsTab() {
   const s = S.site, c = S.config;
@@ -3621,7 +3666,7 @@ function renderSettingsTab() {
           <span class="text-xs text-ink/65">يمكنك كتابة بيانات رسمية مع صور وتفعيل شريط الأخبار العاجلة المتحرك بأعلى المنصة</span>
         </div>
       </div>
-      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" onclick="A.tab='news'; renderDash();">
+      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" data-tab="news" onclick="switchTab('news');">
         📢 فتح شريط الأخبار والبيانات ←
       </button>
     </div>
@@ -3742,7 +3787,12 @@ function renderSettingsTab() {
     </div>
   `;
 
-  $('#saveSettings').addEventListener('click', async () => {
+  $('#saveSettings').addEventListener('click', async function() {
+    const btn = this;
+    const oldText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> جاري الحفظ…';
+
     const site = {
       ...S.site,
       theme: $('#st_theme').value || 'taqwa',
@@ -3778,7 +3828,12 @@ function renderSettingsTab() {
       S.site = site; S.config = config;
       applyThemeVars(site.theme);
       toast('تم حفظ ونشر جميع الإعدادات وهوية المنصة بنجاح', 'ok');
-    } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
+    } catch (e) {
+      toast('تعذر الحفظ: ' + e.message, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldText;
+    }
   });
 }
 
@@ -4683,7 +4738,7 @@ window.filterAdminGallery = function(cat) {
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة رفع صور متعددة (دفعة واحدة) مع اختيار وتخصيص الألبوم
    ══════════════════════════════════════════════════════════════════════════════ */
-window.openAddBatchPhotosModal = function() {
+function openAddBatchPhotosModal() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -4876,12 +4931,13 @@ window.openAddBatchPhotosModal = function() {
       toast(`تم بنجاح إضافة ${arNum(successCount)} صورة إلى ألبوم «${category}»`, 'ok');
     }, 400);
   };
-};
+}
+window.openAddBatchPhotosModal = openAddBatchPhotosModal;
 
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة إضافة فيديو أو لقاء مرئي للفعاليات
    ══════════════════════════════════════════════════════════════════════════════ */
-window.openAddVideoModal = function() {
+function openAddVideoModal() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -4996,12 +5052,13 @@ window.openAddVideoModal = function() {
     await saveMediaToDb();
     toast('تمت إضافة الفيديو بنجاح إلى المعرض', 'ok');
   };
-};
+}
+window.openAddVideoModal = openAddVideoModal;
 
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة إضافة صورة فردية أو عبر رابط مباشر مع تحديد الألبوم
    ══════════════════════════════════════════════════════════════════════════════ */
-window.openAddPhotoModal = function() {
+function openAddPhotoModal() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -5126,10 +5183,11 @@ window.openAddPhotoModal = function() {
     await saveMediaToDb();
     toast('تمت إضافة الصورة بنجاح إلى المعرض', 'ok');
   };
-};
+}
+window.openAddPhotoModal = openAddPhotoModal;
 
 /* حذف عنصر (صورة أو فيديو) من المعرض */
-window.deleteGalleryItem = function(idVal, idx) {
+function deleteGalleryItem(idVal, idx) {
   const item = (S.site.gallery || []).find((g, i) => (g.id ? g.id === idVal : i === idx));
   const title = item ? (item.caption || (item.type === 'video' ? 'الفيديو' : 'الصورة')) : 'هذا العنصر';
 
@@ -5156,12 +5214,14 @@ window.deleteGalleryItem = function(idVal, idx) {
       toast('تم حذف العنصر من المعرض بنجاح', 'ok');
     }
   };
-};
+}
+window.deleteGalleryItem = deleteGalleryItem;
 
 /* دعم التوافق مع الكود القديم */
-window.deleteGalleryPhoto = function(idx) {
-  window.deleteGalleryItem(`idx_${idx}`, idx);
-};
+function deleteGalleryPhoto(idx) {
+  deleteGalleryItem(`idx_${idx}`, idx);
+}
+window.deleteGalleryPhoto = deleteGalleryPhoto;
 
 async function saveMediaToDb() {
   try {
@@ -5262,7 +5322,7 @@ function renderPrizesTab() {
   $('#btnSavePrizes')?.addEventListener('click', savePrizesToDb);
 }
 
-window.openPrizeModal = function(id) {
+function openPrizeModal(id) {
   const isEdit = !!id;
   const p = isEdit ? (S.site.prizes || []).find(x => x.id === id) : {
     id: 'p_' + Date.now(),
@@ -5386,23 +5446,26 @@ window.openPrizeModal = function(id) {
     renderPrizesTab();
     await savePrizesToDb();
   };
-};
+}
+window.openPrizeModal = openPrizeModal;
 
-window.deletePrize = async function(id) {
+async function deletePrize(id) {
   if (!confirm('هل تريد بالتأكيد حذف هذه الجائزة؟')) return;
   S.site.prizes = (S.site.prizes || []).filter(x => x.id !== id);
   renderPrizesTab();
   await savePrizesToDb();
   toast('تم حذف الجائزة بنجاح', 'ok');
-};
+}
+window.deletePrize = deletePrize;
 
-window.deleteAllPrizes = async function() {
+async function deleteAllPrizes() {
   if (!confirm('هل أنت متأكد تماماً من رغبتك في حذف وتفريغ جميع الجوائز؟ لن تظهر أي جوائز إلا ما تضيفه أنت.')) return;
   S.site.prizes = [];
   renderPrizesTab();
   await savePrizesToDb();
   toast('تم تفريغ وحذف جميع الجوائز بنجاح', 'ok');
-};
+}
+window.deleteAllPrizes = deleteAllPrizes;
 
 async function savePrizesToDb() {
   try {
@@ -5414,7 +5477,7 @@ async function savePrizesToDb() {
   } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
 }
 
-window.confirmDeleteReg = function(id) {
+function confirmDeleteReg(id) {
   const r = (A.regs || []).find(x => x.id === id);
   if (!r) return;
   modal(`
@@ -5440,8 +5503,10 @@ window.confirmDeleteReg = function(id) {
       renderRegsTab();
     } catch (e) { toast('تعذر الحذف: ' + e.message, 'err'); }
   };
-};
-window.confirmDeleteSelectedRegs = function() {
+}
+window.confirmDeleteReg = confirmDeleteReg;
+
+function confirmDeleteSelectedRegs() {
   const ids = Array.from(SELECTED_REGS);
   if (!ids.length) return toast('لم تحدد أي متسابقين لحذفهم', 'err');
 
@@ -5477,7 +5542,8 @@ window.confirmDeleteSelectedRegs = function() {
       btn.innerHTML = 'نعم، حذف الكل المحدد';
     }
   };
-};
+}
+window.confirmDeleteSelectedRegs = confirmDeleteSelectedRegs;
 
 function exportRegsCsv() {
   const rows = filteredRegs();
@@ -5706,8 +5772,7 @@ document.addEventListener('click', async e => {
   if (!btn) return;
 
   if (btn.dataset.tab) {
-    A.tab = btn.dataset.tab;
-    renderDash();
+    switchTab(btn.dataset.tab);
     return;
   }
   if (btn.id === 'logoutBtn') {
