@@ -482,7 +482,7 @@ function patBg(c) {
 }
 
 const STATUS = { pending: 'قيد المراجعة', approved: 'مقبول', rejected: 'مرفوض' };
-const VILLAGES = ['كفر يوسف حنس', ' كفر يوسف داود', ' نشرت', 'حصة الغنيمي', 'عواض', ' الخبي', 'الزغبى'];
+const VILLAGES = ['كفر يوسف حنس', 'كفر يوسف داود', 'نشرت', 'حصة الغنيمي', 'عواض', 'الخبي', 'الزغبى'];
 
 const SITE_DEFAULTS = {
   org_name: 'بيت مال المسلمين بكفر يوسف حنس',
@@ -533,6 +533,26 @@ const LEVELS_DEFAULT = [
 const S = { site: { ...SITE_DEFAULTS }, levels: [...LEVELS_DEFAULT], config: { registration_open: true, age_ref_date: '2026-10-01' } };
 const A = { tab: 'regs', regs: null, examiners: [], q: '', fLevel: '', fStatus: '' };
 const SELECTED_REGS = new Set();
+window.S = S;
+window.A = A;
+window.SELECTED_REGS = SELECTED_REGS;
+
+function setTickerSpeedPreset(sec) {
+  sec = +sec || 55;
+  if (S.site) S.site.ticker_speed = sec;
+  const input = document.getElementById('nt_speed');
+  const label = document.getElementById('nt_speed_val');
+  if (input) input.value = sec;
+  if (label) label.textContent = sec + ' ثانية';
+  const preview = document.getElementById('nt_preview_bar');
+  if (preview) preview.style.setProperty('--ticker-speed', sec + 's');
+  document.querySelectorAll('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
+  const presetBtns = document.querySelectorAll('.speed-preset-btn');
+  if (sec >= 70 && presetBtns[0]) presetBtns[0].classList.add('!bg-pine-800', '!text-white');
+  else if (sec === 55 && presetBtns[1]) presetBtns[1].classList.add('!bg-pine-800', '!text-white');
+  else if (sec <= 35 && presetBtns[2]) presetBtns[2].classList.add('!bg-pine-800', '!text-white');
+}
+window.setTickerSpeedPreset = setTickerSpeedPreset;
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -623,8 +643,10 @@ function toast(msg, type) {
   const t = document.createElement('div');
   t.className = 'toast ' + (type || '');
   t.innerHTML = '<span>' + esc(msg) + '</span>';
-  $('#toasts').appendChild(t);
-  requestAnimationFrame(() => t.classList.add('show'));
+  const box = $('#toasts') || document.body;
+  box.appendChild(t);
+  const rAF = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
+  rAF(() => t.classList.add('show'));
   setTimeout(() => {
     t.classList.remove('show');
     setTimeout(() => t.remove(), 350);
@@ -898,7 +920,7 @@ function pubShell(content) {
 
       <!-- شريط الأخبار بتصميم ولون وخط مميز وحركة مستمرة لا نهائية بدون انقطاع -->
       ${(s.ticker_active !== false && s.ticker_text) ? `
-        <div class="news-ticker-bar py-2 px-3 sm:px-4 flex items-center shadow-lg relative overflow-hidden select-none">
+        <div class="news-ticker-bar py-2 px-3 sm:px-4 flex items-center shadow-lg relative overflow-hidden select-none" style="--ticker-speed: ${+(s.ticker_speed) || 55}s">
           <div class="ticker-badge-distinct flex items-center gap-1.5 px-3 py-1 rounded-xl shrink-0 z-20 text-[11px] sm:text-xs shadow-md">
             <span class="inline-block animate-bounce text-xs">⚡</span>
             <span>${esc(s.ticker_title || 'آخر الأخبار')}</span>
@@ -1010,7 +1032,6 @@ function pubShell(content) {
         </div>
       </div>
     </div>
-    </header>
     ${content}
     <footer class="bg-pine-950 text-cream-200/70 text-center py-10 border-t-2 border-gold-500/60">
       <div class="w-12 h-12 mx-auto mb-2">${MUSHAF_SVG}</div>
@@ -1096,6 +1117,18 @@ function levelCard(l, idx, total) {
       </div>
     </div>
   `;
+}
+
+/* تشغيل فيديو القرآن في الصفحة الرئيسية */
+function toggleVideoSound() {
+  const iframe = document.getElementById('heroQuranVideo');
+  if (!iframe) return;
+  let src = iframe.src;
+  if (src.includes('autoplay=0')) {
+    iframe.src = src.replace('autoplay=0', 'autoplay=1');
+  } else if (!src.includes('autoplay=1')) {
+    iframe.src = src + (src.includes('?') ? '&' : '?') + 'autoplay=1';
+  }
 }
 
 function renderHome() {
@@ -2998,6 +3031,26 @@ const navBtn = (tab, icn, label, count) => `
   </button>
 `;
 
+function switchTab(tab) {
+  if (!tab) return;
+  A.tab = tab;
+  const main = document.getElementById('dashMain');
+  if (main) {
+    document.querySelectorAll('aside [data-tab]').forEach(btn => {
+      if (btn.dataset.tab === tab) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    main.scrollTop = 0;
+    renderTab();
+  } else {
+    renderDash();
+  }
+}
+window.switchTab = switchTab;
+
 function renderDash() {
   app.innerHTML = `
     <div class="min-h-screen flex flex-col md:flex-row bg-cream-100">
@@ -3029,6 +3082,7 @@ function renderDash() {
   `;
   renderTab();
 }
+window.renderDash = renderDash;
 
 function renderTab() {
   ({
@@ -3042,6 +3096,7 @@ function renderTab() {
     prizes: renderPrizesTab
   }[A.tab] || renderRegsTab)();
 }
+window.renderTab = renderTab;
 
 const statCard = (n, t, c) => `
   <div class="card p-4 text-center">
@@ -3600,6 +3655,7 @@ function selectTheme(key) {
   }
   toast('تم تفعيل ثيم ' + THEMES[key].name, 'ok');
 }
+window.selectTheme = selectTheme;
 
 function renderSettingsTab() {
   const s = S.site, c = S.config;
@@ -3621,7 +3677,7 @@ function renderSettingsTab() {
           <span class="text-xs text-ink/65">يمكنك كتابة بيانات رسمية مع صور وتفعيل شريط الأخبار العاجلة المتحرك بأعلى المنصة</span>
         </div>
       </div>
-      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" onclick="A.tab='news'; renderDash();">
+      <button type="button" class="btn btn-gold btn-sm !rounded-xl text-xs font-bold shadow-sm" data-tab="news" onclick="switchTab('news');">
         📢 فتح شريط الأخبار والبيانات ←
       </button>
     </div>
@@ -3742,7 +3798,12 @@ function renderSettingsTab() {
     </div>
   `;
 
-  $('#saveSettings').addEventListener('click', async () => {
+  $('#saveSettings').addEventListener('click', async function() {
+    const btn = this;
+    const oldText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> جاري الحفظ…';
+
     const site = {
       ...S.site,
       theme: $('#st_theme').value || 'taqwa',
@@ -3778,7 +3839,12 @@ function renderSettingsTab() {
       S.site = site; S.config = config;
       applyThemeVars(site.theme);
       toast('تم حفظ ونشر جميع الإعدادات وهوية المنصة بنجاح', 'ok');
-    } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
+    } catch (e) {
+      toast('تعذر الحفظ: ' + e.message, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldText;
+    }
   });
 }
 
@@ -4100,21 +4166,43 @@ function renderNewsTab() {
         </label>
       </div>
 
-      <div class="grid md:grid-cols-3 gap-4 text-xs">
-        <div>
+      <div class="grid md:grid-cols-12 gap-4 text-xs">
+        <div class="md:col-span-4">
           <label class="label">عنوان أو تصنيف الشريط</label>
           <input id="nt_title" class="input" placeholder="مثال: آخر الأخبار والتنبيهات" value="${esc(s.ticker_title || 'آخر الأخبار والتنبيهات')}">
         </div>
-        <div class="md:col-span-2">
+        <div class="md:col-span-8">
           <label class="label">نصوص وأخبار الشريط (افصل بين الأخبار بنقطة • أو رمز |)</label>
           <textarea id="nt_text" rows="2" class="input" placeholder="اكتب الأخبار هنا، مثال: فتح باب التسجيل لمسابقة القرآن الكريم • آخر موعد لاستلام الطلبات الجمعة القادمة • ...">${esc(s.ticker_text || '')}</textarea>
+        </div>
+        
+        <!-- التحكم في سرعة حركة شريط الأخبار -->
+        <div class="md:col-span-12 bg-cream-100/70 p-3.5 rounded-2xl border border-cream-200 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⏱️</span>
+            <div>
+              <b class="text-xs text-pine-900 block font-bold">التحكم في سرعة حركة شريط الأخبار:</b>
+              <span class="text-[11px] text-ink/60">يمكنك اختيار سرعة جاهزة أو تحريك المؤشر لتحديد السرعة المناسبة تماماً</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex gap-1.5" id="speedPresetBtns">
+              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) >= 70 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(75)">🐢 بطيئة وهادئة (75 ث)</button>
+              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) === 55 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(55)">🚶 سرعة وسط معتدلة (55 ث)</button>
+              <button type="button" class="btn btn-outline btn-sm !rounded-xl !text-xs !py-1 !px-2.5 speed-preset-btn ${(+s.ticker_speed || 55) <= 35 ? '!bg-pine-800 !text-white' : ''}" onclick="setTickerSpeedPreset(35)">⚡ سريعة (35 ث)</button>
+            </div>
+            <div class="flex items-center gap-2 bg-white px-3 py-1 rounded-xl border border-cream-200">
+              <input type="range" id="nt_speed" min="20" max="100" step="5" value="${+(s.ticker_speed) || 55}" class="w-28 accent-pine-800 cursor-pointer">
+              <span id="nt_speed_val" class="text-xs font-bold font-mono text-pine-900 min-w-[50px] text-center">${+(s.ticker_speed) || 55} ثانية</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Live Preview for News Ticker -->
       <div class="mt-3 p-3 bg-cream-50 rounded-2xl border border-cream-200">
-        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار:</span>
-        <div class="news-ticker-bar py-2 px-3 flex items-center rounded-xl shadow-lg overflow-hidden select-none">
+        <span class="text-[11px] font-bold text-ink/50 block mb-2">معاينة مباشرة لشريط الأخبار بالسرعة المحددة:</span>
+        <div id="nt_preview_bar" class="news-ticker-bar py-2 px-3 flex items-center rounded-xl shadow-lg overflow-hidden select-none" style="--ticker-speed: ${+(s.ticker_speed) || 55}s">
           <div class="ticker-badge-distinct flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg shrink-0 text-[10px]">
             <span>⚡</span>
             <span id="nt_prev_title">${esc(s.ticker_title || 'آخر الأخبار')}</span>
@@ -4338,6 +4426,30 @@ function renderNewsTab() {
     $('#' + id)?.addEventListener('input', syncTickerPreview);
   });
 
+  window.setTickerSpeedPreset = function(sec) {
+    const input = $('#nt_speed');
+    const label = $('#nt_speed_val');
+    if (input) input.value = sec;
+    if (label) label.textContent = sec + ' ثانية';
+    const preview = $('#nt_preview_bar');
+    if (preview) preview.style.setProperty('--ticker-speed', sec + 's');
+    $$('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
+    if (sec >= 70) $$('.speed-preset-btn')[0]?.classList.add('!bg-pine-800', '!text-white');
+    else if (sec === 55) $$('.speed-preset-btn')[1]?.classList.add('!bg-pine-800', '!text-white');
+    else if (sec <= 35) $$('.speed-preset-btn')[2]?.classList.add('!bg-pine-800', '!text-white');
+  };
+
+  $('#nt_speed')?.addEventListener('input', e => {
+    const val = +e.target.value;
+    if ($('#nt_speed_val')) $('#nt_speed_val').textContent = val + ' ثانية';
+    const preview = $('#nt_preview_bar');
+    if (preview) preview.style.setProperty('--ticker-speed', val + 's');
+    $$('.speed-preset-btn').forEach(b => b.classList.remove('!bg-pine-800', '!text-white'));
+    if (val >= 70) $$('.speed-preset-btn')[0]?.classList.add('!bg-pine-800', '!text-white');
+    else if (val === 55) $$('.speed-preset-btn')[1]?.classList.add('!bg-pine-800', '!text-white');
+    else if (val <= 35) $$('.speed-preset-btn')[2]?.classList.add('!bg-pine-800', '!text-white');
+  });
+
   $('#ann_photo_url')?.addEventListener('input', e => {
     const val = e.target.value.trim();
     if ($('#ann_photo_prev')) $('#ann_photo_prev').innerHTML = val ? `<img src="${esc(val)}" class="w-full h-full object-cover">` : '🖼️';
@@ -4380,6 +4492,7 @@ function renderNewsTab() {
     }
     S.site.ticker_active = $('#nt_active')?.checked ?? true;
     S.site.ticker_title = $('#nt_title')?.value.trim() || 'آخر الأخبار والتنبيهات';
+    S.site.ticker_speed = +($('#nt_speed')?.value) || 55;
     S.site.ticker_text = $('#nt_text')?.value.trim() || '';
 
     S.site.announcement_active = $('#ann_active')?.checked ?? true;
@@ -4636,7 +4749,7 @@ window.filterAdminGallery = function(cat) {
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة رفع صور متعددة (دفعة واحدة) مع اختيار وتخصيص الألبوم
    ══════════════════════════════════════════════════════════════════════════════ */
-window.openAddBatchPhotosModal = function() {
+function openAddBatchPhotosModal() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -4829,12 +4942,13 @@ window.openAddBatchPhotosModal = function() {
       toast(`تم بنجاح إضافة ${arNum(successCount)} صورة إلى ألبوم «${category}»`, 'ok');
     }, 400);
   };
-};
+}
+window.openAddBatchPhotosModal = openAddBatchPhotosModal;
 
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة إضافة فيديو أو لقاء مرئي للفعاليات
    ══════════════════════════════════════════════════════════════════════════════ */
-window.openAddVideoModal = function() {
+function openAddVideoModal() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -4949,12 +5063,13 @@ window.openAddVideoModal = function() {
     await saveMediaToDb();
     toast('تمت إضافة الفيديو بنجاح إلى المعرض', 'ok');
   };
-};
+}
+window.openAddVideoModal = openAddVideoModal;
 
 /* ══════════════════════════════════════════════════════════════════════════════
    نافذة إضافة صورة فردية أو عبر رابط مباشر مع تحديد الألبوم
    ══════════════════════════════════════════════════════════════════════════════ */
-window.openAddPhotoModal = function() {
+function openAddPhotoModal() {
   const existingCats = getGalleryCategories();
 
   modal(`
@@ -5079,10 +5194,11 @@ window.openAddPhotoModal = function() {
     await saveMediaToDb();
     toast('تمت إضافة الصورة بنجاح إلى المعرض', 'ok');
   };
-};
+}
+window.openAddPhotoModal = openAddPhotoModal;
 
 /* حذف عنصر (صورة أو فيديو) من المعرض */
-window.deleteGalleryItem = function(idVal, idx) {
+function deleteGalleryItem(idVal, idx) {
   const item = (S.site.gallery || []).find((g, i) => (g.id ? g.id === idVal : i === idx));
   const title = item ? (item.caption || (item.type === 'video' ? 'الفيديو' : 'الصورة')) : 'هذا العنصر';
 
@@ -5109,12 +5225,14 @@ window.deleteGalleryItem = function(idVal, idx) {
       toast('تم حذف العنصر من المعرض بنجاح', 'ok');
     }
   };
-};
+}
+window.deleteGalleryItem = deleteGalleryItem;
 
 /* دعم التوافق مع الكود القديم */
-window.deleteGalleryPhoto = function(idx) {
-  window.deleteGalleryItem(`idx_${idx}`, idx);
-};
+function deleteGalleryPhoto(idx) {
+  deleteGalleryItem(`idx_${idx}`, idx);
+}
+window.deleteGalleryPhoto = deleteGalleryPhoto;
 
 async function saveMediaToDb() {
   try {
@@ -5215,7 +5333,7 @@ function renderPrizesTab() {
   $('#btnSavePrizes')?.addEventListener('click', savePrizesToDb);
 }
 
-window.openPrizeModal = function(id) {
+function openPrizeModal(id) {
   const isEdit = !!id;
   const p = isEdit ? (S.site.prizes || []).find(x => x.id === id) : {
     id: 'p_' + Date.now(),
@@ -5339,23 +5457,26 @@ window.openPrizeModal = function(id) {
     renderPrizesTab();
     await savePrizesToDb();
   };
-};
+}
+window.openPrizeModal = openPrizeModal;
 
-window.deletePrize = async function(id) {
+async function deletePrize(id) {
   if (!confirm('هل تريد بالتأكيد حذف هذه الجائزة؟')) return;
   S.site.prizes = (S.site.prizes || []).filter(x => x.id !== id);
   renderPrizesTab();
   await savePrizesToDb();
   toast('تم حذف الجائزة بنجاح', 'ok');
-};
+}
+window.deletePrize = deletePrize;
 
-window.deleteAllPrizes = async function() {
+async function deleteAllPrizes() {
   if (!confirm('هل أنت متأكد تماماً من رغبتك في حذف وتفريغ جميع الجوائز؟ لن تظهر أي جوائز إلا ما تضيفه أنت.')) return;
   S.site.prizes = [];
   renderPrizesTab();
   await savePrizesToDb();
   toast('تم تفريغ وحذف جميع الجوائز بنجاح', 'ok');
-};
+}
+window.deleteAllPrizes = deleteAllPrizes;
 
 async function savePrizesToDb() {
   try {
@@ -5367,7 +5488,7 @@ async function savePrizesToDb() {
   } catch (e) { toast('تعذر الحفظ: ' + e.message, 'err'); }
 }
 
-window.confirmDeleteReg = function(id) {
+function confirmDeleteReg(id) {
   const r = (A.regs || []).find(x => x.id === id);
   if (!r) return;
   modal(`
@@ -5393,8 +5514,10 @@ window.confirmDeleteReg = function(id) {
       renderRegsTab();
     } catch (e) { toast('تعذر الحذف: ' + e.message, 'err'); }
   };
-};
-window.confirmDeleteSelectedRegs = function() {
+}
+window.confirmDeleteReg = confirmDeleteReg;
+
+function confirmDeleteSelectedRegs() {
   const ids = Array.from(SELECTED_REGS);
   if (!ids.length) return toast('لم تحدد أي متسابقين لحذفهم', 'err');
 
@@ -5430,7 +5553,8 @@ window.confirmDeleteSelectedRegs = function() {
       btn.innerHTML = 'نعم، حذف الكل المحدد';
     }
   };
-};
+}
+window.confirmDeleteSelectedRegs = confirmDeleteSelectedRegs;
 
 function exportRegsCsv() {
   const rows = filteredRegs();
@@ -5659,8 +5783,7 @@ document.addEventListener('click', async e => {
   if (!btn) return;
 
   if (btn.dataset.tab) {
-    A.tab = btn.dataset.tab;
-    renderDash();
+    switchTab(btn.dataset.tab);
     return;
   }
   if (btn.id === 'logoutBtn') {
