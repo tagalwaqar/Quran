@@ -532,15 +532,17 @@ const SUPABASE_ANON_KEY = 'sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const APPB = 'applications';
-const VILLAGES = ['كفر يوسف حنس']
-  ;
-// الشروط الافتراضية الأنيقة في حال لم تكن مسجلة مسبقاً
+const DEFAULT_VILLAGE = 'كفر يوسف حنس';
+const VILLAGES = ['كفر يوسف حنس'];
+const LEVELS = [];
+
+// الشروط الافتراضية الأنيقة (مقصورة على قرية كفر يوسف حنس ودون اشتراط مستويات)
 const DEFAULT_RULES = [
-  "أن يكون المترشح حسن السيرة والسلوك ومشهوداً له بحسن الخلق والمواظبة.",
-  "الالتزام بالفئة العمرية المحددة لكل مستوى من مستويات المسابقة المعتمدة.",
-  "أن يكون المتسابق من أبناء القرى المحددة في نطاق المسابقة أو تابعاً لمكاتبها.",
+  "أن يكون المتسابق من أبناء قرية كفر يوسف حنس ومقيماً بها.",
+  "أن يكون المترشح حسن السيرة والسلوك ومشهوداً له بالأخلاق الرفيعة والمواظبة.",
+  "المسابقة عامة ومفتوحة لجميع الحفظة دون التقيد بمستوى محدد أو سن معين.",
   "إرفاق الرقم القومي الصحيح وصورة شخصية واضحة للمتسابق لإتمام طلب الترشح.",
-  "اجتياز الاختبارات التحريرية والشفوية المحددة من لجنة التحكيم الموقرة.",
+  "اجتياز التقييم والاختبارات المقررة من قِبل لجنة التحكيم الموقرة.",
   "الالتزام التام بكافة القرارات الصادرة عن إدارة المسابقة ولجنة الفرز والتحكيم."
 ];
 
@@ -978,15 +980,13 @@ function renderRegistrationPhase() {
     `;
   }
 
-  const lvOpts = LEVELS.map(l => `<option value="${l.id}">${esc(l.name)} — ${esc(l.desc)} (حتى ${arNum(l.max_age)} عامًا)</option>`).join('');
-
   return `
     <section class="max-w-3xl mx-auto px-4 py-8">
       <div class="card-elevation overflow-hidden border-t-4 border-t-goldTheme-500">
         <div class="bg-royal-dark text-sandTheme-50 px-6 py-5 flex items-center justify-between">
           <div>
             <h2 class="font-amiri text-2xl font-bold text-goldTheme-400">استمارة الترشح لمسابقة الطالب المثالي</h2>
-            <p class="text-xs text-sandTheme-200/80 mt-1 font-tajawal">يرجى تحري الدقة في ملء كافة البيانات المطلوبة وفقاً للشروط</p>
+            <p class="text-xs text-sandTheme-200/80 mt-1 font-tajawal">مخصصة لأبناء قرية كفر يوسف حنس — يرجى ملء البيانات بدقة</p>
           </div>
           <span class="text-2xl">📝</span>
         </div>
@@ -1014,14 +1014,10 @@ function renderRegistrationPhase() {
                 <input id="birth_date" type="date" class="form-control" max="${todayISO()}">
                 <p class="err hidden text-xs text-rose-600 mt-1 font-tajawal"></p>
               </div>
-              <div class="field" data-f="level_id">
-                <label class="form-label">المستوى المتقدم له <span class="text-rose-600">*</span></label>
-                <select id="level_id" class="form-control"><option value="">اختر المستوى المقترح…</option>${lvOpts}</select>
-                <p class="err hidden text-xs text-rose-600 mt-1 font-tajawal"></p>
-              </div>
-              <div class="field" data-f="village">
-                <label class="form-label">القرية أو المركز <span class="text-rose-600">*</span></label>
-                <select id="village" class="form-control"><option value="">اختر القرية…</option>${VILLAGES.map(v => `<option>${v}</option>`).join('')}</select>
+              <div class="field sm:col-span-2" data-f="village">
+                <label class="form-label">القرية <span class="text-rose-600">*</span></label>
+                <input id="village" class="form-control !bg-sandTheme-100 font-bold text-emeraldTheme-900" value="كفر يوسف حنس" readonly>
+                <p class="text-[11px] text-emeraldTheme-700 mt-1 font-tajawal">✓ المسابقة مقصورة حصرياً على أبناء قرية كفر يوسف حنس</p>
                 <p class="err hidden text-xs text-rose-600 mt-1 font-tajawal"></p>
               </div>
             </div>
@@ -1142,8 +1138,6 @@ function wireRegForm() {
     if (!v('full_name') || v('full_name').split(/\s+/).length < 3) errs.full_name = 'يرجى كتابة الاسم ثلاثياً أو رباعياً';
     if (!v('national_id') || !/^[23]\d{13}$/.test(v('national_id'))) errs.national_id = 'الرقم القومي يجب أن يتكون من 14 رقم صحيح';
     if (!v('birth_date')) errs.birth_date = 'تاريخ الميلاد مطلوب';
-    if (!v('level_id')) errs.level_id = 'يرجى اختيار المستوى';
-    if (!v('village')) errs.village = 'يرجى تحديد القرية';
     if (!v('guardian_name')) errs.guardian_name = 'اسم ولي الأمر مطلوب';
     if (!/^01[0125]\d{8}$/.test(v('guardian_phone'))) errs.guardian_phone = 'رقم الهاتف يجب أن يكون مصرياً صحيحاً (11 رقم)';
     if (!v('memorized')) errs.memorized = 'مقدار الحفظ مطلوب';
@@ -1172,7 +1166,6 @@ function wireRegForm() {
     try {
       const bd = new Date(v('birth_date') + 'T00:00:00');
       const age = new Date().getFullYear() - bd.getFullYear();
-      const lv = LEVELS.find(l => l.id === +v('level_id'));
 
       let photoPath = null;
       if (photoBlob) photoPath = await uploadPhoto(photoBlob);
@@ -1182,9 +1175,9 @@ function wireRegForm() {
         national_id: v('national_id'),
         birth_date: v('birth_date'),
         age: age,
-        level_id: +v('level_id'),
-        level_name: lv ? lv.name : '',
-        village: v('village'),
+        level_id: null,
+        level_name: '',
+        village: 'كفر يوسف حنس',
         guardian_name: v('guardian_name'),
         guardian_phone: v('guardian_phone'),
         memorized: v('memorized'),
@@ -1263,11 +1256,10 @@ function renderVotingPhase() {
           }
         </div>
         <h3 class="font-amiri text-xl font-bold text-emeraldTheme-950 mt-4 leading-tight">${esc(c.full_name)}</h3>
-        ${c.level_name ? `<span class="tag-badge tag-badge-gold mt-2 text-xs">${esc(c.level_name)}</span>` : ''}
         <p class="text-xs text-sandTheme-800/80 mt-2 min-h-[2.5rem] line-clamp-2 font-tajawal">${esc(c.bio || 'مرشح متميز في مسابقة الطالب المثالي')}</p>
         
         <div class="flex flex-wrap justify-center gap-1.5 mt-3 text-[11px] text-emeraldTheme-900 font-medium font-tajawal">
-          ${c.village ? `<span class="bg-sandTheme-100 px-2.5 py-1 rounded-md">📍 ${esc(c.village)}</span>` : ''}
+          <span class="bg-sandTheme-100 px-2.5 py-1 rounded-md">📍 كفر يوسف حنس</span>
           ${c.age != null ? `<span class="bg-sandTheme-100 px-2.5 py-1 rounded-md">🎯 ${arNum(c.age)} سنة</span>` : ''}
           ${c.memorized ? `<span class="bg-sandTheme-100 px-2.5 py-1 rounded-md">📖 ${esc(c.memorized)}</span>` : ''}
         </div>
@@ -1423,7 +1415,7 @@ function renderResultsPhase() {
                 </div>
                 <div>
                   <h4 class="font-amiri text-lg font-bold text-emeraldTheme-950">${esc(c.full_name)}</h4>
-                  <p class="text-xs text-sandTheme-800/70 font-tajawal">${esc(c.level_name || '')} • ${esc(c.village || '')}</p>
+                  <p class="text-xs text-sandTheme-800/70 font-tajawal">قرية كفر يوسف حنس ${c.memorized ? '• ' + esc(c.memorized) : ''}</p>
                 </div>
               </div>
               <div class="text-left font-cairo">
@@ -1652,8 +1644,7 @@ async function exportApplicantsToExcel() {
         'الرقم القومي': app.national_id ? String(app.national_id) : '',
         'تاريخ الميلاد': app.birth_date ? String(app.birth_date).slice(0, 10) : '',
         'السن (بالسنوات)': app.age != null ? app.age : '',
-        'المستوى': app.level_name || (LEVELS.find(l => l.id === app.level_id)?.name) || '',
-        'القرية': app.village || '',
+        'القرية': app.village || 'كفر يوسف حنس',
         'اسم ولي الأمر': app.guardian_name || '',
         'هاتف ولي الأمر': app.guardian_phone ? String(app.guardian_phone) : '',
         'مقدار الحفظ': app.memorized || '',
@@ -1678,7 +1669,6 @@ async function exportApplicantsToExcel() {
         { wch: 18 },  // الرقم القومي
         { wch: 14 },  // تاريخ الميلاد
         { wch: 14 },  // السن
-        { wch: 20 },  // المستوى
         { wch: 16 },  // القرية
         { wch: 24 },  // اسم ولي الأمر
         { wch: 16 },  // هاتف ولي الأمر
@@ -1839,7 +1829,7 @@ async function loadAllApps() {
                 <span class="tag-badge ${isAppr ? 'tag-badge-green' : 'tag-badge-gold'} text-[10px]">${isAppr ? 'معتمد' : 'بانتظار الاعتماد'}</span>
               </div>
               <p class="text-xs text-sandTheme-800/70 font-tajawal mt-1">
-                ${esc(a.level_name || '')} • ${esc(a.village || '')} • هاتف: <span dir="ltr" class="font-mono">${esc(a.guardian_phone || '')}</span>
+                قرية كفر يوسف حنس • الحفظ: ${esc(a.memorized || 'غير محدد')} • هاتف: <span dir="ltr" class="font-mono">${esc(a.guardian_phone || '')}</span>
               </p>
               ${a.bio ? `<p class="text-xs text-sandTheme-800/90 mt-1 line-clamp-1 font-tajawal">${esc(a.bio)}</p>` : ''}
             </div>
