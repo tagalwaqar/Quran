@@ -488,8 +488,8 @@ const I18N = {
         nearCareSalesSub: 'إجمالي مبيعات NearCare',
         salesPerHour: 'المبيعات / ساعة',
         salesPerHourSub: 'إنتاجية الساعة الفعلية',
-        salesPerDay: 'المبيعات / يوم',
-        salesPerDaySub: 'متوسط المبيعات اليومية',
+        salesPerDay: 'متوسط المبيعات اليومية',
+        salesPerDaySub: 'مجموع كل أنواع المبيعات ÷ أيام العمل',
         daysWorked: 'أيام العمل',
         daysWorkedSub: 'أيام الدوام الفعلية',
         hoursWorked: 'ساعات العمل',
@@ -568,8 +568,8 @@ const I18N = {
         nearCareSalesSub: 'Total NearCare Sales',
         salesPerHour: 'Sales / Hour',
         salesPerHourSub: 'Hourly Productivity',
-        salesPerDay: 'Sales / Day',
-        salesPerDaySub: 'Daily Average',
+        salesPerDay: 'Daily Avg Sales',
+        salesPerDaySub: 'All Sales Types / Active Days',
         daysWorked: 'Days Worked',
         daysWorkedSub: 'Active Days',
         hoursWorked: 'Hours Worked',
@@ -963,6 +963,7 @@ function detectSalesType(r, isNearCare) {
 function processRowsToSummary(rows) {
     let totalSales = 0, totalQty = 0;
     const invoices = new Set();
+    const allActiveDates = new Set();
     const pharmMap = {};
     const monthlyMap = {};
     const invoiceTypeMap = {};
@@ -1032,6 +1033,7 @@ function processRowsToSummary(rows) {
             }
         }
 
+        if (dateStr) allActiveDates.add(dateStr);
         if (!monthlyMap[mName]) monthlyMap[mName] = { MonthStr: mName, NetSales: 0, Invoices: new Set(), Days: new Set(), CiSales: 0, CiQuantity: 0, CiInvoices: new Set() };
         monthlyMap[mName].NetSales += net;
         if (inv) monthlyMap[mName].Invoices.add(inv);
@@ -1209,11 +1211,15 @@ function processRowsToSummary(rows) {
         CiQuantity: monthlyMap[m].CiQuantity
     }));
 
+    const branchDays = allActiveDates.size > 0 ? allActiveDates.size : 1;
+    const branchSalesPerDay = totalSales / branchDays;
+
     return {
         totalNetSales: totalSales,
         totalInvoices: invoices.size,
         totalQuantity: totalQty,
-        totalActiveDays: Object.keys(monthlyMap).reduce((acc, m) => acc + monthlyMap[m].Days.size, 0),
+        totalActiveDays: allActiveDates.size,
+        branchSalesPerDay: branchSalesPerDay,
         branchNearCareInvoices: branchNearCareInvoices.size,
         branchNearCareSales: branchNearCareSales,
         branchAPT: totalCiInvoices.size > 0 ? totalCiSales / totalCiInvoices.size : (invoices.size > 0 ? totalSales / invoices.size : 0),
@@ -1382,7 +1388,7 @@ function renderKPIs(d) {
         { label: t.totalSales, value: fmtSAR(d.totalNetSales), sub: t.netSalesSub, cls: 'kpi-accent', icon: '💰' },
         { label: t.nearCareInvoices, value: fmtNumber(d.branchNearCareInvoices) + ' ' + (currentLang === 'ar' ? 'فاتورة' : 'invs'), sub: fmtSAR(d.branchNearCareSales), cls: 'kpi-green', icon: '🩺' },
         { label: t.salesPerHour, value: topHourly ? fmtSAR(topHourly.activeSalesPerHour) : '--', sub: (topHourly ? topHourly.SalesName.split(' ')[0] : '') + ' (' + t.topRank + ')', cls: 'kpi-cyan', icon: '⚡' },
-        { label: t.salesPerDay, value: topHourly ? fmtSAR(topHourly.activeSalesPerDay) : '--', sub: t.salesPerDaySub, cls: 'kpi-blue', icon: '📅' },
+        { label: t.salesPerDay, value: fmtSAR(d.branchSalesPerDay || 0), sub: t.salesPerDaySub + ` (${fmtNumber(d.totalActiveDays)} ` + (currentLang === 'ar' ? 'يوم' : 'days') + `)`, cls: 'kpi-blue', icon: '📅' },
         { label: t.apt, value: fmtSAR(d.branchAPT), sub: t.aptSub, cls: 'kpi-purple', icon: '🎯' },
         { label: t.avgItems, value: (d.branchBSU || 2.4).toFixed(2), sub: t.avgItemsSub, cls: 'kpi-amber', icon: '🛒' },
         { label: t.invoices, value: fmtNumber(d.totalInvoices), sub: t.invoicesSub, cls: 'kpi-pink', icon: '🧾' },
