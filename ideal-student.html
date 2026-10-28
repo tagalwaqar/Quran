@@ -536,6 +536,9 @@ const DEFAULT_VILLAGE = 'كفر يوسف حنس';
 const VILLAGES = ['كفر يوسف حنس'];
 const LEVELS = [];
 
+// الشعار الرسمي المعتمد للمسابقة الكبرى لحفظ القرآن الكريم
+const MUSHAF_SVG = `<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="60" cy="60" r="57" fill="#0F3D2C" stroke="#C9A227" stroke-width="2.5"/><circle cx="60" cy="60" r="52" fill="none" stroke="#C9A227" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/><g transform="translate(51.4 6.9) scale(0.72)"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#E0C468"/></g><path d="M69 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#E0C468"/><g fill="#C9A227"><line x1="38" y1="15" x2="38" y2="23.5"/><rect x="35" y="24" width="6" height="8" rx="2"/><rect x="37" y="26.5" width="2" height="4" rx="1" fill="#0F3D2C"/><circle cx="38" cy="33.5" r="1"/><line x1="82" y1="15" x2="82" y2="23.5"/><rect x="79" y="24" width="6" height="8" rx="2"/><rect x="81" y="26.5" width="2" height="4" rx="1" fill="#0F3D2C"/><circle cx="82" cy="33.5" r="1"/></g><g fill="#C9A227"><path d="M60 30C49 40 47.5 48 47.5 54h25C72.5 48 71 40 60 30z"/><rect x="45.5" y="54" width="29" height="3" rx="1"/><rect x="52" y="57" width="16" height="18" rx="1"/><rect x="35.5" y="50" width="3.5" height="27" rx="1"/><rect x="34.75" y="57" width="5" height="2.5" rx="1"/><circle cx="37.25" cy="48" r="2.6"/><path d="M35.5 46.5h3.5l-1.75-4z"/><rect x="81" y="50" width="3.5" height="27" rx="1"/><rect x="80.25" y="57" width="5" height="2.5" rx="1"/><circle cx="82.75" cy="48" r="2.6"/><path d="M81 46.5h3.5l-1.75-4z"/></g><path d="M57 75v-7q3-5 6 0v7z" fill="#0F3D2C"/><rect x="53.5" y="61" width="2" height="4" rx="1" fill="#0F3D2C"/><rect x="64.5" y="61" width="2" height="4" rx="1" fill="#0F3D2C"/><path d="M32 86c8-4.5 19-4.5 28 0 9-4.5 20-4.5 28 0v7c-8-4.5-19-4.5-28 0-9-4.5-20-4.5-28 0z" fill="#E0C468"/><path d="M60 86v7" stroke="#0F3D2C" stroke-width="1.3"/><g fill="#C9A227"><rect x="58.2" y="99.2" width="3.6" height="3.6" transform="rotate(45 60 101)"/><rect x="48" y="99.9" width="2.2" height="2.2" transform="rotate(45 49.1 101)"/><rect x="69.8" y="99.9" width="2.2" height="2.2" transform="rotate(45 70.9 101)"/><line x1="31" y1="101" x2="45" y2="101"/><line x1="75" y1="101" x2="89" y2="101"/></g></svg>`;
+
 // الشروط الافتراضية الأنيقة (مقصورة على قرية كفر يوسف حنس ودون اشتراط مستويات)
 const DEFAULT_RULES = [
   "أن يكون المتسابق من أبناء قرية كفر يوسف حنس ومقيماً بها.",
@@ -813,19 +816,27 @@ function header() {
   return `
     <header class="bg-royal-dark text-sandTheme-50 sticky top-0 z-40 shadow-xl border-b border-goldTheme-500/30">
       <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between gap-4">
-        <a href="#/" class="flex items-center gap-3 group">
-          <div class="w-12 h-12 rounded-2xl bg-gold-metallic flex items-center justify-center text-2xl shadow-lg border border-goldTheme-200 group-hover:scale-105 transition-transform">
+        <a href="#/" class="flex items-center gap-2.5 sm:gap-3 group">
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gold-metallic flex items-center justify-center text-xl sm:text-2xl shadow-lg border border-goldTheme-200 group-hover:scale-105 transition-transform shrink-0">
             🎓
           </div>
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shadow-md border-2 border-goldTheme-400/80 group-hover:scale-105 transition-transform shrink-0 bg-emeraldTheme-950 p-0.5" title="شعار المسابقة الكبرى لحفظ القرآن الكريم">
+            ${MUSHAF_SVG}
+          </div>
           <div>
-            <h1 class="font-amiri text-lg sm:text-xl text-goldTheme-300 font-bold leading-tight">مسابقة الطالب المثالي</h1>
-            <p class="text-[11px] text-sandTheme-200/80 font-tajawal">البوابة الإلكترونية الموحدة للترشح والتصويت</p>
+            <h1 class="font-amiri text-base sm:text-xl text-goldTheme-300 font-bold leading-tight">مسابقة الطالب المثالي</h1>
+            <p class="text-[10px] sm:text-[11px] text-sandTheme-200/80 font-tajawal hidden xs:block">برعاية المسابقة الكبرى لحفظ القرآن الكريم — بيت مال المسلمين</p>
           </div>
         </a>
-        <nav class="flex items-center gap-2 sm:gap-3">
-          <a href="#/" class="btn-action btn-outline-light !py-2 !px-3 sm:!px-4 !text-xs sm:!text-sm rounded-xl">الرئيسية</a>
-          <a href="#rules-section" class="btn-action btn-outline-light !py-2 !px-3 sm:!px-4 !text-xs sm:!text-sm rounded-xl">الشروط والأحكام</a>
-          <a href="#/admin" class="btn-action btn-gold-royal !py-2 !px-3 sm:!px-4 !text-xs sm:!text-sm rounded-xl">لوحة الإدارة ⚙️</a>
+        <nav class="flex items-center gap-1.5 sm:gap-2.5">
+          <a href="#/" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl">الرئيسية</a>
+          <a href="#rules-section" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl hidden md:inline-flex">الشروط</a>
+          <!-- أيقونة ورابط المسابقة الكبرى مع الشعار -->
+          <a href="competition.html" class="btn-action !bg-emeraldTheme-900 !text-goldTheme-300 border border-goldTheme-400/60 hover:!bg-emeraldTheme-800 !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl flex items-center gap-1.5 shadow-md transition font-bold" title="الانتقال إلى المسابقة الكبرى لحفظ القرآن الكريم">
+            <span class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 inline-block">${MUSHAF_SVG}</span>
+            <span>المسابقة الكبرى</span>
+          </a>
+          <a href="#/admin" class="btn-action btn-gold-royal !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl font-bold">الإدارة ⚙️</a>
         </nav>
       </div>
       <div class="gold-divider-line"></div>
@@ -842,10 +853,19 @@ function footer() {
   return `
     <footer class="bg-royal-dark text-sandTheme-200 text-center py-10 border-t-2 border-goldTheme-500/50 mt-16 relative overflow-hidden">
       <div class="max-w-4xl mx-auto px-4 relative z-10 space-y-3">
+        <div class="w-16 h-16 mx-auto rounded-full overflow-hidden border-2 border-goldTheme-400 shadow-glow-gold bg-emeraldTheme-950 p-1 mb-2">
+          ${MUSHAF_SVG}
+        </div>
         <p class="font-amiri text-2xl text-goldTheme-400 font-bold">مسابقة الطالب المثالي</p>
-        <p class="text-sm text-sandTheme-100">تحت إشراف اللجنة العليا للمسابقات — موسم ٢٠٢٦–٢٠٢٧</p>
+        <p class="text-sm text-sandTheme-100">تحت إشراف إدارة المسابقة الكبرى لحفظ القرآن الكريم — بيت مال المسلمين بكفر يوسف حنس</p>
         <div class="w-20 h-0.5 bg-gold-metallic mx-auto my-2 rounded-full"></div>
         <p class="text-xs text-goldTheme-300/70 font-amiri text-base">﴿ وَقُل رَّبِّ زِدْنِي عِلْمًا ﴾</p>
+        <div class="pt-2">
+          <a href="competition.html" class="inline-flex items-center gap-2 text-xs text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">
+            <span>الانتقال إلى البوابة الرسمية للمسابقة الكبرى لحفظ القرآن الكريم</span>
+            <span>←</span>
+          </a>
+        </div>
         <p class="text-[11px] text-sandTheme-200/50 mt-4">جميع الحقوق محفوظة للمسابقة © ٢٠٢٦</p>
       </div>
     </footer>
@@ -949,6 +969,41 @@ function renderHome() {
           <div class="bg-white/5 border border-goldTheme-400/30 rounded-xl p-3 backdrop-blur-sm">
             <div class="text-2xl sm:text-3xl font-cairo font-bold text-goldTheme-300" id="stat-votes">٠</div>
             <div class="text-[11px] sm:text-xs text-sandTheme-200/70 mt-1">أصوات الجماهير</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- مساحة مخصصة وبطاقة تعريفية للمسابقة الكبرى لحفظ القرآن الكريم مع الشعار -->
+    <section class="max-w-5xl mx-auto px-4 -mt-8 mb-6 relative z-20">
+      <div class="card-elevation p-6 sm:p-8 bg-gradient-to-r from-emeraldTheme-950 via-royal-dark to-emeraldTheme-950 text-sandTheme-50 border-2 border-goldTheme-500/70 rounded-3xl shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-12 -left-12 w-48 h-48 bg-goldTheme-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+          <div class="flex items-center gap-5 text-center md:text-right flex-col md:flex-row">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-goldTheme-400 shadow-glow-gold shrink-0 bg-emeraldTheme-950 p-1 group hover:scale-105 transition-transform" title="شعار المسابقة الكبرى لحفظ القرآن الكريم">
+              ${MUSHAF_SVG}
+            </div>
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-goldTheme-500/20 text-goldTheme-300 border border-goldTheme-400/40 mb-2">
+                <span>📖 المسابقة الأم</span>
+                <span>•</span>
+                <span>تحت إشراف بيت مال المسلمين</span>
+              </div>
+              <h2 class="font-amiri text-2xl sm:text-3xl font-bold text-gold-shimmer">
+                المسابقة الكبرى لحفظ القرآن الكريم
+              </h2>
+              <p class="text-xs sm:text-sm text-sandTheme-200/90 mt-1 max-w-xl font-tajawal leading-relaxed">
+                بقرية كفر يوسف حنس — استكشف مستويات المسابقة السبعة، لوائح التحكيم، واستمارات التسجيل وتفاصيل الجوائز الكبرى للمتسابقين.
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0 w-full md:w-auto text-center">
+            <a href="competition.html" class="btn-action btn-gold-royal !px-6 !py-3.5 !text-sm sm:!text-base font-bold shadow-glow-gold hover:scale-105 inline-flex items-center justify-center gap-2 w-full md:w-auto">
+              <span>الانتقال للمسابقة الكبرى</span>
+              <span class="text-base">←</span>
+            </a>
           </div>
         </div>
       </div>
