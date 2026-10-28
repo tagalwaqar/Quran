@@ -469,7 +469,7 @@ const I18N = {
         themeTeal: 'زمردي صيدلاني (Emerald)',
         themeBlue: 'أزرق ملكي (Sapphire)',
         themeAmber: 'ذهبي فاخر (Obsidian)',
-        modelLbl: 'النموذج:',
+
         period: 'الفترة:',
         all: 'الكل',
         months: 'الأشهر:',
@@ -484,10 +484,8 @@ const I18N = {
         salesPerHourSub: 'إنتاجية الساعة الفعلية',
         salesPerDay: 'متوسط المبيعات اليومية',
         salesPerDaySub: 'مجموع كافة المبيعات ÷ أيام الفترة',
-        daysWorked: 'أيام العمل',
-        daysWorkedSub: 'أيام الدوام الفعلية',
-        hoursWorked: 'ساعات العمل',
-        hoursWorkedSub: 'ساعات الخدمة المقدرة',
+
+
         apt: 'متوسط الفاتورة (APT)',
         aptSub: 'كاش وتأمين (Cash & Ins)',
         rsp: 'متوسط سعر الصنف (RSP)',
@@ -519,9 +517,7 @@ const I18N = {
         confirmClear: 'هل أنت متأكد من رغبتك في حذف الشيت الحالي وتفريغ البيانات؟',
         cardSales: 'المبيعات',
         cardNearCare: 'فواتير NearCare',
-        cardSalesHour: 'المبيعات/ساعة',
-        cardSalesDay: 'المبيعات/يوم',
-        cardDaysHours: 'الأيام / الساعات',
+
         cardApt: 'APT (كاش وتأمين)',
         cardInvs: 'الفواتير',
         cardBsu: 'BSU (كاش وتأمين)',
@@ -549,7 +545,7 @@ const I18N = {
         themeTeal: 'Pharmacy Emerald (Emerald)',
         themeBlue: 'Royal Sapphire (Sapphire)',
         themeAmber: 'Luxury Obsidian (Obsidian)',
-        modelLbl: 'Model:',
+
         period: 'Period:',
         all: 'All',
         months: 'Months:',
@@ -564,10 +560,8 @@ const I18N = {
         salesPerHourSub: 'Hourly Productivity',
         salesPerDay: 'Daily Avg Sales',
         salesPerDaySub: 'Total Sales / Period Days',
-        daysWorked: 'Days Worked',
-        daysWorkedSub: 'Active Days',
-        hoursWorked: 'Hours Worked',
-        hoursWorkedSub: 'Estimated Hours',
+
+
         apt: 'APT (Cash & Ins)',
         aptSub: 'Cash & Insurance Only',
         rsp: 'RSP (Cash & Ins)',
@@ -599,9 +593,7 @@ const I18N = {
         confirmClear: 'Are you sure you want to clear the current sheet and data?',
         cardSales: 'Sales',
         cardNearCare: 'NearCare Invoices',
-        cardSalesHour: 'Sales / Hour',
-        cardSalesDay: 'Sales / Day',
-        cardDaysHours: 'Days / Hours',
+
         cardApt: 'APT (Cash & Ins)',
         cardInvs: 'Invoices',
         cardBsu: 'BSU (Cash & Ins)',
@@ -735,7 +727,6 @@ function applyI18nLabels() {
     document.getElementById('btnLang').textContent = t.langBtn;
     document.getElementById('lbl-load-excel').textContent = t.loadExcel;
     document.getElementById('lbl-clear-excel').textContent = t.clearExcel;
-    document.getElementById('lbl-model').textContent = t.modelLbl;
     document.getElementById('lbl-period').textContent = t.period;
     document.getElementById('btn-filter-all').textContent = t.all;
     document.getElementById('lbl-months').textContent = t.months;
@@ -1217,12 +1208,7 @@ function processRowsToSummary(rows) {
     };
 }
 
-function parseTimeToHours(tStr) {
-    const p = tStr.split(':');
-    const h = parseInt(p[0]) || 0;
-    const m = parseInt(p[1]) || 0;
-    return h + (m / 60.0);
-}
+
 
 function showLoader() {
     document.getElementById('welcomeScreen').style.display = 'none';
