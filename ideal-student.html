@@ -14,6 +14,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- مكتبة SheetJS لتصدير ملفات Excel الحقيقية XLSX مع الدعم الكامل للغة العربية -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 tailwind.config = {
   theme: {
@@ -1604,17 +1606,136 @@ function renderAdmin() {
 
       <!-- قائمة المترشحين للمراجعة والاعتماد -->
       <div class="card-elevation p-6">
-        <div class="flex items-center justify-between flex-wrap gap-2 mb-4 pb-3 border-b border-sandTheme-200">
-          <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold flex items-center gap-2">
-            <span>👥</span>
-            طلبات الترشح المرفوعة
-          </h3>
-          <button onclick="loadAllApps()" class="btn-action btn-outline-gold !py-1.5 !px-3 !text-xs">🔄 تحديث القائمة</button>
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-sandTheme-200">
+          <div>
+            <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold flex items-center gap-2">
+              <span>👥</span>
+              طلبات الترشح المرفوعة
+            </h3>
+            <p class="text-xs text-sandTheme-800/70 font-tajawal mt-0.5">مراجعة واعتماد وتصدير بيانات جميع المتقدمين</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="exportApplicantsToExcel()" class="btn-action !bg-emerald-700 !text-white hover:!bg-emerald-800 !py-2 !px-4 !text-xs !rounded-xl shadow-sm flex items-center gap-1.5 font-cairo">
+              <span class="text-base">📊</span>
+              <span>تصدير إلى Excel (XLSX)</span>
+            </button>
+            <button onclick="loadAllApps()" class="btn-action btn-outline-gold !py-2 !px-3 !text-xs !rounded-xl">🔄 تحديث</button>
+          </div>
         </div>
         <div id="appsList" class="space-y-3">جارٍ تحميل المترشحين...</div>
       </div>
     </section>
   ` + footer();
+}
+
+// ===== تصدير بيانات المتقدمين إلى ملف Excel =====
+async function exportApplicantsToExcel() {
+  try {
+    toast('جارٍ تحضير ملف الإكسيل...', 'info');
+
+    // إذا لم تكن البيانات محملة بعد، نجلبها مباشرة من Supabase
+    let apps = S.allApps;
+    if (!apps || apps.length === 0) {
+      const { data, error } = await sb.from('ideal_student_applications')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      apps = data || [];
+      S.allApps = apps;
+    }
+
+    if (!apps || apps.length === 0) {
+      toast('لا توجد بيانات متقدمين لتصديرها حالياً', 'err');
+      return;
+    }
+
+    // تجهيز صفوف البيانات بعناوين عربية وتنسيق واضح
+    const excelRows = apps.map((app, index) => {
+      let statusAr = 'قيد المراجعة';
+      if (app.status === 'approved') statusAr = 'معتمد';
+      else if (app.status === 'rejected') statusAr = 'مرفوض';
+
+      return {
+        'م': index + 1,
+        'الاسم الرباعي': app.full_name || '',
+        'الرقم القومي': app.national_id ? String(app.national_id) : '',
+        'تاريخ الميلاد': app.birth_date ? String(app.birth_date).slice(0, 10) : '',
+        'السن (بالسنوات)': app.age != null ? app.age : '',
+        'المستوى': app.level_name || (LEVELS.find(l => l.id === app.level_id)?.name) || '',
+        'القرية': app.village || '',
+        'اسم ولي الأمر': app.guardian_name || '',
+        'هاتف ولي الأمر': app.guardian_phone ? String(app.guardian_phone) : '',
+        'مقدار الحفظ': app.memorized || '',
+        'حالة الطلب': statusAr,
+        'تاريخ التسجيل': app.created_at ? new Date(app.created_at).toLocaleString('ar-EG') : '',
+        'نبذة عن المتسابق': app.bio || '',
+        'رابط الصورة الشخصية': app.photo_path || 'لا يوجد'
+      };
+    });
+
+    // استخدام مكتبة SheetJS لتوليد ملف XLSX حقيقي
+    if (window.XLSX) {
+      const ws = XLSX.utils.json_to_sheet(excelRows);
+
+      // ضبط اتجاه الورقة من اليمين لليسار (RTL)
+      ws['!views'] = [{ rightToLeft: true }];
+
+      // تحديد عرض مناسب للأعمدة ليظهر الإكسيل منظم ومريح للقراءة
+      ws['!cols'] = [
+        { wch: 6 },   // م
+        { wch: 28 },  // الاسم الرباعي
+        { wch: 18 },  // الرقم القومي
+        { wch: 14 },  // تاريخ الميلاد
+        { wch: 14 },  // السن
+        { wch: 20 },  // المستوى
+        { wch: 16 },  // القرية
+        { wch: 24 },  // اسم ولي الأمر
+        { wch: 16 },  // هاتف ولي الأمر
+        { wch: 30 },  // مقدار الحفظ
+        { wch: 15 },  // حالة الطلب
+        { wch: 22 },  // تاريخ التسجيل
+        { wch: 40 },  // نبذة
+        { wch: 45 }   // رابط الصورة
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'المتقدمين للمسابقة');
+
+      const fileName = `بيانات_المتقدمين_مسابقة_الطالب_المثالي_${todayISO()}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      toast('تم تحميل شيت الإكسيل بنجاح! 📊', 'ok');
+    } else {
+      // بديل احتياطي فائق التوافق (CSV مع UTF-8 BOM لفتح العربي بسلاسة)
+      exportApplicantsToCSVFallback(excelRows);
+    }
+  } catch (err) {
+    console.error('Export Excel Error:', err);
+    toast('تعذر تصدير الملف: ' + err.message, 'err');
+  }
+}
+window.exportApplicantsToExcel = exportApplicantsToExcel;
+
+// تصدير احتياطي CSV مع دعم كامل للغة العربية (BOM)
+function exportApplicantsToCSVFallback(rows) {
+  if (!rows || !rows.length) return;
+  const headers = Object.keys(rows[0]);
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => headers.map(h => `"${String(row[h] || '').replace(/"/g, '""')}"`).join(','))
+  ].join('\r\n');
+
+  // \uFEFF يضمن أن مايكروسوفت إكسيل يفتح الملف بالترميز العربي دون رموز غريبة
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `بيانات_المتقدمين_${todayISO()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('تم تحميل ملف المتقدمين (CSV)', 'ok');
 }
 
 // ===== حفظ شروط المسابقة =====
