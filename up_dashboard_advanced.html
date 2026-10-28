@@ -303,13 +303,7 @@
         </div>
 
         <div class="topbar-right">
-            <!-- Shift Model Toggle -->
-            <div style="display:flex;align-items:center;gap:4px;background:var(--bg-card);padding:3px 6px;border-radius:8px;border:1px solid var(--border);font-size:11px">
-                <span style="color:var(--text-gray)" id="lbl-model">النموذج:</span>
-                <button onclick="setHourModel('actual')" id="btn-model-actual" class="filter-btn active" style="padding:3px 8px;font-size:11px">فعلية</button>
-                <button onclick="setHourModel('8h')" id="btn-model-8h" class="filter-btn" style="padding:3px 8px;font-size:11px">8 س</button>
-                <button onclick="setHourModel('9h')" id="btn-model-9h" class="filter-btn" style="padding:3px 8px;font-size:11px">9 س</button>
-            </div>
+
 
             <!-- Background Theme Selector Dropdown -->
             <div style="position:relative;display:inline-block">
@@ -465,7 +459,7 @@
 const I18N = {
     ar: {
         logoMain: 'صيدلية المتحدة',
-        logoSub: 'لوحة مبيعات وإنتاجية الصيادلة',
+        logoSub: 'لوحة مبيعات وأداء الصيادلة',
         loadExcel: 'تحميل إكسل',
         clearExcel: 'حذف الشيت',
         langBtn: 'English',
@@ -489,7 +483,7 @@ const I18N = {
         salesPerHour: 'المبيعات / ساعة',
         salesPerHourSub: 'إنتاجية الساعة الفعلية',
         salesPerDay: 'متوسط المبيعات اليومية',
-        salesPerDaySub: 'مجموع كل أنواع المبيعات ÷ أيام العمل',
+        salesPerDaySub: 'مجموع كافة المبيعات ÷ أيام الفترة',
         daysWorked: 'أيام العمل',
         daysWorkedSub: 'أيام الدوام الفعلية',
         hoursWorked: 'ساعات العمل',
@@ -507,14 +501,14 @@ const I18N = {
         returnRate: 'نسبة المرتجع',
         pharmacists: 'الصيادلة',
         activeStaffSub: 'فريق العمل النشط',
-        pharmSectionTitle: '💊 إنتاجية ومبيعات الصيادلة (معدلة بساعات وأيام الدوام)',
+        pharmSectionTitle: '💊 مبيعات وأداء الصيادلة (مرتبة حسب إجمالي المبيعات)',
         pharmClickHint: 'انقر على أي كارد لعرض التحليل الشامل للصيدلي',
         chartsSectionTitle: '📊 تحليلات ومؤشرات أداء المبيعات والفواتير',
         chartMonthly: 'المسار الشهري للمبيعات والفواتير',
         chartNearCare: 'فواتير NearCare حسب الصيدلي',
         chartSalesTypes: 'توزيع نوع المبيعات (Sales Types)',
         chartInvoiceTypes: 'توزيع نوع الفواتير (Invoice Types)',
-        chartPharm: 'ترتيب الصيادلة بالإنتاجية بالساعة (ريال/ساعة)',
+        chartPharm: 'ترتيب الصيادلة بإجمالي المبيعات (ريال)',
         chartCats: 'مبيعات الأقسام الرئيسية (Divisions)',
         dropOverlay: 'أفلت ملف الإكسل هنا للتحميل الفوري',
         welcomeTitle: 'بوابة أداء ومبيعات الصيادلة',
@@ -569,7 +563,7 @@ const I18N = {
         salesPerHour: 'Sales / Hour',
         salesPerHourSub: 'Hourly Productivity',
         salesPerDay: 'Daily Avg Sales',
-        salesPerDaySub: 'All Sales Types / Active Days',
+        salesPerDaySub: 'Total Sales / Period Days',
         daysWorked: 'Days Worked',
         daysWorkedSub: 'Active Days',
         hoursWorked: 'Hours Worked',
@@ -1199,7 +1193,7 @@ function processRowsToSummary(rows) {
         };
     });
 
-    pharmArray.sort((a,b) => b.activeSalesPerHour - a.activeSalesPerHour);
+    pharmArray.sort((a,b) => b.TotalNetSales - a.TotalNetSales);
 
     const mTrend = MONTH_ORDER.filter(m => monthlyMap[m]).map(m => ({
         MonthStr: m,
@@ -1382,16 +1376,15 @@ function renderKPIs(d) {
     d.pharmacists.forEach(p => { totalRet += Math.abs(p.ReturnSales || 0); });
     const retRate = (d.totalNetSales + totalRet) > 0 ? (totalRet / (d.totalNetSales + totalRet) * 100) : 0;
 
-    const topHourly = d.pharmacists.length > 0 ? d.pharmacists[0] : null;
-
     const kpis = [
         { label: t.totalSales, value: fmtSAR(d.totalNetSales), sub: t.netSalesSub, cls: 'kpi-accent', icon: '💰' },
         { label: t.nearCareInvoices, value: fmtNumber(d.branchNearCareInvoices) + ' ' + (currentLang === 'ar' ? 'فاتورة' : 'invs'), sub: fmtSAR(d.branchNearCareSales), cls: 'kpi-green', icon: '🩺' },
-        { label: t.salesPerHour, value: topHourly ? fmtSAR(topHourly.activeSalesPerHour) : '--', sub: (topHourly ? topHourly.SalesName.split(' ')[0] : '') + ' (' + t.topRank + ')', cls: 'kpi-cyan', icon: '⚡' },
-        { label: t.salesPerDay, value: fmtSAR(d.branchSalesPerDay || 0), sub: t.salesPerDaySub + ` (${fmtNumber(d.totalActiveDays)} ` + (currentLang === 'ar' ? 'يوم' : 'days') + `)`, cls: 'kpi-blue', icon: '📅' },
+        { label: t.salesPerDay, value: fmtSAR(d.branchSalesPerDay || 0), sub: t.salesPerDaySub, cls: 'kpi-blue', icon: '📅' },
         { label: t.apt, value: fmtSAR(d.branchAPT), sub: t.aptSub, cls: 'kpi-purple', icon: '🎯' },
         { label: t.avgItems, value: (d.branchBSU || 2.4).toFixed(2), sub: t.avgItemsSub, cls: 'kpi-amber', icon: '🛒' },
+        { label: t.rsp, value: fmtSAR(d.branchRSP), sub: t.rspSub, cls: 'kpi-cyan', icon: '🏷️' },
         { label: t.invoices, value: fmtNumber(d.totalInvoices), sub: t.invoicesSub, cls: 'kpi-pink', icon: '🧾' },
+        { label: t.itemsSold, value: fmtNumber(d.totalQuantity), sub: t.itemsSoldSub, cls: 'kpi-teal', icon: '🛍️' },
         { label: t.returnRate, value: retRate.toFixed(2) + '%', sub: fmtSAR(totalRet), cls: 'kpi-red', icon: '🔄' }
     ];
 
@@ -1442,28 +1435,20 @@ function renderPharmacistCards(d) {
                 <span>${fmtNumber(p.NearCareInvoices || 0)} فاتورة (${fmtSAR(p.NearCareSales || 0)})</span>
             </div>
             <div class="pharm-stat">
-                <span>${t.cardSalesHour}</span>
-                <span class="pharm-stat-val" style="color:var(--accent);font-weight:800">${fmtNumber(p.activeSalesPerHour, 2)} ${t.sar}/h</span>
-            </div>
-            <div class="pharm-stat">
-                <span>${t.cardSalesDay}</span>
-                <span class="pharm-stat-val" style="color:var(--green);font-weight:700">${fmtNumber(p.activeSalesPerDay, 2)} ${t.sar}</span>
-            </div>
-            <div class="pharm-stat">
-                <span>${t.cardDaysHours}</span>
-                <span class="pharm-stat-val">${p.DaysWorked}d / ${fmtNumber(p.activeHours, 0)}h</span>
+                <span>${t.cardInvs}</span>
+                <span class="pharm-stat-val" style="color:var(--text-white);font-weight:700">${fmtNumber(p.TotalInvoices)}</span>
             </div>
             <div class="pharm-stat">
                 <span>${t.cardApt}</span>
-                <span class="pharm-stat-val" style="color:var(--amber)">${fmtNumber(p.APT, 2)} ${t.sar}</span>
-            </div>
-            <div class="pharm-stat">
-                <span>${t.cardInvs}</span>
-                <span class="pharm-stat-val">${fmtNumber(p.TotalInvoices)}</span>
+                <span class="pharm-stat-val" style="color:var(--amber);font-weight:700">${fmtSAR(p.APT)}</span>
             </div>
             <div class="pharm-stat">
                 <span>${t.cardBsu}</span>
-                <span class="pharm-stat-val" style="color:var(--cyan)">${fmtNumber(p.BSU, 2)}</span>
+                <span class="pharm-stat-val" style="color:var(--cyan);font-weight:700">${fmtNumber(p.BSU, 2)}</span>
+            </div>
+            <div class="pharm-stat">
+                <span>${currentLang === 'ar' ? 'الحصة من مبيعات الفرع' : 'Sales Share'}</span>
+                <span class="pharm-stat-val" style="color:var(--green);font-weight:700">${p.SalesSharePct.toFixed(1)}%</span>
             </div>
         </div>`;
     }).join('');
@@ -1484,19 +1469,19 @@ function openPharmModal(name) {
             <span class="pharm-role-badge" style="font-size:12px;padding:3px 8px">صيدلي & Pharmacist</span>
         </div>
     `;
-    document.getElementById('modalSubtitle').textContent = `${p.DaysWorked} ${t.daysWorked} | ${fmtNumber(p.activeHours, 1)} ${t.hoursWorked} | ${fmtSAR(p.TotalNetSales)}`;
+    document.getElementById('modalSubtitle').textContent = `${fmtNumber(p.TotalInvoices)} ${t.invoices} | ${fmtSAR(p.TotalNetSales)} (${p.SalesSharePct.toFixed(1)}%)`;
 
     const kpis = [
         { label: t.totalSales, val: fmtSAR(p.TotalNetSales), color: 'var(--accent)' },
         { label: t.nearCareInvoices, val: fmtNumber(p.NearCareInvoices || 0) + ' ' + (currentLang === 'ar' ? 'فاتورة' : 'invs'), color: 'var(--green)' },
         { label: t.nearCareSalesSub, val: fmtSAR(p.NearCareSales || 0), color: 'var(--green)' },
-        { label: t.salesPerHour, val: fmtNumber(p.activeSalesPerHour, 2) + ' ' + t.sar + '/h', color: 'var(--cyan)' },
-        { label: t.salesPerDay, val: fmtNumber(p.activeSalesPerDay, 2) + ' ' + t.sar, color: 'var(--blue)' },
-        { label: t.daysWorked, val: p.DaysWorked + ' d', color: 'var(--purple)' },
-        { label: t.hoursWorked, val: fmtNumber(p.activeHours, 1) + ' h', color: 'var(--text-light)' },
         { label: t.invoices, val: fmtNumber(p.TotalInvoices), color: 'var(--text-white)' },
         { label: t.apt, val: fmtSAR(p.APT), color: 'var(--amber)' },
-        { label: t.avgItems, val: fmtNumber(p.BSU, 2), color: 'var(--pink)' }
+        { label: t.avgItems, val: fmtNumber(p.BSU, 2), color: 'var(--pink)' },
+        { label: t.rsp, val: fmtSAR(p.RSP), color: 'var(--cyan)' },
+        { label: currentLang === 'ar' ? 'الحصة من مبيعات الفرع' : 'Sales Share', val: p.SalesSharePct.toFixed(1) + '%', color: 'var(--blue)' },
+        { label: t.itemsSold, val: fmtNumber(p.TotalQuantity), color: 'var(--purple)' },
+        { label: t.returnRate, val: p.ReturnRatePct.toFixed(2) + '%', color: 'var(--red)' }
     ];
 
     // Sales Types Breakdown for Pharmacist
@@ -1908,7 +1893,7 @@ function renderPharmacistsChart(d) {
         const prof = getPharmProfile(p.SalesName);
         return currentLang === 'ar' ? prof.ar : prof.en;
     });
-    const data = topList.map(p => p.activeSalesPerHour);
+    const data = topList.map(p => p.TotalNetSales);
 
     charts.chartPharmacists = new Chart(ctx, {
         type: 'bar',
@@ -1936,7 +1921,7 @@ function renderPharmacistsChart(d) {
                             return prof.ar + ' (' + prof.en + ')';
                         },
                         label: function(ctx) {
-                            return ' ' + fmtNumber(ctx.parsed.x, 2) + ' ' + (currentLang === 'ar' ? 'ريال/ساعة' : 'SAR/h');
+                            return ' ' + fmtSAR(ctx.parsed.x);
                         }
                     }
                 }
