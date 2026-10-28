@@ -621,7 +621,7 @@ const I18N = {
 
 let currentLang = 'ar';
 let currentTheme = 'dark';
-let hourModel = 'actual';
+
 let currentDataset = null;
 let charts = {};
 let selectedMonths = new Set();
@@ -784,17 +784,7 @@ function clearLoadedSheet() {
     document.getElementById('welcomeScreen').style.display = 'flex';
 }
 
-function setHourModel(model) {
-    hourModel = model;
-    ['actual', '8h', '9h'].forEach(m => {
-        const btn = document.getElementById('btn-model-' + m);
-        if (btn) {
-            if (m === model) btn.classList.add('active');
-            else btn.classList.remove('active');
-        }
-    });
-    if (currentDataset) renderDashboard();
-}
+
 
 // Setup Drag & Drop
 function setupDropZone() {
@@ -1134,29 +1124,10 @@ function processRowsToSummary(rows) {
 
     const pharmArray = Object.values(pharmMap).map(p => {
         const daysWorked = Object.keys(p.DailyLogs).length;
-        let totalHours = 0;
-        for (let d in p.DailyLogs) {
-            const times = p.DailyLogs[d].times;
-            if (times.length > 1) {
-                times.sort();
-                try {
-                    const t1 = parseTimeToHours(times[0]);
-                    const t2 = parseTimeToHours(times[times.length - 1]);
-                    let diff = t2 - t1;
-                    if (diff < 0) diff += 24;
-                    totalHours += Math.min(16, Math.max(1, diff + 1.0));
-                } catch (e) { totalHours += 8; }
-            } else {
-                totalHours += 8;
-            }
-        }
+
 
         const invCount = p.Invoices.size;
         const ciInvCount = p.CiInvoices.size;
-        let h = totalHours;
-        if (hourModel === '8h') h = daysWorked * 8;
-        else if (hourModel === '9h') h = daysWorked * 9;
-
         const apt = ciInvCount > 0 ? p.CiSales / ciInvCount : 0;
         const bsu = ciInvCount > 0 ? p.CiQuantity / ciInvCount : 0;
         const rsp = p.CiQuantity > 0 ? p.CiSales / p.CiQuantity : 0;
@@ -1172,11 +1143,6 @@ function processRowsToSummary(rows) {
             CiSales: p.CiSales,
             CiQuantity: p.CiQuantity,
             CiInvoices: ciInvCount,
-            DaysWorked: daysWorked,
-            TotalHoursWorked: totalHours,
-            activeHours: h,
-            activeSalesPerHour: h > 0 ? p.TotalNetSales / h : 0,
-            activeSalesPerDay: daysWorked > 0 ? p.TotalNetSales / daysWorked : 0,
             APT: apt,
             BSU: bsu,
             RSP: rsp,
