@@ -532,16 +532,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_L57jxcz4RJzK5e14rSHqfA_vbMmnFgg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const APPB = 'applications';
-const VILLAGES = ['كفر يوسف حنس','كفر يوسف داود','نشرت','حصة الغنيمي','عواض','الخبي','الزغبى'];
-const LEVELS = [
-  { id: 1, name: 'المستوى الأول', desc: 'حفظ القرآن كاملاً', max_age: 20 },
-  { id: 2, name: 'المستوى الثاني', desc: 'حفظ القرآن كاملاً مرتلاً', max_age: 18 },
-  { id: 3, name: 'المستوى الثالث', desc: 'حفظ ٢٢٫٥ جزء', max_age: 16 },
-  { id: 4, name: 'المستوى الرابع', desc: 'حفظ ١٥ جزء', max_age: 15 },
-  { id: 5, name: 'المستوى الخامس', desc: 'حفظ ١٠ أجزاء', max_age: 13 },
-  { id: 6, name: 'المستوى السادس', desc: 'حفظ ٥ أجزاء', max_age: 11 },
-  { id: 7, name: 'المستوى السابع', desc: 'حفظ ٣ أجزاء (البراعم)', max_age: 9 }
-];
+const VILLAGES = ['كفر يوسف حنس'];
+
 
 // الشروط الافتراضية الأنيقة في حال لم تكن مسجلة مسبقاً
 const DEFAULT_RULES = [
