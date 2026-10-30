@@ -2001,60 +2001,6 @@ window.addEventListener('hashchange', route);
   await loadSettings();
   await route();
 })();
-      <!-- Team & Administration Section -->
-    <section id="teamSection" class="max-w-6xl mx-auto px-4 py-16">
-      <div class="text-center mb-10">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gold-500/15 text-gold-600 mb-3 border border-gold-500/40 text-2xl shadow-sm">👥</div>
-        <h2 class="font-amiri text-3xl md:text-4xl text-pine-900 font-bold">فريق الإدارة والتنسيق والدعم التقني</h2>
-        <p class="text-xs text-ink/65 mt-1">نخبة مخلصة تسهر على تنظيم المسابقة، متابعة المتسابقين، وتطوير البنية التقنية</p>
-      </div>
-
-      ${s.admin_info ? `
-        <div class="frame border border-gold-500/40 bg-white rounded-3xl p-6 md:p-8 max-w-4xl mx-auto mb-10 shadow-sm text-center">
-          <span class="corner c-tl"></span><span class="corner c-tr"></span>
-          <span class="corner c-bl"></span><span class="corner c-br"></span>
-          <h3 class="font-amiri text-xl font-bold text-pine-900 mb-2">عن إدارة وتنظيم المسابقة</h3>
-          <p class="text-xs md:text-sm text-ink/80 leading-relaxed max-w-3xl mx-auto">${esc(s.admin_info)}</p>
-        </div>
-      ` : ''}
-
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        ${(s.team && s.team.length ? s.team : SITE_DEFAULTS.team).map(m => `
-          <div class="card p-5 border-2 border-cream-200 hover:border-gold-500/60 transition-all duration-300 hover:shadow-xl bg-white flex flex-col justify-between">
-            <div>
-              <div class="flex items-start gap-3.5 mb-3.5">
-                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-pine-900/10 border-2 border-gold-500/50 shrink-0 flex items-center justify-center text-pine-800 text-xl font-bold shadow-sm">
-                  ${m.photo ? `<img src="${esc(toPublicMediaUrl(m.photo))}" alt="${esc(m.name)}" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<span>${esc((m.name || 'ع')[0])}</span>'">` : `<span>${esc((m.name || 'ع')[0])}</span>`}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <span class="tag text-[10px] font-bold border mb-1 ${teamCategoryColor(m.category)}">${esc(teamCategoryName(m.category))}</span>
-                  <h3 class="font-amiri text-lg font-bold text-pine-900 truncate leading-snug">${esc(m.name)}</h3>
-                  <p class="text-xs text-gold-600 font-semibold truncate">${esc(m.role || 'مسئول بالمسابقة')}</p>
-                </div>
-              </div>
-
-              ${m.bio ? `<p class="text-xs text-ink/70 leading-relaxed mb-4 line-clamp-3 bg-cream-50/70 p-2.5 rounded-xl border border-cream-200/50">${esc(m.bio)}</p>` : ''}
-            </div>
-
-            <div class="pt-3 border-t border-cream-200/80 flex items-center justify-between gap-2 text-xs">
-              <span class="text-[11px] text-ink/50">تواصل مباشر:</span>
-              <div class="flex items-center gap-1.5">
-                ${m.whatsapp ? `
-                  <a href="${esc(waLink(m.whatsapp))}" target="_blank" rel="noopener noreferrer" class="btn btn-sm !rounded-xl !py-1 !px-2.5 bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold flex items-center gap-1 shadow-sm">
-                    ${ic('chat', 13)} <span>واتساب</span>
-                  </a>
-                ` : ''}
-                ${m.phone ? `
-                  <a href="tel:${esc(m.phone)}" class="btn btn-outline btn-sm !rounded-xl !py-1 !px-2.5 text-xs">
-                    ${ic('phone', 13)} <span>اتصال</span>
-                  </a>
-                ` : ''}
-              </div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </section>
 </script>
 </body>
 </html>
