@@ -549,6 +549,14 @@ const DEFAULT_RULES = [
   "الالتزام التام بكافة القرارات الصادرة عن إدارة المسابقة ولجنة الفرز والتحكيم."
 ];
 
+// فريق الإدارة والتنسيق والدعم التقني
+const DEFAULT_TEAM = [
+  { id: 't1', name: 'الشيخ / إبراهيم عبد الله', role: 'رئيس مجلس الإدارة والمشرف العام', category: 'management', phone: '01000000001', whatsapp: '01000000001', bio: 'إمام وخطيب ومشرف عام على الأنشطة الدعوية والقرآنية بمركز قلين', photo: '' },
+  { id: 't2', name: 'أ. أحمد يوسف', role: 'المنسق العام للمسابقة ولجان المتابعة', category: 'coordination', phone: '01000000002', whatsapp: '01000000002', bio: 'مسؤول تنظيم لجان الاختبارات واستقبال المتسابقين والتنسيق الإداري', photo: '' },
+  { id: 't3', name: 'م. محمد خليل', role: 'المسؤول التقني ومطور المنصة', category: 'tech', phone: '01000000003', whatsapp: '01000000003', bio: 'إدارة وتطوير المنصة الرقمية وبث الفعاليات والدعم الفني', photo: '' }
+];
+const DEFAULT_ADMIN_INFO = 'المسابقة الكبرى لحفظ القرآن الكريم ومسابقة الطالب المثالي تقام سنوياً برعاية بيت مال المسلمين بكفر يوسف حنس، بهدف غرس القيم والأخلاق الرفيعة وتشجيع الأجيال الناشئة على التميز القرآني والسلوكي وتكريم المتفوقين.';
+
 // الحالة العامة للتطبيق
 let S = {
   phase: 'registration',
@@ -557,6 +565,8 @@ let S = {
   results_visible: false,
   phaseDeadline: null,
   rules: [...DEFAULT_RULES],
+  team: [...DEFAULT_TEAM],
+  admin_info: DEFAULT_ADMIN_INFO,
   candidates: [],
   voteCounts: {},
   voterVoted: false,
@@ -576,6 +586,32 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const arNum = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 const todayISO = () => { const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const fmtDate = iso => { if(!iso) return ''; const p = String(iso).slice(0,10).split('-'); return p.length===3 ? arNum(p[2])+'/'+arNum(p[1])+'/'+arNum(p[0]) : ''; };
+
+function teamCategoryName(cat) {
+  switch (cat) {
+    case 'management': return 'الإشراف العام';
+    case 'coordination': return 'التنسيق والمتابعة';
+    case 'tech': return 'الدعم التقني';
+    default: return 'فريق العمل';
+  }
+}
+
+function teamCategoryColor(cat) {
+  switch (cat) {
+    case 'management': return 'bg-goldTheme-100 text-goldTheme-900 border-goldTheme-400';
+    case 'coordination': return 'bg-emeraldTheme-100 text-emeraldTheme-900 border-emeraldTheme-400';
+    case 'tech': return 'bg-blue-50 text-blue-800 border-blue-300';
+    default: return 'bg-sandTheme-100 text-sandTheme-900 border-sandTheme-300';
+  }
+}
+
+function waLink(phone) {
+  const p = String(phone || '').replace(/\D/g, '');
+  return p ? `https://wa.me/2${p.startsWith('0') ? p : '0' + p}` : '#';
+}
+
+const WA_SVG = `<svg class="w-3.5 h-3.5 inline-block" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>`;
+const TEL_SVG = `<svg class="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>`;
 
 function toast(msg, type = 'info') {
   const container = $('#toasts');
@@ -651,7 +687,31 @@ async function loadSettings() {
           }
         }
       }
+      else if (r.key === 'team') {
+        try {
+          const parsed = typeof v === 'string' ? JSON.parse(v) : v;
+          if (Array.isArray(parsed) && parsed.length > 0) S.team = parsed;
+        } catch(e) {}
+      }
+      else if (r.key === 'admin_info') {
+        if (typeof v === 'string' && v.trim()) S.admin_info = v;
+      }
     });
+
+    // جلب بيانات فريق العمل من إعدادات المسابقة الكبرى للمزامنة التلقائية إن وُجدت
+    try {
+      const { data: siteData } = await sb.from('app_settings').select('key,value').eq('key', 'site').maybeSingle();
+      if (siteData && siteData.value) {
+        const siteVal = typeof siteData.value === 'string' ? JSON.parse(siteData.value) : siteData.value;
+        if (Array.isArray(siteVal.team) && siteVal.team.length > 0 && S.team === DEFAULT_TEAM) {
+          S.team = siteVal.team;
+        }
+        if (siteVal.admin_info && S.admin_info === DEFAULT_ADMIN_INFO) {
+          S.admin_info = siteVal.admin_info;
+        }
+      }
+    } catch(errSite) {}
+
     if (!S.phaseDeadline) S.phaseDeadline = Date.now() + 7 * 86400000;
   } catch (e) {
     console.warn('loadSettings:', e);
@@ -803,7 +863,7 @@ function updateCountdown() {
 // ===== هيدر الموقع =====
 function header() {
   const phaseLabels = {
-    registration: { label: 'مرحلة التسجيل', icon: '📝', cls: 'tag-badge-gold' },
+    registration: { label: 'مرحلة الترشحات', icon: '📝', cls: 'tag-badge-gold' },
     voting: { label: 'مرحلة التصويت', icon: '🗳️', cls: 'tag-badge-green' },
     results: { label: 'إعلان النتائج', icon: '🏆', cls: 'tag-badge-gold' }
   };
@@ -825,17 +885,17 @@ function header() {
           </div>
           <div>
             <h1 class="font-amiri text-base sm:text-xl text-goldTheme-300 font-bold leading-tight">مسابقة الطالب المثالي</h1>
-            <p class="text-[10px] sm:text-[11px] text-sandTheme-200/80 font-tajawal hidden xs:block">برعاية تاج الوقار لحفظ القرآن الكريم — بيت مال المسلمين</p>
+            <p class="text-[10px] sm:text-[11px] text-sandTheme-200/80 font-tajawal hidden xs:block">برعاية المسابقة الكبرى لحفظ القرآن الكريم — بيت مال المسلمين</p>
           </div>
         </a>
         <nav class="flex items-center gap-1.5 sm:gap-2.5">
           <a href="#/" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl">الرئيسية</a>
           <a href="#rules-section" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl hidden md:inline-flex">الشروط</a>
-          <!-- أيقونة ورابط مسابقة تاج الوقار مع الشعار -->
-          <a href="competition.html" class="btn-action !bg-emeraldTheme-900 !text-goldTheme-300 border border-goldTheme-400/60 hover:!bg-emeraldTheme-800 !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl flex items-center gap-1.5 shadow-md transition font-bold" title="الانتقال إلى تاج الوقار
-          لحفظ القرآن الكريم">
+          <a href="#teamSection" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl hidden lg:inline-flex">فريق العمل</a>
+          <!-- أيقونة ورابط المسابقة الكبرى مع الشعار -->
+          <a href="competition.html" class="btn-action !bg-emeraldTheme-900 !text-goldTheme-300 border border-goldTheme-400/60 hover:!bg-emeraldTheme-800 !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl flex items-center gap-1.5 shadow-md transition font-bold" title="الانتقال إلى المسابقة الكبرى لحفظ القرآن الكريم">
             <span class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 inline-block">${MUSHAF_SVG}</span>
-            <span>مسابقة تاج الوقار</span>
+            <span>المسابقة الكبرى</span>
           </a>
           <a href="#/admin" class="btn-action btn-gold-royal !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl font-bold">الإدارة ⚙️</a>
         </nav>
@@ -858,12 +918,16 @@ function footer() {
           ${MUSHAF_SVG}
         </div>
         <p class="font-amiri text-2xl text-goldTheme-400 font-bold">مسابقة الطالب المثالي</p>
-        <p class="text-sm text-sandTheme-100">تحت إشراف إدارة مسابقة تاج الوقار لحفظ القرآن الكريم</p>
+        <p class="text-sm text-sandTheme-100">تحت إشراف إدارة المسابقة الكبرى لحفظ القرآن الكريم — بيت مال المسلمين بكفر يوسف حنس</p>
         <div class="w-20 h-0.5 bg-gold-metallic mx-auto my-2 rounded-full"></div>
         <p class="text-xs text-goldTheme-300/70 font-amiri text-base">﴿ وَقُل رَّبِّ زِدْنِي عِلْمًا ﴾</p>
-        <div class="pt-2">
-          <a href="competition.html" class="inline-flex items-center gap-2 text-xs text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">
-            <span>الانتقال إلى البوابة الرسمية لمسابقة تاج الوقار لحفظ القرآن الكريم</span>
+        <div class="pt-2 flex justify-center items-center flex-wrap gap-3 text-xs">
+          <a href="#rules-section" class="text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">الشروط والضوابط</a>
+          <span class="text-goldTheme-500/60">•</span>
+          <a href="#teamSection" class="text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">فريق الإدارة والتنسيق</a>
+          <span class="text-goldTheme-500/60">•</span>
+          <a href="competition.html" class="inline-flex items-center gap-1.5 text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">
+            <span>البوابة الرسمية للمسابقة الكبرى</span>
             <span>←</span>
           </a>
         </div>
@@ -909,6 +973,75 @@ function renderRulesSection() {
   `;
 }
 
+// ===== عرض قسم فريق الإدارة والتنسيق والدعم التقني =====
+function renderTeamSection() {
+  const team = (S.team && S.team.length) ? S.team : DEFAULT_TEAM;
+  const adminInfo = S.admin_info || DEFAULT_ADMIN_INFO;
+
+  return `
+    <section id="teamSection" class="max-w-6xl mx-auto px-4 py-16">
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-goldTheme-500/15 text-goldTheme-700 mb-3 border border-goldTheme-400/40 text-2xl shadow-sm">👥</div>
+        <h2 class="font-amiri text-3xl md:text-4xl text-emeraldTheme-950 font-bold">فريق الإدارة والتنسيق والدعم التقني</h2>
+        <div class="w-28 h-1 bg-gold-metallic mx-auto mt-2.5 rounded-full"></div>
+        <p class="text-xs sm:text-sm text-sandTheme-800/75 mt-2 font-tajawal">نخبة مخلصة تسهر على تنظيم المسابقة، متابعة المتسابقين، وتطوير البنية التقنية</p>
+      </div>
+
+      ${adminInfo ? `
+        <div class="frame-islamic bg-white/95 rounded-3xl p-6 md:p-8 max-w-4xl mx-auto mb-10 shadow-sm text-center relative overflow-hidden border border-goldTheme-400/40">
+          <span class="corner-ornament c-top-left"></span>
+          <span class="corner-ornament c-top-right"></span>
+          <span class="corner-ornament c-bottom-left"></span>
+          <span class="corner-ornament c-bottom-right"></span>
+          <h3 class="font-amiri text-xl font-bold text-emeraldTheme-900 mb-2">عن إدارة وتنظيم المسابقة</h3>
+          <p class="text-xs md:text-sm text-emeraldTheme-950/80 leading-relaxed max-w-3xl mx-auto font-tajawal">${esc(adminInfo)}</p>
+        </div>
+      ` : ''}
+
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        ${team.map(m => `
+          <div class="card-elevation p-5 border-2 border-sandTheme-200 hover:border-goldTheme-400 transition-all duration-300 hover:shadow-xl bg-white flex flex-col justify-between rounded-2xl">
+            <div>
+              <div class="flex items-start gap-3.5 mb-3.5">
+                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-emeraldTheme-950 text-goldTheme-300 border-2 border-goldTheme-400/70 shrink-0 flex items-center justify-center text-xl font-bold shadow-md">
+                  ${m.photo 
+                    ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span>${esc((m.name || 'ع')[0])}</span>'">` 
+                    : `<span>${esc((m.name || 'ع')[0])}</span>`}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border mb-1 ${teamCategoryColor(m.category)}">${esc(teamCategoryName(m.category))}</span>
+                  <h3 class="font-amiri text-lg font-bold text-emeraldTheme-950 truncate leading-snug">${esc(m.name)}</h3>
+                  <p class="text-xs text-goldTheme-700 font-bold truncate font-cairo">${esc(m.role || 'مسئول بالمسابقة')}</p>
+                </div>
+              </div>
+
+              ${m.bio ? `<p class="text-xs text-sandTheme-800/80 leading-relaxed mb-4 line-clamp-3 bg-sandTheme-50 p-2.5 rounded-xl border border-sandTheme-200 font-tajawal">${esc(m.bio)}</p>` : ''}
+            </div>
+
+            <div class="pt-3 border-t border-sandTheme-200 flex items-center justify-between gap-2 text-xs">
+              <span class="text-[11px] text-sandTheme-800/60 font-tajawal">تواصل مباشر:</span>
+              <div class="flex items-center gap-1.5">
+                ${m.whatsapp ? `
+                  <a href="${esc(waLink(m.whatsapp))}" target="_blank" rel="noopener noreferrer" class="btn-action !py-1.5 !px-3 !bg-emerald-600 !text-white hover:!bg-emerald-700 !text-xs font-semibold flex items-center gap-1.5 shadow-sm !rounded-xl" title="مراسلة عبر واتساب">
+                    <span class="w-3.5 h-3.5">${WA_SVG}</span>
+                    <span>واتساب</span>
+                  </a>
+                ` : ''}
+                ${m.phone ? `
+                  <a href="tel:${esc(m.phone)}" class="btn-action btn-outline-gold !py-1.5 !px-3 !text-xs flex items-center gap-1.5 !rounded-xl" title="اتصال هاتفي">
+                    <span class="w-3.5 h-3.5">${TEL_SVG}</span>
+                    <span>اتصال</span>
+                  </a>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
 // ===== الصفحة الرئيسية الكاملة =====
 function renderHome() {
   const phaseLabels = { registration: 'مرحلة الترشح والتقديم', voting: 'مرحلة التصويت العام', results: 'مرحلة إعلان النتائج والتتويج' };
@@ -924,7 +1057,7 @@ function renderHome() {
       <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#d4af37 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="relative max-w-5xl mx-auto px-4 text-center">
         <div class="inline-block bg-goldTheme-500/15 border border-goldTheme-400/40 rounded-full px-5 py-1.5 text-xs text-goldTheme-300 font-bold mb-6 backdrop-blur-md">
-          🏆 الدورة السنوية — موسم ٢٠٢٦–٢٠٢٧
+          🏆 الدورة السنوية الكبرى — موسم ٢٠٢٦–٢٠٢٧
         </div>
         
         <div class="frame-islamic inline-block px-8 sm:px-14 py-6 rounded-2xl bg-emeraldTheme-950/60 backdrop-blur-md mb-6 relative">
@@ -988,21 +1121,21 @@ function renderHome() {
             </div>
             <div>
               <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-goldTheme-500/20 text-goldTheme-300 border border-goldTheme-400/40 mb-2">
-                <span>📖 المسابقة </span>
+                <span>📖 المسابقة الأم</span>
                 <span>•</span>
                 <span>تحت إشراف بيت مال المسلمين</span>
               </div>
               <h2 class="font-amiri text-2xl sm:text-3xl font-bold text-gold-shimmer">
-                مسابقة تاج الوقار لحفظ القرآن الكريم
+                المسابقة الكبرى لحفظ القرآن الكريم
               </h2>
               <p class="text-xs sm:text-sm text-sandTheme-200/90 mt-1 max-w-xl font-tajawal leading-relaxed">
-                بقرية كفر يوسف حنس.
+                بقرية كفر يوسف حنس — استكشف مستويات المسابقة السبعة، لوائح التحكيم، واستمارات التسجيل وتفاصيل الجوائز الكبرى للمتسابقين.
               </p>
             </div>
           </div>
           <div class="shrink-0 w-full md:w-auto text-center">
             <a href="competition.html" class="btn-action btn-gold-royal !px-6 !py-3.5 !text-sm sm:!text-base font-bold shadow-glow-gold hover:scale-105 inline-flex items-center justify-center gap-2 w-full md:w-auto">
-              <span>الانتقال لمسابقة تاج الوقار</span>
+              <span>الانتقال للمسابقة الكبرى</span>
               <span class="text-base">←</span>
             </a>
           </div>
@@ -1019,6 +1152,9 @@ function renderHome() {
       ${S.phase === 'voting' ? renderVotingPhase() : ''}
       ${S.phase === 'results' ? renderResultsPhase() : ''}
     </div>
+
+    <!-- قسم فريق الإدارة والتنسيق والدعم التقني -->
+    ${renderTeamSection()}
   ` + footer();
 }
 
@@ -1643,6 +1779,23 @@ function renderAdmin() {
         </div>
       </div>
 
+      <!-- نبذة عن إدارة وتنظيم المسابقة -->
+      <div class="card-elevation p-6 mb-8 border border-sandTheme-200">
+        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sandTheme-200">
+          <span class="w-10 h-10 rounded-xl bg-goldTheme-500/15 text-goldTheme-700 flex items-center justify-center text-xl shadow-sm">👥</span>
+          <div>
+            <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold">عن إدارة وتنظيم المسابقة</h3>
+            <p class="text-xs text-sandTheme-800/70 font-tajawal">النبذة المعروضة أعلى قسم فريق العمل في الواجهة الرئيسية</p>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <textarea id="adminInfoInput" rows="3" class="form-control !text-sm leading-relaxed font-tajawal">${esc(S.admin_info || DEFAULT_ADMIN_INFO)}</textarea>
+          <button onclick="saveAdminInfo()" class="btn-action btn-gold-royal !py-2.5 !px-5 !text-xs shadow-sm">
+            <span>💾 حفظ نبذة الإدارة</span>
+          </button>
+        </div>
+      </div>
+
       <!-- قائمة المترشحين للمراجعة والاعتماد -->
       <div class="card-elevation p-6">
         <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-sandTheme-200">
@@ -1819,6 +1972,22 @@ function resetDefaultRules() {
 }
 window.resetDefaultRules = resetDefaultRules;
 
+async function saveAdminInfo() {
+  const text = ($('#adminInfoInput')?.value || '').trim();
+  if (!text) {
+    toast('يرجى إدخال نبذة عن الإدارة قبل الحفظ', 'err');
+    return;
+  }
+  try {
+    await saveSetting('admin_info', text);
+    S.admin_info = text;
+    toast('تم حفظ وتحديث نبذة الإدارة بنجاح', 'ok');
+  } catch (e) {
+    toast('تعذر الحفظ: ' + e.message, 'err');
+  }
+}
+window.saveAdminInfo = saveAdminInfo;
+
 // تحديث مرحلة المسابقة
 async function setPhase(phase) {
   const updates = { phase };
@@ -1948,7 +2117,9 @@ window.deleteApp = deleteApp;
 async function route() {
   const hash = (location.hash || '#/').replace(/^#\/?/, '');
   const page = hash.split('?')[0].split('/')[0] || 'home';
-  window.scrollTo(0, 0);
+  if (!page.startsWith('rules') && !page.startsWith('team')) {
+    window.scrollTo(0, 0);
+  }
 
   await loadSettings();
 
@@ -1972,6 +2143,12 @@ async function route() {
   loadStats().then(renderStats);
   renderHome();
   startCountdown();
+
+  if (page === 'teamSection' || page === 'team') {
+    setTimeout(() => document.getElementById('teamSection')?.scrollIntoView({ behavior: 'smooth' }), 100);
+  } else if (page === 'rules-section' || page === 'rules') {
+    setTimeout(() => document.getElementById('rules-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+  }
 
   if (S.phase === 'registration' && S.registration_open) wireRegForm();
   else if (S.phase === 'voting' && S.voting_open && !hasVoted()) wireVotingPhase();
