@@ -521,6 +521,71 @@ body {
 <div id="app"></div>
 <div class="toast-container" id="toasts"></div>
 
+<!-- نافذة إضافة وتعديل عضو فريق الإدارة -->
+<div id="teamModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+  <div class="card-elevation bg-white w-full max-w-lg rounded-3xl p-6 relative shadow-2xl border-2 border-goldTheme-400 my-8">
+    <div class="flex items-center justify-between pb-3 mb-4 border-b border-sandTheme-200">
+      <h3 id="teamModalTitle" class="font-amiri text-2xl font-bold text-emeraldTheme-950">إضافة عضو جديد</h3>
+      <button onclick="closeTeamModal()" class="w-8 h-8 rounded-full bg-sandTheme-100 hover:bg-sandTheme-200 text-sandTheme-800 flex items-center justify-center text-sm font-bold">✕</button>
+    </div>
+
+    <form id="teamMemberForm" class="space-y-3.5">
+      <input type="hidden" id="tmId">
+
+      <div>
+        <label class="form-label text-xs">الاسم واللقب <span class="text-rose-600">*</span></label>
+        <input id="tmName" class="form-control !py-2 !text-xs" placeholder="مثال: الشيخ / أحمد محمد" required>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="form-label text-xs">المسمى / الدور <span class="text-rose-600">*</span></label>
+          <input id="tmRole" class="form-control !py-2 !text-xs" placeholder="مثال: المشرف العام" required>
+        </div>
+        <div>
+          <label class="form-label text-xs">التصنيف / القسم</label>
+          <select id="tmCategory" class="form-control !py-2 !text-xs">
+            <option value="management">الإشراف العام</option>
+            <option value="coordination">التنسيق والمتابعة</option>
+            <option value="tech">الدعم التقني والتطوير</option>
+            <option value="jury">لجنة التحكيم</option>
+            <option value="other">عضو فريق عمل</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="form-label text-xs">رقم الهاتف (للاتصال)</label>
+          <input id="tmPhone" type="tel" dir="ltr" class="form-control !py-2 !text-xs font-mono" placeholder="010XXXXXXXX">
+        </div>
+        <div>
+          <label class="form-label text-xs">رقم الواتساب (للمراسلة)</label>
+          <input id="tmWhatsapp" type="tel" dir="ltr" class="form-control !py-2 !text-xs font-mono" placeholder="010XXXXXXXX">
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label text-xs">نبذة تعريفية مختصرة</label>
+        <textarea id="tmBio" rows="2" class="form-control !py-2 !text-xs font-tajawal" placeholder="نبذة عن خبرة ودور العضو في المسابقة..."></textarea>
+      </div>
+
+      <div>
+        <label class="form-label text-xs">الصورة الشخصية (اختياري)</label>
+        <div class="flex items-center gap-3">
+          <input type="file" id="tmPhotoFile" accept="image/*" class="text-xs flex-1">
+          <input id="tmPhotoUrl" type="url" class="form-control !py-2 !text-xs flex-1" placeholder="أو الصق رابط صورة مباشر">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-sandTheme-200 mt-4">
+        <button type="button" onclick="closeTeamModal()" class="btn-action btn-outline-gold !py-2 !px-4 !text-xs">إلغاء</button>
+        <button id="tmSaveBtn" type="submit" class="btn-action btn-gold-royal !py-2 !px-5 !text-xs">💾 حفظ بيانات العضو</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 /* ===================================================================
    مسابقة الطالب المثالي — النسخة المطورة والملكية الفاخرة
@@ -536,7 +601,7 @@ const DEFAULT_VILLAGE = 'كفر يوسف حنس';
 const VILLAGES = ['كفر يوسف حنس'];
 const LEVELS = [];
 
-// الشعار الرسمي المعتمد للمسابقة الكبرى لحفظ القرآن الكريم
+// الشعار الرسمي المعتمد لمسابقة تاج الوقار لحفظ القرآن الكريم
 const MUSHAF_SVG = `<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="60" cy="60" r="57" fill="#0F3D2C" stroke="#C9A227" stroke-width="2.5"/><circle cx="60" cy="60" r="52" fill="none" stroke="#C9A227" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/><g transform="translate(51.4 6.9) scale(0.72)"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#E0C468"/></g><path d="M69 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#E0C468"/><g fill="#C9A227"><line x1="38" y1="15" x2="38" y2="23.5"/><rect x="35" y="24" width="6" height="8" rx="2"/><rect x="37" y="26.5" width="2" height="4" rx="1" fill="#0F3D2C"/><circle cx="38" cy="33.5" r="1"/><line x1="82" y1="15" x2="82" y2="23.5"/><rect x="79" y="24" width="6" height="8" rx="2"/><rect x="81" y="26.5" width="2" height="4" rx="1" fill="#0F3D2C"/><circle cx="82" cy="33.5" r="1"/></g><g fill="#C9A227"><path d="M60 30C49 40 47.5 48 47.5 54h25C72.5 48 71 40 60 30z"/><rect x="45.5" y="54" width="29" height="3" rx="1"/><rect x="52" y="57" width="16" height="18" rx="1"/><rect x="35.5" y="50" width="3.5" height="27" rx="1"/><rect x="34.75" y="57" width="5" height="2.5" rx="1"/><circle cx="37.25" cy="48" r="2.6"/><path d="M35.5 46.5h3.5l-1.75-4z"/><rect x="81" y="50" width="3.5" height="27" rx="1"/><rect x="80.25" y="57" width="5" height="2.5" rx="1"/><circle cx="82.75" cy="48" r="2.6"/><path d="M81 46.5h3.5l-1.75-4z"/></g><path d="M57 75v-7q3-5 6 0v7z" fill="#0F3D2C"/><rect x="53.5" y="61" width="2" height="4" rx="1" fill="#0F3D2C"/><rect x="64.5" y="61" width="2" height="4" rx="1" fill="#0F3D2C"/><path d="M32 86c8-4.5 19-4.5 28 0 9-4.5 20-4.5 28 0v7c-8-4.5-19-4.5-28 0-9-4.5-20-4.5-28 0z" fill="#E0C468"/><path d="M60 86v7" stroke="#0F3D2C" stroke-width="1.3"/><g fill="#C9A227"><rect x="58.2" y="99.2" width="3.6" height="3.6" transform="rotate(45 60 101)"/><rect x="48" y="99.9" width="2.2" height="2.2" transform="rotate(45 49.1 101)"/><rect x="69.8" y="99.9" width="2.2" height="2.2" transform="rotate(45 70.9 101)"/><line x1="31" y1="101" x2="45" y2="101"/><line x1="75" y1="101" x2="89" y2="101"/></g></svg>`;
 
 // الشروط الافتراضية الأنيقة (مقصورة على قرية كفر يوسف حنس ودون اشتراط مستويات)
@@ -555,7 +620,16 @@ const DEFAULT_TEAM = [
   { id: 't2', name: 'أ. أحمد يوسف', role: 'المنسق العام للمسابقة ولجان المتابعة', category: 'coordination', phone: '01000000002', whatsapp: '01000000002', bio: 'مسؤول تنظيم لجان الاختبارات واستقبال المتسابقين والتنسيق الإداري', photo: '' },
   { id: 't3', name: 'م. محمد خليل', role: 'المسؤول التقني ومطور المنصة', category: 'tech', phone: '01000000003', whatsapp: '01000000003', bio: 'إدارة وتطوير المنصة الرقمية وبث الفعاليات والدعم الفني', photo: '' }
 ];
-const DEFAULT_ADMIN_INFO = 'المسابقة الكبرى لحفظ القرآن الكريم ومسابقة الطالب المثالي تقام سنوياً برعاية بيت مال المسلمين بكفر يوسف حنس، بهدف غرس القيم والأخلاق الرفيعة وتشجيع الأجيال الناشئة على التميز القرآني والسلوكي وتكريم المتفوقين.';
+const DEFAULT_ADMIN_INFO = 'مسابقة تاج الوقار لحفظ القرآن الكريم ومسابقة الطالب المثالي تقام سنوياً برعاية بيت مال المسلمين بكفر يوسف حنس، بهدف غرس القيم والأخلاق الرفيعة وتشجيع الأجيال الناشئة على التميز القرآني والسلوكي وتكريم المتفوقين.';
+
+// المساحة المخصصة للكتابة على واجهة المنصة (تنبيهات وبيانات الإدارة)
+const DEFAULT_NOTICE = {
+  active: true,
+  badge: '📢 كلمة إدارة المسابقة',
+  title: 'مساحة مخصصة: تنويه وإعلان هام من اللجنة المنظمة',
+  content: 'أهلاً وسهلاً بكم في المنصة الرسمية لمسابقة الطالب المثالي برعاية مسابقة تاج الوقار لحفظ القرآن الكريم بقرية كفر يوسف حنس.\nنحث جميع الطلاب المتفوقين خلقياً وعلمياً على المبادرة بالترشح، وندعو أولياء الأمور إلى متابعة المستجدات ومراحل التصويت أولاً بأول.',
+  date: todayISO()
+};
 
 // الحالة العامة للتطبيق
 let S = {
@@ -567,6 +641,7 @@ let S = {
   rules: [...DEFAULT_RULES],
   team: [...DEFAULT_TEAM],
   admin_info: DEFAULT_ADMIN_INFO,
+  notice: { ...DEFAULT_NOTICE },
   candidates: [],
   voteCounts: {},
   voterVoted: false,
@@ -696,9 +771,15 @@ async function loadSettings() {
       else if (r.key === 'admin_info') {
         if (typeof v === 'string' && v.trim()) S.admin_info = v;
       }
+      else if (r.key === 'platform_notice') {
+        try {
+          const parsed = typeof v === 'string' ? JSON.parse(v) : v;
+          if (parsed && typeof parsed === 'object') S.notice = { ...DEFAULT_NOTICE, ...parsed };
+        } catch(e) {}
+      }
     });
 
-    // جلب بيانات فريق العمل من إعدادات المسابقة الكبرى للمزامنة التلقائية إن وُجدت
+    // جلب بيانات فريق العمل من إعدادات مسابقة تاج الوقار للمزامنة التلقائية إن وُجدت
     try {
       const { data: siteData } = await sb.from('app_settings').select('key,value').eq('key', 'site').maybeSingle();
       if (siteData && siteData.value) {
@@ -880,22 +961,22 @@ function header() {
           <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gold-metallic flex items-center justify-center text-xl sm:text-2xl shadow-lg border border-goldTheme-200 group-hover:scale-105 transition-transform shrink-0">
             🎓
           </div>
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shadow-md border-2 border-goldTheme-400/80 group-hover:scale-105 transition-transform shrink-0 bg-emeraldTheme-950 p-0.5" title="شعار المسابقة الكبرى لحفظ القرآن الكريم">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shadow-md border-2 border-goldTheme-400/80 group-hover:scale-105 transition-transform shrink-0 bg-emeraldTheme-950 p-0.5" title="شعار مسابقة تاج الوقار لحفظ القرآن الكريم">
             ${MUSHAF_SVG}
           </div>
           <div>
             <h1 class="font-amiri text-base sm:text-xl text-goldTheme-300 font-bold leading-tight">مسابقة الطالب المثالي</h1>
-            <p class="text-[10px] sm:text-[11px] text-sandTheme-200/80 font-tajawal hidden xs:block">برعاية المسابقة الكبرى لحفظ القرآن الكريم — بيت مال المسلمين</p>
+            <p class="text-[10px] sm:text-[11px] text-sandTheme-200/80 font-tajawal hidden xs:block">برعاية مسابقة تاج الوقار لحفظ القرآن الكريم — بيت مال المسلمين</p>
           </div>
         </a>
         <nav class="flex items-center gap-1.5 sm:gap-2.5">
           <a href="#/" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl">الرئيسية</a>
           <a href="#rules-section" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl hidden md:inline-flex">الشروط</a>
           <a href="#teamSection" class="btn-action btn-outline-light !py-2 !px-2.5 sm:!px-4 !text-xs sm:!text-sm rounded-xl hidden lg:inline-flex">فريق العمل</a>
-          <!-- أيقونة ورابط المسابقة الكبرى مع الشعار -->
-          <a href="competition.html" class="btn-action !bg-emeraldTheme-900 !text-goldTheme-300 border border-goldTheme-400/60 hover:!bg-emeraldTheme-800 !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl flex items-center gap-1.5 shadow-md transition font-bold" title="الانتقال إلى المسابقة الكبرى لحفظ القرآن الكريم">
+          <!-- أيقونة ورابط مسابقة تاج الوقار مع الشعار -->
+          <a href="competition.html" class="btn-action !bg-emeraldTheme-900 !text-goldTheme-300 border border-goldTheme-400/60 hover:!bg-emeraldTheme-800 !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl flex items-center gap-1.5 shadow-md transition font-bold" title="الانتقال إلى مسابقة تاج الوقار لحفظ القرآن الكريم">
             <span class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 inline-block">${MUSHAF_SVG}</span>
-            <span>المسابقة الكبرى</span>
+            <span>مسابقة تاج الوقار</span>
           </a>
           <a href="#/admin" class="btn-action btn-gold-royal !py-2 !px-2.5 sm:!px-3.5 !text-xs sm:!text-sm rounded-xl font-bold">الإدارة ⚙️</a>
         </nav>
@@ -918,7 +999,7 @@ function footer() {
           ${MUSHAF_SVG}
         </div>
         <p class="font-amiri text-2xl text-goldTheme-400 font-bold">مسابقة الطالب المثالي</p>
-        <p class="text-sm text-sandTheme-100">تحت إشراف إدارة المسابقة الكبرى لحفظ القرآن الكريم — بيت مال المسلمين بكفر يوسف حنس</p>
+        <p class="text-sm text-sandTheme-100">تحت إشراف إدارة مسابقة تاج الوقار لحفظ القرآن الكريم — بيت مال المسلمين بكفر يوسف حنس</p>
         <div class="w-20 h-0.5 bg-gold-metallic mx-auto my-2 rounded-full"></div>
         <p class="text-xs text-goldTheme-300/70 font-amiri text-base">﴿ وَقُل رَّبِّ زِدْنِي عِلْمًا ﴾</p>
         <div class="pt-2 flex justify-center items-center flex-wrap gap-3 text-xs">
@@ -927,7 +1008,7 @@ function footer() {
           <a href="#teamSection" class="text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">فريق الإدارة والتنسيق</a>
           <span class="text-goldTheme-500/60">•</span>
           <a href="competition.html" class="inline-flex items-center gap-1.5 text-goldTheme-300 hover:text-goldTheme-100 underline decoration-goldTheme-500/50">
-            <span>البوابة الرسمية للمسابقة الكبرى</span>
+            <span>البوابة الرسمية لمسابقة تاج الوقار</span>
             <span>←</span>
           </a>
         </div>
@@ -1042,6 +1123,35 @@ function renderTeamSection() {
   `;
 }
 
+// ===== المساحة المخصصة للكتابة على واجهة المنصة =====
+function renderPlatformNotice() {
+  if (!S.notice || !S.notice.active || (!S.notice.title && !S.notice.content)) return '';
+
+  return `
+    <section id="platform-notice-section" class="max-w-5xl mx-auto px-4 -mt-4 mb-6 relative z-20">
+      <div class="card-elevation p-5 sm:p-7 bg-gradient-to-r from-emeraldTheme-950 via-royal-dark to-emeraldTheme-950 text-sandTheme-50 border-2 border-goldTheme-400 rounded-3xl shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-goldTheme-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-start gap-4 sm:gap-5 relative z-10">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gold-metallic text-emeraldTheme-950 flex items-center justify-center text-2xl sm:text-3xl shadow-lg border border-goldTheme-200 shrink-0 mt-0.5">
+            📢
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+              <span class="tag-badge tag-badge-gold text-xs font-bold">${esc(S.notice.badge || 'بيان رسمي')}</span>
+              ${S.notice.date ? `<span class="text-[11px] text-sandTheme-200/70 font-cairo">📅 ${esc(S.notice.date)}</span>` : ''}
+              <span class="text-[10px] text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">● من إدارة المسابقة</span>
+            </div>
+            ${S.notice.title ? `<h3 class="font-amiri text-xl sm:text-2xl font-bold text-gold-shimmer mb-2 leading-snug">${esc(S.notice.title)}</h3>` : ''}
+            <div class="text-xs sm:text-sm text-sandTheme-100/95 leading-relaxed font-tajawal whitespace-pre-line bg-black/25 p-3.5 sm:p-4 rounded-xl border border-white/10 shadow-inner">
+              ${esc(S.notice.content)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 // ===== الصفحة الرئيسية الكاملة =====
 function renderHome() {
   const phaseLabels = { registration: 'مرحلة الترشح والتقديم', voting: 'مرحلة التصويت العام', results: 'مرحلة إعلان النتائج والتتويج' };
@@ -1057,7 +1167,7 @@ function renderHome() {
       <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#d4af37 1px, transparent 1px); background-size: 24px 24px;"></div>
       <div class="relative max-w-5xl mx-auto px-4 text-center">
         <div class="inline-block bg-goldTheme-500/15 border border-goldTheme-400/40 rounded-full px-5 py-1.5 text-xs text-goldTheme-300 font-bold mb-6 backdrop-blur-md">
-          🏆 الدورة السنوية الكبرى — موسم ٢٠٢٦–٢٠٢٧
+          🏆 الدورة السنوية — موسم ٢٠٢٦–٢٠٢٧
         </div>
         
         <div class="frame-islamic inline-block px-8 sm:px-14 py-6 rounded-2xl bg-emeraldTheme-950/60 backdrop-blur-md mb-6 relative">
@@ -1108,34 +1218,37 @@ function renderHome() {
       </div>
     </section>
 
-    <!-- مساحة مخصصة وبطاقة تعريفية للمسابقة الكبرى لحفظ القرآن الكريم مع الشعار -->
-    <section class="max-w-5xl mx-auto px-4 -mt-8 mb-6 relative z-20">
+    <!-- المساحة المخصصة للكتابة على واجهة المنصة (تنبيهات وبيانات الإدارة) -->
+    ${renderPlatformNotice()}
+
+    <!-- بطاقة تعريفية لمسابقة تاج الوقار لحفظ القرآن الكريم مع الشعار -->
+    <section class="max-w-5xl mx-auto px-4 -mt-4 mb-6 relative z-20">
       <div class="card-elevation p-6 sm:p-8 bg-gradient-to-r from-emeraldTheme-950 via-royal-dark to-emeraldTheme-950 text-sandTheme-50 border-2 border-goldTheme-500/70 rounded-3xl shadow-2xl relative overflow-hidden">
         <div class="absolute -top-12 -left-12 w-48 h-48 bg-goldTheme-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div class="flex items-center gap-5 text-center md:text-right flex-col md:flex-row">
-            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-goldTheme-400 shadow-glow-gold shrink-0 bg-emeraldTheme-950 p-1 group hover:scale-105 transition-transform" title="شعار المسابقة الكبرى لحفظ القرآن الكريم">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-goldTheme-400 shadow-glow-gold shrink-0 bg-emeraldTheme-950 p-1 group hover:scale-105 transition-transform" title="شعار مسابقة تاج الوقار لحفظ القرآن الكريم">
               ${MUSHAF_SVG}
             </div>
             <div>
               <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-goldTheme-500/20 text-goldTheme-300 border border-goldTheme-400/40 mb-2">
-                <span>📖 المسابقة الأم</span>
+                <span>📖 مسابقة القرآن الكريم</span>
                 <span>•</span>
                 <span>تحت إشراف بيت مال المسلمين</span>
               </div>
               <h2 class="font-amiri text-2xl sm:text-3xl font-bold text-gold-shimmer">
-                المسابقة الكبرى لحفظ القرآن الكريم
+                مسابقة تاج الوقار لحفظ القرآن الكريم
               </h2>
               <p class="text-xs sm:text-sm text-sandTheme-200/90 mt-1 max-w-xl font-tajawal leading-relaxed">
-                بقرية كفر يوسف حنس — استكشف مستويات المسابقة السبعة، لوائح التحكيم، واستمارات التسجيل وتفاصيل الجوائز الكبرى للمتسابقين.
+                بقرية كفر يوسف حنس — استكشف مستويات المسابقة السبعة، لوائح التحكيم، واستمارات التسجيل وتفاصيل الجوائز للمتسابقين.
               </p>
             </div>
           </div>
           <div class="shrink-0 w-full md:w-auto text-center">
             <a href="competition.html" class="btn-action btn-gold-royal !px-6 !py-3.5 !text-sm sm:!text-base font-bold shadow-glow-gold hover:scale-105 inline-flex items-center justify-center gap-2 w-full md:w-auto">
-              <span>الانتقال للمسابقة الكبرى</span>
+              <span>الانتقال لمسابقة تاج الوقار</span>
               <span class="text-base">←</span>
             </a>
           </div>
@@ -1684,7 +1797,7 @@ function renderAdminLogin() {
   });
 }
 
-// ===== لوحة الإدارة الكاملة مع إدارة الشروط =====
+// ===== لوحة الإدارة الكاملة مع إدارة الشروط وفريق العمل والمساحة المخصصة =====
 function renderAdmin() {
   if (!S.adminLogged) return renderAdminLogin();
 
@@ -1694,10 +1807,14 @@ function renderAdmin() {
     <section class="max-w-6xl mx-auto px-4 py-8">
       <div class="flex items-center justify-between flex-wrap gap-4 mb-8 pb-4 border-b border-sandTheme-200">
         <div>
-          <span class="tag-badge tag-badge-gold text-xs mb-1">لوحة التحكم الإدارية</span>
+          <span class="tag-badge tag-badge-gold text-xs mb-1">لوحة التحكم الإدارية الشاملة</span>
           <h2 class="font-amiri text-3xl text-emeraldTheme-950 font-bold">إدارة مسابقة الطالب المثالي</h2>
+          <p class="text-xs text-sandTheme-800/70 font-tajawal">التحكم في مراحل المسابقة، الشروط، الفريق، التنبيهات والطلبات</p>
         </div>
-        <button onclick="adminLogout()" class="btn-action btn-outline-gold !py-2 !px-4 !text-xs">🚪 خروج</button>
+        <div class="flex items-center gap-2">
+          <a href="#/" class="btn-action btn-outline-gold !py-2 !px-3.5 !text-xs">👁️ معاينة الواجهة</a>
+          <button onclick="adminLogout()" class="btn-action !bg-rose-50 !text-rose-700 !border-rose-200 hover:!bg-rose-100 !py-2 !px-3.5 !text-xs">🚪 خروج</button>
+        </div>
       </div>
 
       <!-- بطاقات الإحصائيات السريعة -->
@@ -1720,30 +1837,107 @@ function renderAdmin() {
         </div>
       </div>
 
-      <!-- قسم إدارة شروط المسابقة (الميزة المطلوبة) -->
-      <div class="card-elevation p-6 mb-8 border-2 border-goldTheme-400/60 bg-gradient-to-b from-white to-goldTheme-50/30">
+      <!-- 1. التحكم في مراحل المسابقة ومواعيدها -->
+      <div class="card-elevation p-6 mb-8 border border-sandTheme-200">
+        <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold mb-2 flex items-center gap-2">
+          <span>⚙️</span>
+          مراحل المسابقة ومواعيدها
+        </h3>
+        <p class="text-xs text-sandTheme-800/70 font-tajawal mb-4">انقر على أي مرحلة لتفعيلها فوراً وتحديث ما يظهر للمتسابقين والجمهور</p>
+        <div class="grid sm:grid-cols-3 gap-4">
+          <button onclick="setPhase('registration')" class="btn-action ${S.phase === 'registration' ? 'btn-gold-royal glow-gold' : 'btn-outline-gold'} !py-4 flex-col gap-1">
+            <span class="text-2xl">📝</span>
+            <span class="font-bold">مرحلة الترشحات</span>
+            <small class="text-[10px] opacity-80">${S.registration_open ? '✓ مفتوح للتقديم' : '✗ مغلق'}</small>
+          </button>
+          <button onclick="setPhase('voting')" class="btn-action ${S.phase === 'voting' ? 'btn-gold-royal glow-gold' : 'btn-outline-gold'} !py-4 flex-col gap-1">
+            <span class="text-2xl">🗳️</span>
+            <span class="font-bold">مرحلة التصويت</span>
+            <small class="text-[10px] opacity-80">${S.voting_open ? '✓ مفتوح للجمهور' : '✗ مغلق'}</small>
+          </button>
+          <button onclick="setPhase('results')" class="btn-action ${S.phase === 'results' ? 'btn-gold-royal glow-gold' : 'btn-outline-gold'} !py-4 flex-col gap-1">
+            <span class="text-2xl">🏆</span>
+            <span class="font-bold">إعلان النتائج والتتويج</span>
+            <small class="text-[10px] opacity-80">${S.results_visible ? '✓ النتائج معلنة' : '✗ مخفية'}</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. مساحة مخصصة للكتابة على واجهة المنصة (تنبيهات وبيانات الإدارة) -->
+      <div class="card-elevation p-6 mb-8 border-2 border-goldTheme-400/80 bg-gradient-to-b from-white to-goldTheme-50/20">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-goldTheme-200">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-gold-metallic text-emeraldTheme-950 flex items-center justify-center text-xl shadow-sm">📢</span>
+            <div>
+              <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold">المساحة المخصصة للكتابة على واجهة المنصة</h3>
+              <p class="text-xs text-sandTheme-800/70 font-tajawal">اكتب كلمة، بياناً رسمياً، أو تنويهات عاجلة تظهر لجميع الزوار على الواجهة الرئيسية</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-2 cursor-pointer bg-emeraldTheme-900/10 px-3 py-1.5 rounded-xl border border-goldTheme-400/40">
+              <input type="checkbox" id="noticeActive" class="w-4 h-4 accent-goldTheme-600 rounded" ${S.notice && S.notice.active ? 'checked' : ''}>
+              <span class="text-xs font-bold text-emeraldTheme-950">إظهار على الواجهة</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label text-xs">شارة التنبيه (أعلى البيان)</label>
+              <input id="noticeBadge" class="form-control !py-2 !text-xs font-bold" value="${esc(S.notice?.badge || '📢 كلمة إدارة المسابقة')}" placeholder="مثال: 📢 بيان عاجل / كلمة الإدارة">
+            </div>
+            <div>
+              <label class="form-label text-xs">تاريخ البيان (اختياري)</label>
+              <input id="noticeDate" type="date" class="form-control !py-2 !text-xs" value="${esc(S.notice?.date || todayISO())}">
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-xs">عنوان البيان أو الكلمة <span class="text-rose-600">*</span></label>
+            <input id="noticeTitle" class="form-control !py-2 !text-xs font-bold font-amiri text-base" value="${esc(S.notice?.title || '')}" placeholder="اكتب عنواناً جذاباً وواضحاً للبيان">
+          </div>
+
+          <div>
+            <label class="form-label text-xs">نص البيان أو التنويه بالتفصيل <span class="text-rose-600">*</span></label>
+            <textarea id="noticeContent" rows="4" class="form-control !text-xs leading-relaxed font-tajawal" placeholder="اكتب هنا أي تنبيهات أو توجيهات أو كلمة موجهة لأبناء القرية والمتسابقين...">${esc(S.notice?.content || '')}</textarea>
+          </div>
+
+          <div class="flex items-center gap-3 flex-wrap pt-2">
+            <button onclick="savePlatformNotice()" class="btn-action btn-gold-royal !py-2.5 !px-6 !text-xs shadow-md font-bold">
+              <span>💾 نشر وتحديث المساحة على الواجهة</span>
+            </button>
+            <button onclick="clearPlatformNotice()" class="btn-action btn-outline-gold !py-2.5 !px-4 !text-xs">
+              مسح وإخفاء المساحة
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. قسم إدارة شروط وضوابط المسابقة -->
+      <div class="card-elevation p-6 mb-8 border-2 border-goldTheme-400/60 bg-gradient-to-b from-white to-goldTheme-50/20">
         <div class="flex items-center justify-between flex-wrap gap-2 mb-4 pb-3 border-b border-goldTheme-200">
           <div class="flex items-center gap-3">
             <span class="w-10 h-10 rounded-xl bg-gold-metallic text-emeraldTheme-950 flex items-center justify-center text-xl shadow-sm">📜</span>
             <div>
               <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold">إدارة وتعديل شروط المسابقة</h3>
-              <p class="text-xs text-sandTheme-800/70 font-tajawal">الشروط المدخلة هنا ستظهر تلقائياً في الواجهة الرئيسية للموقع</p>
+              <p class="text-xs text-sandTheme-800/70 font-tajawal">اكتب أو عدّل الشروط (سطر لكل شرط) لتظهر تلقائياً كبطاقات أنيقة في الواجهة</p>
             </div>
           </div>
-          <span class="tag-badge tag-badge-gold text-xs">تعرض في الرئيسية</span>
+          <span class="tag-badge tag-badge-gold text-xs">تظهر في الرئيسية</span>
         </div>
 
         <div class="space-y-4">
           <div>
             <label class="form-label text-sm text-emeraldTheme-900">
-              اكتب الشروط والضوابط (اكتب كل شرط في سطر مستقل):
+              الشروط والضوابط المعتمدة:
             </label>
             <textarea id="rulesInput" rows="7" class="form-control !text-sm leading-relaxed font-tajawal" placeholder="أدخل كل شرط في سطر جديد...">${esc(rulesText)}</textarea>
-            <p class="text-[11px] text-sandTheme-800/60 mt-1 font-tajawal">💡 نصيحة: اجعل كل شرط محدداً وموجزاً ليظهر بشكل بطاقة أنيقة في الواجهة الرئيسية.</p>
+            <p class="text-[11px] text-sandTheme-800/60 mt-1 font-tajawal">💡 يمكنك إضافة أي شروط جديدة أو مسح شروط قديمة ثم الضغط على زر الحفظ.</p>
           </div>
 
           <div class="flex items-center gap-3 flex-wrap">
-            <button onclick="saveCompetitionRules()" class="btn-action btn-gold-royal !py-2.5 !px-6 !text-sm shadow-md">
+            <button onclick="saveCompetitionRules()" class="btn-action btn-gold-royal !py-2.5 !px-6 !text-sm shadow-md font-bold">
               <span>💾 حفظ وتحديث الشروط في الواجهة</span>
             </button>
             <button onclick="resetDefaultRules()" class="btn-action btn-outline-gold !py-2.5 !px-4 !text-xs">
@@ -1754,54 +1948,50 @@ function renderAdmin() {
         </div>
       </div>
 
-      <!-- التحكم في مراحل المسابقة -->
-      <div class="card-elevation p-6 mb-8">
-        <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold mb-4 flex items-center gap-2">
-          <span>⚙️</span>
-          مراحل المسابقة ومواعيدها
-        </h3>
-        <div class="grid sm:grid-cols-3 gap-4 mb-4">
-          <button onclick="setPhase('registration')" class="btn-action ${S.phase === 'registration' ? 'btn-gold-royal glow-gold' : 'btn-outline-gold'} !py-4 flex-col gap-1">
-            <span class="text-2xl">📝</span>
-            <span class="font-bold">مرحلة الترشحات</span>
-            <small class="text-[10px] opacity-75">${S.registration_open ? '✓ مفتوح للتقديم' : '✗ مغلق'}</small>
-          </button>
-          <button onclick="setPhase('voting')" class="btn-action ${S.phase === 'voting' ? 'btn-gold-royal glow-gold' : 'btn-outline-gold'} !py-4 flex-col gap-1">
-            <span class="text-2xl">🗳️</span>
-            <span class="font-bold">مرحلة التصويت</span>
-            <small class="text-[10px] opacity-75">${S.voting_open ? '✓ مفتوح للجمهور' : '✗ مغلق'}</small>
-          </button>
-          <button onclick="setPhase('results')" class="btn-action ${S.phase === 'results' ? 'btn-gold-royal glow-gold' : 'btn-outline-gold'} !py-4 flex-col gap-1">
-            <span class="text-2xl">🏆</span>
-            <span class="font-bold">إعلان النتائج</span>
-            <small class="text-[10px] opacity-75">${S.results_visible ? '✓ النتائج معلنة' : '✗ مخفية'}</small>
+      <!-- 4. قسم إدارة وتعديل فريق العمل (إضافة، تعديل، حذف الأعضاء) -->
+      <div class="card-elevation p-6 mb-8 border-2 border-goldTheme-400/60 bg-gradient-to-b from-white to-goldTheme-50/20">
+        <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-goldTheme-200">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-gold-metallic text-emeraldTheme-950 flex items-center justify-center text-xl shadow-sm">👥</span>
+            <div>
+              <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold">فريق الإدارة والتنسيق والدعم التقني</h3>
+              <p class="text-xs text-sandTheme-800/70 font-tajawal">تحكم كامل في أعضاء الفريق: إضافة عضو جديد، تعديل البيانات، أو الحذف</p>
+            </div>
+          </div>
+          <button onclick="openTeamModal()" class="btn-action btn-gold-royal !py-2.5 !px-4 !text-xs !rounded-xl shadow-md flex items-center gap-1.5 font-bold">
+            <span>➕ إضافة عضو جديد</span>
           </button>
         </div>
-      </div>
 
-      <!-- نبذة عن إدارة وتنظيم المسابقة -->
-      <div class="card-elevation p-6 mb-8 border border-sandTheme-200">
-        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-sandTheme-200">
-          <span class="w-10 h-10 rounded-xl bg-goldTheme-500/15 text-goldTheme-700 flex items-center justify-center text-xl shadow-sm">👥</span>
-          <div>
-            <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold">عن إدارة وتنظيم المسابقة</h3>
-            <p class="text-xs text-sandTheme-800/70 font-tajawal">النبذة المعروضة أعلى قسم فريق العمل في الواجهة الرئيسية</p>
+        <!-- نبذة عن إدارة وتنظيم المسابقة -->
+        <div class="mb-6 p-4 rounded-xl bg-white border border-sandTheme-200">
+          <label class="form-label text-xs text-emeraldTheme-900 mb-1">
+            نبذة عن إدارة وتنظيم المسابقة (تظهر في أعلى قسم الفريق بالواجهة الرئيسية):
+          </label>
+          <div class="flex gap-2 flex-col sm:flex-row">
+            <textarea id="adminInfoInput" rows="2" class="form-control !text-xs leading-relaxed font-tajawal flex-1">${esc(S.admin_info || DEFAULT_ADMIN_INFO)}</textarea>
+            <button onclick="saveAdminInfo()" class="btn-action btn-outline-gold !py-2 !px-4 !text-xs shrink-0 self-end sm:self-auto font-bold">
+              <span>💾 حفظ النبذة</span>
+            </button>
           </div>
         </div>
-        <div class="space-y-4">
-          <textarea id="adminInfoInput" rows="3" class="form-control !text-sm leading-relaxed font-tajawal">${esc(S.admin_info || DEFAULT_ADMIN_INFO)}</textarea>
-          <button onclick="saveAdminInfo()" class="btn-action btn-gold-royal !py-2.5 !px-5 !text-xs shadow-sm">
-            <span>💾 حفظ نبذة الإدارة</span>
-          </button>
+
+        <!-- قائمة أعضاء الفريق في لوحة الإدارة -->
+        <div class="mb-2 flex items-center justify-between">
+          <h4 class="font-amiri text-lg font-bold text-emeraldTheme-950">الأعضاء الحاليون في الفريق:</h4>
+          <span class="text-xs text-sandTheme-800/60 font-tajawal">يمكنك التعديل أو الحذف لكل عضو</span>
+        </div>
+        <div id="adminTeamList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- يتم ملؤها ديناميكياً بواسطة renderAdminTeamList() -->
         </div>
       </div>
 
-      <!-- قائمة المترشحين للمراجعة والاعتماد -->
-      <div class="card-elevation p-6">
+      <!-- 5. قائمة المترشحين للمراجعة والاعتماد -->
+      <div class="card-elevation p-6 border border-sandTheme-200">
         <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-sandTheme-200">
           <div>
             <h3 class="font-amiri text-2xl text-emeraldTheme-950 font-bold flex items-center gap-2">
-              <span>👥</span>
+              <span>👤</span>
               طلبات الترشح المرفوعة
             </h3>
             <p class="text-xs text-sandTheme-800/70 font-tajawal mt-0.5">مراجعة واعتماد وتصدير بيانات جميع المتقدمين</p>
@@ -1818,6 +2008,10 @@ function renderAdmin() {
       </div>
     </section>
   ` + footer();
+
+  // تفعيل قائمة الفريق وتوصيل النموذج فوراً
+  renderAdminTeamList();
+  wireTeamMemberForm();
 }
 
 // ===== تصدير بيانات المتقدمين إلى ملف Excel =====
@@ -1987,6 +2181,223 @@ async function saveAdminInfo() {
   }
 }
 window.saveAdminInfo = saveAdminInfo;
+
+// ===== حفظ وتحديث المساحة المخصصة للكتابة على الواجهة =====
+async function savePlatformNotice() {
+  const active = $('#noticeActive')?.checked || false;
+  const badge = ($('#noticeBadge')?.value || '').trim() || '📢 كلمة إدارة المسابقة';
+  const date = ($('#noticeDate')?.value || '').trim();
+  const title = ($('#noticeTitle')?.value || '').trim();
+  const content = ($('#noticeContent')?.value || '').trim();
+
+  if (active && (!title || !content)) {
+    toast('يرجى إدخال عنوان ونص البيان قبل النشر على الواجهة', 'err');
+    return;
+  }
+
+  S.notice = { active, badge, date, title, content };
+  try {
+    await saveSetting('platform_notice', S.notice);
+    toast('تم حفظ ونشر المساحة المخصصة على الواجهة بنجاح ✨', 'ok');
+  } catch (e) {
+    toast('تعذر الحفظ: ' + e.message, 'err');
+  }
+}
+window.savePlatformNotice = savePlatformNotice;
+
+async function clearPlatformNotice() {
+  if (!confirm('هل تريد مسح محتوى المساحة وإخفائها من الواجهة الرئيسية؟')) return;
+  S.notice = { active: false, badge: '📢 كلمة إدارة المسابقة', date: '', title: '', content: '' };
+  if ($('#noticeActive')) $('#noticeActive').checked = false;
+  if ($('#noticeTitle')) $('#noticeTitle').value = '';
+  if ($('#noticeContent')) $('#noticeContent').value = '';
+  try {
+    await saveSetting('platform_notice', S.notice);
+    toast('تم مسح وإخفاء المساحة من الواجهة', 'ok');
+  } catch (e) {
+    toast('تعذر التحديث: ' + e.message, 'err');
+  }
+}
+window.clearPlatformNotice = clearPlatformNotice;
+
+// ===== إدارة فريق العمل في لوحة الإدارة (إضافة، تعديل، حذف) =====
+function renderAdminTeamList() {
+  const box = $('#adminTeamList');
+  if (!box) return;
+  const team = S.team || [];
+  if (!team.length) {
+    box.innerHTML = `<div class="col-span-full text-center py-8 text-sandTheme-800/60 text-xs font-tajawal bg-sandTheme-50 border border-dashed border-sandTheme-300 rounded-2xl">لا يوجد أعضاء مضافون حالياً. اضغط على زر "➕ إضافة عضو جديد" لإضافة أول عضو.</div>`;
+    return;
+  }
+
+  box.innerHTML = team.map(m => `
+    <div class="border-2 border-sandTheme-200 rounded-2xl p-4 bg-white flex flex-col justify-between shadow-sm hover:border-goldTheme-400 transition">
+      <div>
+        <div class="flex items-start gap-3 mb-2.5">
+          <div class="w-12 h-12 rounded-xl bg-emeraldTheme-950 text-goldTheme-300 border border-goldTheme-400/60 shrink-0 flex items-center justify-center text-lg font-bold overflow-hidden shadow-sm">
+            ${m.photo 
+              ? `<img src="${esc(m.photo)}" class="w-full h-full object-cover" onerror="this.remove()">` 
+              : `<span>${esc((m.name || 'ع')[0])}</span>`}
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border mb-1 ${teamCategoryColor(m.category)}">${esc(teamCategoryName(m.category))}</span>
+            <h4 class="font-amiri text-base font-bold text-emeraldTheme-950 truncate">${esc(m.name)}</h4>
+            <p class="text-xs text-goldTheme-700 font-bold truncate">${esc(m.role || 'مسئول')}</p>
+          </div>
+        </div>
+        ${m.bio ? `<p class="text-[11px] text-sandTheme-800/80 line-clamp-2 bg-sandTheme-50 p-2 rounded-lg font-tajawal mb-2 leading-relaxed">${esc(m.bio)}</p>` : ''}
+        <div class="text-[10px] text-sandTheme-800/70 font-mono space-y-0.5 mb-3 bg-sandTheme-50/50 p-2 rounded-lg">
+          ${m.phone ? `<div>📞 اتصال: ${esc(m.phone)}</div>` : ''}
+          ${m.whatsapp ? `<div>💬 واتساب: ${esc(m.whatsapp)}</div>` : ''}
+        </div>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-sandTheme-100">
+        <button onclick="openTeamModal('${esc(m.id)}')" class="btn-action btn-outline-gold !py-1.5 !px-3 !text-xs flex-1">
+          ✏️ تعديل
+        </button>
+        <button onclick="deleteTeamMember('${esc(m.id)}')" class="btn-action !bg-rose-50 !text-rose-700 hover:!bg-rose-100 !border-rose-200 !py-1.5 !px-3 !text-xs">
+          🗑️ حذف
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+window.renderAdminTeamList = renderAdminTeamList;
+
+function openTeamModal(id = null) {
+  const modal = $('#teamModal');
+  if (!modal) return;
+  const form = $('#teamMemberForm');
+  if (form) form.reset();
+  $('#tmId').value = id || '';
+
+  if (id) {
+    const m = (S.team || []).find(item => String(item.id) === String(id));
+    if (m) {
+      $('#teamModalTitle').textContent = '✏️ تعديل بيانات: ' + (m.name || 'العضو');
+      $('#tmName').value = m.name || '';
+      $('#tmRole').value = m.role || '';
+      $('#tmCategory').value = m.category || 'management';
+      $('#tmPhone').value = m.phone || '';
+      $('#tmWhatsapp').value = m.whatsapp || '';
+      $('#tmBio').value = m.bio || '';
+      $('#tmPhotoUrl').value = m.photo || '';
+    }
+  } else {
+    $('#teamModalTitle').textContent = '➕ إضافة عضو جديد لفريق الإدارة والتنسيق';
+  }
+
+  modal.classList.remove('hidden');
+}
+window.openTeamModal = openTeamModal;
+window.editTeamMember = openTeamModal;
+
+function closeTeamModal() {
+  const modal = $('#teamModal');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeTeamModal = closeTeamModal;
+
+async function deleteTeamMember(id) {
+  const m = (S.team || []).find(item => String(item.id) === String(id));
+  const name = m ? m.name : 'هذا العضو';
+  if (!confirm(`هل أنت متأكد من حذف (${name}) نهائياً من فريق العمل؟`)) return;
+
+  S.team = (S.team || []).filter(item => String(item.id) !== String(id));
+  try {
+    await saveSetting('team', S.team);
+    toast(`تم حذف ${name} بنجاح`, 'ok');
+    renderAdminTeamList();
+  } catch (e) {
+    toast('تعذر حفظ التعديل: ' + e.message, 'err');
+  }
+}
+window.deleteTeamMember = deleteTeamMember;
+
+let teamFormWired = false;
+function wireTeamMemberForm() {
+  const form = $('#teamMemberForm');
+  if (!form || teamFormWired) return;
+  teamFormWired = true;
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = $('#tmSaveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader-spinner"></span> جارٍ الحفظ…';
+
+    try {
+      const id = $('#tmId').value.trim();
+      const name = $('#tmName').value.trim();
+      const role = $('#tmRole').value.trim();
+      const category = $('#tmCategory').value;
+      const phone = $('#tmPhone').value.trim();
+      const whatsapp = $('#tmWhatsapp').value.trim();
+      const bio = $('#tmBio').value.trim();
+      let photo = $('#tmPhotoUrl').value.trim();
+
+      const photoFile = $('#tmPhotoFile')?.files?.[0];
+      if (photoFile) {
+        try {
+          const blob = await compressImg(photoFile, 500);
+          photo = await uploadPhoto(blob);
+        } catch (imgErr) {
+          console.warn('Image upload error:', imgErr);
+        }
+      }
+
+      if (!name || !role) {
+        toast('يرجى إدخال الاسم والمسمى الوظيفي', 'err');
+        btn.disabled = false;
+        btn.innerHTML = '💾 حفظ بيانات العضو';
+        return;
+      }
+
+      if (!Array.isArray(S.team)) S.team = [];
+
+      if (id) {
+        // Edit existing
+        const idx = S.team.findIndex(item => String(item.id) === String(id));
+        if (idx !== -1) {
+          S.team[idx] = {
+            ...S.team[idx],
+            name,
+            role,
+            category,
+            phone,
+            whatsapp,
+            bio,
+            photo: photo || S.team[idx].photo
+          };
+        }
+      } else {
+        // Add new
+        const newId = 't_' + Date.now();
+        S.team.push({
+          id: newId,
+          name,
+          role,
+          category,
+          phone,
+          whatsapp,
+          bio,
+          photo
+        });
+      }
+
+      await saveSetting('team', S.team);
+      toast('تم حفظ بيانات العضو بنجاح ✨', 'ok');
+      closeTeamModal();
+      renderAdminTeamList();
+    } catch (err) {
+      toast('تعذر الحفظ: ' + err.message, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 حفظ بيانات العضو';
+    }
+  });
+}
+window.wireTeamMemberForm = wireTeamMemberForm;
 
 // تحديث مرحلة المسابقة
 async function setPhase(phase) {
