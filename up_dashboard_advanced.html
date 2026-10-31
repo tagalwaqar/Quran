@@ -781,6 +781,14 @@
             <div class="filter-label">📅 <span id="lbl-period">الفترة:</span></div>
             <button class="filter-btn active" data-filter="All" onclick="setFilter('All',this)" id="btn-filter-all">الكل</button>
             <div class="filter-divider"></div>
+
+            <!-- Year Selector Filter Group -->
+            <div id="yearFilterGroup" style="display:none;align-items:center;gap:6px">
+                <div class="filter-label"><span id="lbl-years-filter">السنة:</span></div>
+                <div id="yearBtnContainer" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+                <div class="filter-divider"></div>
+            </div>
+
             <button class="filter-btn" data-filter="Q1" onclick="setFilter('Q1',this)">Q1</button>
             <button class="filter-btn" data-filter="Q2" onclick="setFilter('Q2',this)">Q2</button>
             <button class="filter-btn" data-filter="Q3" onclick="setFilter('Q3',this)">Q3</button>
@@ -1209,8 +1217,13 @@ let currentTheme = 'dark';
 let currentDataset = null;
 let charts = {};
 let selectedMonths = new Set();
+let selectedYearMonths = new Set();
+let selectedYear = 'All';
+let availableYears = [];
+let availableYearMonths = [];
 let availableMonths = [];
 const MONTH_ORDER = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_NAMES_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 const MONTH_MAP = {
     '2026-01':'Jan', '2026-02':'Feb', '2026-03':'Mar', '2026-04':'Apr', '2026-05':'May',
     '2026-06':'Jun', '2026-07':'Jul', '2026-08':'Aug', '2026-09':'Sep', '2026-10':'Oct',
@@ -1512,18 +1525,8 @@ function getWeekNumber(d) {
 }
 
 function parseRowDate(r) {
-    const invDate = gv(r, 'InvoiceDate');
-    if (!invDate) return null;
-    if (typeof invDate === 'number') {
-        const dt = XLSX.SSF.parse_date_code(invDate);
-        if (dt) return new Date(dt.y, dt.m - 1, dt.d);
-    }
-    const s = invDate.toString().split('T')[0].split(' ')[0];
-    const parts = s.split('-');
-    if (parts.length === 3) {
-        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    }
-    return new Date(s);
+    const dt = parseRowDateDetails(r);
+    return dt ? dt.date : null;
 }
 
 // Initialize Movement Radar
@@ -2425,37 +2428,141 @@ function gn(row, field) {
     return (v === null || v === undefined || v === '') ? 0 : (parseFloat(v) || 0);
 }
 
-function getRowMonth(row) {
-    let m = gv(row, 'MONTHS');
-    if (m) {
-        let ms = m.toString().trim();
-        for (let name of MONTH_ORDER) {
-            if (ms.toLowerCase().startsWith(name.toLowerCase())) return name;
-        }
-        return ms;
+
+// =========================================================================
+// === ROBUST MULTI-YEAR & DATE PARSING ENGINE ===
+// =========================================================================
+
+function parseRowDateDetails(r) {
+    if (!r) return null;
+
+    let raw = gv(r, 'InvoiceDate') || gv(r, 'Date') || gv(r, 'TrxTime') || gv(r, 'Trx_open_time') ||
+              gv(r, 'PostingDate') || gv(r, 'DocDate') || gv(r, 'تاريخ الفاتورة') || gv(r, 'التاريخ') || gv(r, 'تاريخ_الفاتورة');
+
+    let explicitYear = gv(r, 'Year') || gv(r, 'YEAR') || gv(r, 'السنة');
+    if (explicitYear) {
+        let ey = parseInt(explicitYear);
+        if (ey >= 2000 && ey <= 2099) explicitYear = ey;
+        else explicitYear = null;
     }
-    let d = gv(row, 'InvoiceDate');
-    if (d) {
-        if (typeof d === 'number') {
-            let dt = XLSX.SSF.parse_date_code(d);
-            if (dt && dt.m >= 1 && dt.m <= 12) return MONTH_ORDER[dt.m - 1];
+
+    let dt = null;
+
+    if (raw !== undefined && raw !== null && raw !== '') {
+        if (typeof raw === 'number') {
+            try {
+                const s = XLSX.SSF.parse_date_code(raw);
+                if (s && s.y >= 2000) {
+                    dt = new Date(s.y, s.m - 1, s.d);
+                }
+            } catch(e) {}
+        } else if (raw instanceof Date) {
+            dt = raw;
         } else {
-            let dtStr = d.toString().split('T')[0].split(' ')[0];
-            let parts = dtStr.split('-');
-            if (parts.length >= 2) {
-                let mNum = parseInt(parts[1]);
-                if (mNum >= 1 && mNum <= 12) return MONTH_ORDER[mNum - 1];
+            let str = raw.toString().trim();
+            // 1. Check YYYY-MM-DD or YYYY/MM/DD
+            let matchISO = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+            if (matchISO) {
+                dt = new Date(parseInt(matchISO[1]), parseInt(matchISO[2]) - 1, parseInt(matchISO[3]));
+            } else {
+                // 2. Check DD/MM/YYYY or MM/DD/YYYY
+                let matchSlash = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+                if (matchSlash) {
+                    let p1 = parseInt(matchSlash[1]);
+                    let p2 = parseInt(matchSlash[2]);
+                    let yr = parseInt(matchSlash[3]);
+                    if (p1 > 12) {
+                        dt = new Date(yr, p2 - 1, p1);
+                    } else if (p2 > 12) {
+                        dt = new Date(yr, p1 - 1, p2);
+                    } else {
+                        // Default to DD/MM/YYYY for Saudi/Middle East locale
+                        dt = new Date(yr, p2 - 1, p1);
+                    }
+                } else {
+                    let parsed = Date.parse(str);
+                    if (!isNaN(parsed)) dt = new Date(parsed);
+                }
             }
         }
     }
-    return 'Jan';
+
+    if (!dt || isNaN(dt.getTime())) {
+        let mCol = gv(r, 'MONTHS') || gv(r, 'Month') || gv(r, 'الشهر');
+        let mIdx = -1;
+        if (mCol) {
+            let ms = mCol.toString().trim().toLowerCase();
+            mIdx = MONTH_ORDER.findIndex(name => ms.startsWith(name.toLowerCase()));
+        }
+        let yr = explicitYear || 2026;
+        if (mIdx !== -1) {
+            dt = new Date(yr, mIdx, 1);
+        } else {
+            return null;
+        }
+    }
+
+    let y = explicitYear || dt.getFullYear();
+    let m = dt.getMonth() + 1; // 1..12
+    let d = dt.getDate();
+
+    let mStr = String(m).padStart(2, '0');
+    let dStr = String(d).padStart(2, '0');
+    let yearMonth = `${y}-${mStr}`;
+    let dayStr = `${y}-${mStr}-${dStr}`;
+
+    let qNum = Math.ceil(m / 3);
+    let quarter = `Q${qNum}`;
+    let half = (m <= 6) ? 'H1' : 'H2';
+
+    let mNameEn = MONTH_ORDER[m - 1] || 'Jan';
+    let mNameAr = MONTH_NAMES_AR[m - 1] || 'يناير';
+
+    return {
+        date: dt,
+        year: y,
+        month: m,
+        day: d,
+        yearMonth: yearMonth,
+        dayStr: dayStr,
+        monthNameShort: mNameEn,
+        monthNameAr: mNameAr,
+        monthLabel: `${mNameEn} ${y}`,
+        monthLabelAr: `${mNameAr} ${y}`,
+        shortYearLabel: `${mNameEn} '${String(y).slice(-2)}`,
+        shortYearLabelAr: `${mNameAr} ${y}`,
+        quarter: quarter,
+        half: half
+    };
+}
+
+function getRowMonth(row) {
+    const dt = parseRowDateDetails(row);
+    return dt ? dt.yearMonth : '2026-01';
 }
 
 function processRawExcelRows(rows, fileName, sheetName) {
-    const allMonths = new Set();
+    const yearsSet = new Set();
+    const ymMap = {}; // yearMonth -> { key, year, month, label, labelAr, shortLabel }
+
     rows.forEach(r => {
-        let m = getRowMonth(r);
-        if (m) allMonths.add(m);
+        let dt = parseRowDateDetails(r);
+        if (dt) {
+            yearsSet.add(dt.year);
+            if (!ymMap[dt.yearMonth]) {
+                ymMap[dt.yearMonth] = {
+                    key: dt.yearMonth,
+                    year: dt.year,
+                    month: dt.month,
+                    label: dt.monthLabel,
+                    labelAr: dt.monthLabelAr,
+                    shortLabel: dt.shortYearLabel,
+                    shortLabelAr: dt.shortYearLabelAr,
+                    quarter: dt.quarter,
+                    half: dt.half
+                };
+            }
+        }
     });
 
     currentDataset = {
@@ -2470,49 +2577,27 @@ function processRawExcelRows(rows, fileName, sheetName) {
     document.getElementById('sheetName').textContent = sheetName;
     document.getElementById('fileInfo').classList.add('show');
 
-    availableMonths = MONTH_ORDER.filter(m => allMonths.has(m));
-    buildMonthButtons(availableMonths);
+    // Available Years
+    availableYears = Array.from(yearsSet).sort();
+    selectedYear = 'All';
+
+    // Available Year-Months in true chronological order
+    availableYearMonths = Object.keys(ymMap).sort().map(k => ymMap[k]);
+
+    // Build Year buttons if more than 1 year exists
+    buildYearButtons(availableYears);
+
+    // Build Month buttons
+    buildMonthButtons();
+
     document.getElementById('filterBar').classList.add('show');
 
-    selectedMonths.clear();
+    selectedYearMonths.clear();
     document.querySelectorAll('#filterBar .filter-btn').forEach(b => b.classList.remove('active'));
     const btnAll = document.querySelector('#filterBar .filter-btn[data-filter="All"]');
     if (btnAll) btnAll.classList.add('active');
 
     renderDashboard();
-}
-
-function detectSalesType(r, isNearCare) {
-    const explicit = gv(r, 'SalesType') || gv(r, 'SaleType') || gv(r, 'OrderType') || gv(r, 'Channel');
-    if (explicit) return explicit.toString().trim();
-
-    if (isNearCare) return 'NearCare (نير كير)';
-
-    const invType = (gv(r, 'InvoiceType') || '').toString().toLowerCase();
-    const cust = (gv(r, 'CustomerName') || '').toString().toLowerCase();
-
-    if (invType.includes('wasfaty') || cust.includes('wasfaty') || cust.includes('nopco')) {
-        return 'Wasfaty (وصفتي)';
-    }
-    if (invType.includes('online')) {
-        return 'Online (أونلاين وتطبيقات)';
-    }
-    if (invType.includes('insurance') || cust.includes('bupa') || cust.includes('tawuniya') || cust.includes('medgulf') || cust.includes('malaz')) {
-        return 'Insurance (تأمين طبي)';
-    }
-    if (invType === 'cashcustomer' || cust.includes('cash customer')) {
-        return 'CashCustomer (عميل نقدي)';
-    }
-    if (invType === 'creditcustomer' || cust.includes('tamara') || cust.includes('tabby')) {
-        return 'Credit (آجل / تقسيط)';
-    }
-    if (invType.includes('yusur')) {
-        return 'Yusur (يسر)';
-    }
-    if (invType.includes('return')) {
-        return 'Return (مرتجع)';
-    }
-    return 'Normal Cash (كاش عادي)';
 }
 
 function processRowsToSummary(rows) {
@@ -2575,28 +2660,31 @@ function processRowsToSummary(rows) {
             if (inv) branchNearCareInvoices.add(inv);
         }
 
-        let dateStr = '2026-01-01';
-        let mName = getRowMonth(r) || 'Jan';
-        if (invDate) {
-            if (typeof invDate === 'number') {
-                const dt = XLSX.SSF.parse_date_code(invDate);
-                if (dt) {
-                    dateStr = `${dt.y}-${String(dt.m).padStart(2,'0')}-${String(dt.d).padStart(2,'0')}`;
-                }
-            } else {
-                dateStr = invDate.toString().split('T')[0].split(' ')[0];
-            }
-        }
+        const dateObj = parseRowDateDetails(r);
+        const dateStr = dateObj ? dateObj.dayStr : '2026-01-01';
+        const ymKey = dateObj ? dateObj.yearMonth : '2026-01';
+        const ymLabel = dateObj ? (currentLang === 'ar' ? dateObj.shortYearLabelAr : dateObj.shortYearLabel) : ymKey;
 
         if (dateStr) allActiveDates.add(dateStr);
-        if (!monthlyMap[mName]) monthlyMap[mName] = { MonthStr: mName, NetSales: 0, Invoices: new Set(), Days: new Set(), CiSales: 0, CiQuantity: 0, CiInvoices: new Set() };
-        monthlyMap[mName].NetSales += net;
-        if (inv) monthlyMap[mName].Invoices.add(inv);
-        monthlyMap[mName].Days.add(dateStr);
+        if (!monthlyMap[ymKey]) monthlyMap[ymKey] = {
+            yearMonth: ymKey,
+            MonthStr: ymLabel,
+            year: dateObj ? dateObj.year : 2026,
+            month: dateObj ? dateObj.month : 1,
+            NetSales: 0,
+            Invoices: new Set(),
+            Days: new Set(),
+            CiSales: 0,
+            CiQuantity: 0,
+            CiInvoices: new Set()
+        };
+        monthlyMap[ymKey].NetSales += net;
+        if (inv) monthlyMap[ymKey].Invoices.add(inv);
+        monthlyMap[ymKey].Days.add(dateStr);
         if (isCi) {
-            monthlyMap[mName].CiSales += net;
-            monthlyMap[mName].CiQuantity += qty;
-            if (inv) monthlyMap[mName].CiInvoices.add(inv);
+            monthlyMap[ymKey].CiSales += net;
+            monthlyMap[ymKey].CiQuantity += qty;
+            if (inv) monthlyMap[ymKey].CiInvoices.add(inv);
         }
 
         // Invoice Types Tracking
@@ -2732,14 +2820,18 @@ function processRowsToSummary(rows) {
 
     pharmArray.sort((a,b) => b.TotalNetSales - a.TotalNetSales);
 
-    const mTrend = MONTH_ORDER.filter(m => monthlyMap[m]).map(m => ({
-        MonthStr: m,
-        NetSales: monthlyMap[m].NetSales,
-        Invoices: monthlyMap[m].Invoices.size,
-        Days: monthlyMap[m].Days.size,
-        CiSales: monthlyMap[m].CiSales,
-        CiInvoices: monthlyMap[m].CiInvoices.size,
-        CiQuantity: monthlyMap[m].CiQuantity
+    const sortedYmKeys = Object.keys(monthlyMap).sort();
+    const mTrend = sortedYmKeys.map(k => ({
+        MonthStr: monthlyMap[k].MonthStr,
+        yearMonth: k,
+        year: monthlyMap[k].year,
+        month: monthlyMap[k].month,
+        NetSales: monthlyMap[k].NetSales,
+        Invoices: monthlyMap[k].Invoices.size,
+        Days: monthlyMap[k].Days.size,
+        CiSales: monthlyMap[k].CiSales,
+        CiInvoices: monthlyMap[k].CiInvoices.size,
+        CiQuantity: monthlyMap[k].CiQuantity
     }));
 
     const branchDays = allActiveDates.size > 0 ? allActiveDates.size : 1;
@@ -2806,43 +2898,103 @@ function showDashboard() {
     document.getElementById('dashboard').classList.add('show');
 }
 
-// Filter bar UI
-function buildMonthButtons(months) {
-    const c = document.getElementById('monthBtns');
-    c.innerHTML = '';
-    months.forEach(m => {
+// Multi-Year & Month Filter UI
+function buildYearButtons(years) {
+    const group = document.getElementById('yearFilterGroup');
+    const container = document.getElementById('yearBtnContainer');
+    if (!group || !container) return;
+
+    if (!years || years.length <= 1) {
+        group.style.display = 'none';
+        return;
+    }
+
+    group.style.display = 'flex';
+    container.innerHTML = '';
+
+    // 'All Years' button
+    const btnAll = document.createElement('button');
+    btnAll.className = 'filter-btn' + (selectedYear === 'All' ? ' active' : '');
+    btnAll.textContent = currentLang === 'ar' ? 'جميع السنوات' : 'All Years';
+    btnAll.onclick = function() { setYearFilter('All', this); };
+    container.appendChild(btnAll);
+
+    // Button per year
+    years.forEach(yr => {
         const b = document.createElement('button');
-        b.className = 'filter-btn';
-        b.textContent = m;
-        b.dataset.month = m;
-        b.onclick = function() { toggleMonth(m, this); };
+        b.className = 'filter-btn' + (String(selectedYear) === String(yr) ? ' active' : '');
+        b.textContent = yr;
+        b.onclick = function() { setYearFilter(yr, this); };
+        container.appendChild(b);
+    });
+}
+
+function setYearFilter(year, btn) {
+    selectedYear = year;
+    document.querySelectorAll('#yearBtnContainer .filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    // Rebuild month buttons for the selected year
+    buildMonthButtons();
+    selectedYearMonths.clear();
+
+    document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+    const btnAll = document.querySelector('#filterBar .filter-btn[data-filter="All"]');
+    if (btnAll) btnAll.classList.add('active');
+
+    renderDashboard();
+}
+
+function buildMonthButtons() {
+    const c = document.getElementById('monthBtns');
+    if (!c) return;
+    c.innerHTML = '';
+
+    let list = availableYearMonths;
+    if (selectedYear !== 'All') {
+        list = list.filter(ym => String(ym.year) === String(selectedYear));
+    }
+
+    const showYearLabel = (availableYears.length > 1 && selectedYear === 'All');
+
+    list.forEach(ym => {
+        const b = document.createElement('button');
+        b.className = 'filter-btn' + (selectedYearMonths.has(ym.key) ? ' active' : '');
+        b.textContent = showYearLabel 
+            ? (currentLang === 'ar' ? ym.shortLabelAr : ym.shortLabel) 
+            : (currentLang === 'ar' ? ym.labelAr.split(' ')[0] : ym.label.split(' ')[0]);
+        b.dataset.ym = ym.key;
+        b.title = currentLang === 'ar' ? ym.labelAr : ym.label;
+        b.onclick = function() { toggleMonthYear(ym.key, this); };
         c.appendChild(b);
     });
 }
 
 function setFilter(type, btn) {
-    document.querySelectorAll('#filterBar .filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    selectedMonths.clear();
+    selectedYearMonths.clear();
 
-    const QUARTERS = { Q1:['Jan','Feb','Mar'], Q2:['Apr','May','Jun'], Q3:['Jul','Aug','Sep'], Q4:['Oct','Nov','Dec'] };
-    const HALVES = { H1:['Jan','Feb','Mar','Apr','May','Jun'], H2:['Jul','Aug','Sep','Oct','Nov','Dec'] };
+    const QUARTERS_MONTHS = { Q1:[1,2,3], Q2:[4,5,6], Q3:[7,8,9], Q4:[10,11,12] };
+    const HALVES_MONTHS = { H1:[1,2,3,4,5,6], H2:[7,8,9,10,11,12] };
 
     if (type === 'All') {
-        // ALL
-    } else if (QUARTERS[type]) {
-        QUARTERS[type].forEach(m => {
-            if (availableMonths.includes(m)) {
-                selectedMonths.add(m);
-                const mb = document.querySelector(`#monthBtns .filter-btn[data-month="${m}"]`);
+        // All
+    } else if (QUARTERS_MONTHS[type]) {
+        const targetMonths = new Set(QUARTERS_MONTHS[type]);
+        availableYearMonths.forEach(ym => {
+            if ((selectedYear === 'All' || String(ym.year) === String(selectedYear)) && targetMonths.has(ym.month)) {
+                selectedYearMonths.add(ym.key);
+                const mb = document.querySelector(`#monthBtns .filter-btn[data-ym="${ym.key}"]`);
                 if (mb) mb.classList.add('active');
             }
         });
-    } else if (HALVES[type]) {
-        HALVES[type].forEach(m => {
-            if (availableMonths.includes(m)) {
-                selectedMonths.add(m);
-                const mb = document.querySelector(`#monthBtns .filter-btn[data-month="${m}"]`);
+    } else if (HALVES_MONTHS[type]) {
+        const targetMonths = new Set(HALVES_MONTHS[type]);
+        availableYearMonths.forEach(ym => {
+            if ((selectedYear === 'All' || String(ym.year) === String(selectedYear)) && targetMonths.has(ym.month)) {
+                selectedYearMonths.add(ym.key);
+                const mb = document.querySelector(`#monthBtns .filter-btn[data-ym="${ym.key}"]`);
                 if (mb) mb.classList.add('active');
             }
         });
@@ -2851,18 +3003,18 @@ function setFilter(type, btn) {
     renderDashboard();
 }
 
-function toggleMonth(m, btn) {
+function toggleMonthYear(ymKey, btn) {
     document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
 
-    if (selectedMonths.has(m)) {
-        selectedMonths.delete(m);
+    if (selectedYearMonths.has(ymKey)) {
+        selectedYearMonths.delete(ymKey);
         btn.classList.remove('active');
     } else {
-        selectedMonths.add(m);
+        selectedYearMonths.add(ymKey);
         btn.classList.add('active');
     }
 
-    if (selectedMonths.size === 0) {
+    if (selectedYearMonths.size === 0) {
         const btnAll = document.querySelector('#filterBar .filter-btn[data-filter="All"]');
         if (btnAll) btnAll.classList.add('active');
     }
@@ -2873,12 +3025,23 @@ function getFilteredData() {
     if (!currentDataset || !currentDataset.allRows) return null;
 
     let activeRows = currentDataset.allRows;
-    if (selectedMonths.size > 0) {
+
+    // Filter by Year
+    if (selectedYear !== 'All') {
         activeRows = activeRows.filter(r => {
-            let m = getRowMonth(r);
-            return m && selectedMonths.has(m);
+            const dt = parseRowDateDetails(r);
+            return dt && String(dt.year) === String(selectedYear);
         });
     }
+
+    // Filter by Year-Month(s)
+    if (selectedYearMonths.size > 0) {
+        activeRows = activeRows.filter(r => {
+            const dt = parseRowDateDetails(r);
+            return dt && selectedYearMonths.has(dt.yearMonth);
+        });
+    }
+
     return processRowsToSummary(activeRows);
 }
 
