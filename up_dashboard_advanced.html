@@ -831,7 +831,7 @@
 
             <!-- PHARMACIST CARDS SECTION -->
             <div class="section-title">
-                <span id="title-pharm-section">💊 إنتاجية ومبيعات الصيادلة (معدلة بساعات وأيام الدوام)</span>
+                <span id="title-pharm-section">💊 مبيعات وأداء الصيادلة (مرتبة حسب إجمالي المبيعات)</span>
                 <div class="line"></div>
                 <span style="font-size:11px;color:var(--text-dim);font-weight:400" id="hint-pharm-click">انقر على أي كارد لعرض التحليل الشامل للصيدلي</span>
             </div>
@@ -863,7 +863,7 @@
                     <div class="chart-container"><canvas id="chartInvoiceTypes"></canvas></div>
                 </div>
                 <div class="chart-card">
-                    <div class="chart-header"><div class="dot"></div><h3 id="chart-title-pharm">ترتيب الصيادلة بالإنتاجية بالساعة (ريال/ساعة)</h3></div>
+                    <div class="chart-header"><div class="dot"></div><h3 id="chart-title-pharm">ترتيب الصيادلة حسب إجمالي المبيعات</h3></div>
                     <div class="chart-container"><canvas id="chartPharmacists"></canvas></div>
                 </div>
                 <div class="chart-card">
@@ -1232,22 +1232,22 @@ const MONTH_MAP = {
 
 /* Standardized Pharmacist metadata - Every pharmacist role is strictly (صيدلي & Pharmacist) */
 const PHARM_PROFILES = {
-    'إبراهيم حتات': { ar: 'إبراهيم حتاتة صيدلي', en: 'Ibrahim Hatata - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'إبراهيم حتاتة': { ar: 'إبراهيم حتاتة صيدلي', en: 'Ibrahim Hatata - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'فتحي المسيري': { ar: 'فتحي المسيري صيدلي', en: 'Fathi Al-Meseiry - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'رغــــد الزهـــــــرانى': { ar: 'رغد الزهراني صيدلي', en: 'Raghad Al-Zahrani - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'رغد الزهراني': { ar: 'رغد الزهراني صيدلي', en: 'Raghad Al-Zahrani - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'وليـــد يــاســــر ': { ar: 'وليد ياسر صيدلي', en: 'Waleed Yasser - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'وليد ياسر': { ar: 'وليد ياسر صيدلي', en: 'Waleed Yasser - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'فيصل سعيد الغامدى': { ar: 'فيصل سعيد الغامدي صيدلي', en: 'Faisal Saeed Al-Ghamdi - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'فيصل سعيد الغامدي': { ar: 'فيصل سعيد الغامدي صيدلي', en: 'Faisal Saeed Al-Ghamdi - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'أحمد الزمراني': { ar: 'أحمد الزمراني صيدلي', en: 'Ahmed Al-Zemrani - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'احمد الزمراني': { ar: 'أحمد الزمراني صيدلي', en: 'Ahmed Al-Zemrani - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'محمد الحسنى الزهرانى': { ar: 'محمد الحسني الزهراني صيدلي', en: 'Mohammed Al-Hosani Al-Zahrani - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'محمد الحسني الزهراني': { ar: 'محمد الحسني الزهراني صيدلي', en: 'Mohammed Al-Hosani Al-Zahrani - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'محمود  عبدالمقصود': { ar: 'محمود عبدالمقصود صيدلي', en: 'Mahmoud Abdelmaqsood - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'محمود عبدالمقصود': { ar: 'محمود عبدالمقصود صيدلي', en: 'Mahmoud Abdelmaqsood - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
-    'رائد ماجد': { ar: 'رائد ماجد صيدلي', en: 'Raed Majed - Pharmacist', roleAr: 'صيدلي', roleEn: 'Pharmacist' }
+    'إبراهيم حتات': { ar: 'إبراهيم حتاتة', en: 'Ibrahim Hatata', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'إبراهيم حتاتة': { ar: 'إبراهيم حتاتة', en: 'Ibrahim Hatata', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'فتحي المسيري': { ar: 'فتحي المسيري', en: 'Fathi Al-Meseiry', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'رغــــد الزهـــــــرانى': { ar: 'رغد الزهراني', en: 'Raghad Al-Zahrani', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'رغد الزهراني': { ar: 'رغد الزهراني', en: 'Raghad Al-Zahrani', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'وليـــد يــاســــر ': { ar: 'وليد ياسر', en: 'Waleed Yasser', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'وليد ياسر': { ar: 'وليد ياسر', en: 'Waleed Yasser', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'فيصل سعيد الغامدى': { ar: 'فيصل سعيد الغامدي', en: 'Faisal Saeed Al-Ghamdi', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'فيصل سعيد الغامدي': { ar: 'فيصل سعيد الغامدي', en: 'Faisal Saeed Al-Ghamdi', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'أحمد الزمراني': { ar: 'أحمد الزمراني', en: 'Ahmed Al-Zemrani', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'احمد الزمراني': { ar: 'أحمد الزمراني', en: 'Ahmed Al-Zemrani', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'محمد الحسنى الزهرانى': { ar: 'محمد الحسني الزهراني', en: 'Mohammed Al-Hosani Al-Zahrani', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'محمد الحسني الزهراني': { ar: 'محمد الحسني الزهراني', en: 'Mohammed Al-Hosani Al-Zahrani', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'محمود  عبدالمقصود': { ar: 'محمود عبدالمقصود', en: 'Mahmoud Abdelmaqsood', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'محمود عبدالمقصود': { ar: 'محمود عبدالمقصود', en: 'Mahmoud Abdelmaqsood', roleAr: 'صيدلي', roleEn: 'Pharmacist' },
+    'رائد ماجد': { ar: 'رائد ماجد', en: 'Raed Majed', roleAr: 'صيدلي', roleEn: 'Pharmacist' }
 };
 
 function cleanRawName(str) {
@@ -1264,8 +1264,8 @@ function getPharmProfile(name) {
         if (cleanRawName(k) === cleaned) return PHARM_PROFILES[k];
     }
     return { 
-        ar: cleaned + ' صيدلي', 
-        en: cleaned + ' - Pharmacist', 
+        ar: cleaned, 
+        en: cleaned, 
         roleAr: 'صيدلي', 
         roleEn: 'Pharmacist' 
     };
@@ -1353,6 +1353,8 @@ function applyI18nLabels() {
     document.getElementById('welcomeUploadBtnText').textContent = t.welcomeUploadBtn;
     document.getElementById('welcomeHint').textContent = t.welcomeHint;
     document.getElementById('loaderText').textContent = t.loaderText;
+    const lblYears = document.getElementById('lbl-years-filter');
+    if (lblYears && t.years) lblYears.textContent = t.years;
 
     document.getElementById('opt-theme-dark').textContent = t.themeDark;
     document.getElementById('opt-theme-light').textContent = t.themeLight;
@@ -2437,7 +2439,8 @@ function parseRowDateDetails(r) {
     if (!r) return null;
 
     let raw = gv(r, 'InvoiceDate') || gv(r, 'Date') || gv(r, 'TrxTime') || gv(r, 'Trx_open_time') ||
-              gv(r, 'PostingDate') || gv(r, 'DocDate') || gv(r, 'تاريخ الفاتورة') || gv(r, 'التاريخ') || gv(r, 'تاريخ_الفاتورة');
+              gv(r, 'PostingDate') || gv(r, 'DocDate') || gv(r, 'تاريخ الفاتورة') || gv(r, 'التاريخ') || gv(r, 'تاريخ_الفاتورة') ||
+              gv(r, 'INVOICEDATE') || gv(r, 'invoice_date') || gv(r, 'Trx Time');
 
     let explicitYear = gv(r, 'Year') || gv(r, 'YEAR') || gv(r, 'السنة');
     if (explicitYear) {
@@ -2546,7 +2549,8 @@ function processRawExcelRows(rows, fileName, sheetName) {
     const ymMap = {}; // yearMonth -> { key, year, month, label, labelAr, shortLabel }
 
     rows.forEach(r => {
-        let dt = parseRowDateDetails(r);
+        let dt = null;
+        try { dt = parseRowDateDetails(r); } catch(e) {}
         if (dt) {
             yearsSet.add(dt.year);
             if (!ymMap[dt.yearMonth]) {
@@ -2597,7 +2601,42 @@ function processRawExcelRows(rows, fileName, sheetName) {
     const btnAll = document.querySelector('#filterBar .filter-btn[data-filter="All"]');
     if (btnAll) btnAll.classList.add('active');
 
+    console.log('[Dashboard] processRawExcelRows complete. Years:', availableYears, 'YM count:', availableYearMonths.length, 'Rows:', rows.length);
     renderDashboard();
+}
+
+
+function detectSalesType(r, isNearCare) {
+    const explicit = gv(r, 'SalesType') || gv(r, 'SaleType') || gv(r, 'OrderType') || gv(r, 'Channel');
+    if (explicit) return explicit.toString().trim();
+
+    if (isNearCare) return 'NearCare (نير كير)';
+
+    const invType = (gv(r, 'InvoiceType') || '').toString().toLowerCase();
+    const cust = (gv(r, 'CustomerName') || '').toString().toLowerCase();
+
+    if (invType.includes('wasfaty') || cust.includes('wasfaty') || cust.includes('nopco')) {
+        return 'Wasfaty (وصفتي)';
+    }
+    if (invType.includes('online')) {
+        return 'Online (أونلاين وتطبيقات)';
+    }
+    if (invType.includes('insurance') || cust.includes('bupa') || cust.includes('tawuniya') || cust.includes('medgulf') || cust.includes('malaz')) {
+        return 'Insurance (تأمين طبي)';
+    }
+    if (invType === 'cashcustomer' || cust.includes('cash customer')) {
+        return 'CashCustomer (عميل نقدي)';
+    }
+    if (invType === 'creditcustomer' || cust.includes('tamara') || cust.includes('tabby')) {
+        return 'Credit (آجل / تقسيط)';
+    }
+    if (invType.includes('yusur')) {
+        return 'Yusur (يسر)';
+    }
+    if (invType.includes('return')) {
+        return 'Return (مرتجع)';
+    }
+    return 'Normal Cash (كاش عادي)';
 }
 
 function processRowsToSummary(rows) {
@@ -2778,7 +2817,8 @@ function processRowsToSummary(rows) {
         pObj.Categories[cat] = (pObj.Categories[cat] || 0) + net;
         pObj.Divisions[div] = (pObj.Divisions[div] || 0) + net;
         pObj.Products[prodName] = (pObj.Products[prodName] || 0) + net;
-        pObj.MonthlySales[mName] = (pObj.MonthlySales[mName] || 0) + net;
+        pObj.MonthlySales[ymLabel] = (pObj.MonthlySales[ymLabel] || 0) + net;
+        pObj.MonthlySales[ymKey] = (pObj.MonthlySales[ymKey] || 0) + net;
     });
 
     const pharmArray = Object.values(pharmMap).map(p => {
@@ -2972,7 +3012,7 @@ function buildMonthButtons() {
 
 function setFilter(type, btn) {
     document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn && btn.classList) btn.classList.add('active');
     selectedYearMonths.clear();
 
     const QUARTERS_MONTHS = { Q1:[1,2,3], Q2:[4,5,6], Q3:[7,8,9], Q4:[10,11,12] };
@@ -3029,17 +3069,21 @@ function getFilteredData() {
     // Filter by Year
     if (selectedYear !== 'All') {
         activeRows = activeRows.filter(r => {
-            const dt = parseRowDateDetails(r);
-            return dt && String(dt.year) === String(selectedYear);
+            try { const dt = parseRowDateDetails(r); return dt && String(dt.year) === String(selectedYear); }
+            catch(e) { return false; }
         });
     }
 
     // Filter by Year-Month(s)
     if (selectedYearMonths.size > 0) {
         activeRows = activeRows.filter(r => {
-            const dt = parseRowDateDetails(r);
-            return dt && selectedYearMonths.has(dt.yearMonth);
+            try { const dt = parseRowDateDetails(r); return dt && selectedYearMonths.has(dt.yearMonth); }
+            catch(e) { return false; }
         });
+    }
+
+    if (activeRows.length === 0 && currentDataset.allRows.length > 0) {
+        console.warn('getFilteredData: all rows filtered out! selectedYear=', selectedYear, 'selectedYearMonths=', [...selectedYearMonths]);
     }
 
     return processRowsToSummary(activeRows);
@@ -3055,13 +3099,17 @@ function fmtNumber(n, decimals = 0) {
 }
 
 function renderDashboard() {
-    const filtered = getFilteredData();
-    if (!filtered) return;
-
-    renderKPIs(filtered);
-    renderPharmacistCards(filtered);
-    renderCharts(filtered);
-    showDashboard();
+    try {
+        const filtered = getFilteredData();
+        if (!filtered) { console.warn('renderDashboard: getFilteredData returned null'); return; }
+        renderKPIs(filtered);
+        renderPharmacistCards(filtered);
+        try { renderCharts(filtered); } catch(chartErr) { console.warn('Charts render error (non-fatal):', chartErr.message); }
+        showDashboard();
+    } catch(e) {
+        console.error('renderDashboard error:', e.message, e.stack);
+        showDashboard();
+    }
 }
 
 function renderKPIs(d) {
@@ -3316,7 +3364,7 @@ function renderModalCharts(p, divs, d) {
     const ctxM = document.getElementById('mcMonthly');
     if (ctxM) {
         const labels = d.monthlyTrend.map(m => m.MonthStr);
-        const data = labels.map(m => p.MonthlySales[m] || 0);
+        const data = d.monthlyTrend.map(m => (p.MonthlySales[m.yearMonth] !== undefined ? p.MonthlySales[m.yearMonth] : (p.MonthlySales[m.MonthStr] || 0)));
 
         charts.mcMonthly = new Chart(ctxM, {
             type: 'bar',
@@ -3394,7 +3442,7 @@ function renderModalCharts(p, divs, d) {
 
 function destroyChart(id) {
     if (charts[id]) {
-        charts[id].destroy();
+        try { charts[id].destroy(); } catch(e) {}
         delete charts[id];
     }
 }
