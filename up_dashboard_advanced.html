@@ -256,7 +256,409 @@
         .drop-overlay-inner{text-align:center;color:var(--accent)}
         .drop-overlay-inner .icon{font-size:56px;margin-bottom:14px}
         .drop-overlay-inner p{font-size:18px;font-weight:700}
-    </style>
+    
+        /* === MOVEMENT RADAR (عدّة الصيدلي الذكية: رادار الحركة) STYLES === */
+        .topbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.04);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 0 16px;
+        }
+        .topbar-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .topbar-nav-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-white);
+        }
+        .topbar-nav-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+        .nav-badge-pill {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.05); }
+        }
+
+        /* RADAR VIEW CONTAINER */
+        .radar-view {
+            padding-bottom: 60px;
+            animation: fadeIn 0.3s ease;
+        }
+        .radar-hero {
+            background: linear-gradient(135deg, rgba(13, 148, 136, 0.15) 0%, rgba(12, 22, 39, 0.8) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: var(--card-shadow);
+        }
+        .radar-hero-tag {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .radar-hero-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-white);
+            margin-bottom: 6px;
+        }
+        .radar-hero-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.6;
+            max-width: 850px;
+        }
+
+        .radar-controls-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .radar-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .radar-control-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+        .radar-toggle-pills {
+            display: flex;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2px;
+        }
+        .radar-pill {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-gray);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .radar-pill.active {
+            background: var(--accent);
+            color: #fff;
+        }
+        .radar-select, .radar-search-input {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            color: var(--text-white);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .radar-select:focus, .radar-search-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* RADAR KPI GRID */
+        .radar-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .radar-kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .radar-kpi-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .radar-kpi-card.active-tab-card {
+            border-color: var(--accent);
+            background: var(--bg-card-hover);
+        }
+        .radar-kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+        .radar-kpi-val {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-white);
+            margin-bottom: 4px;
+        }
+        .radar-kpi-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.4;
+        }
+        .badge-pill {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .badge-orange { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-purple { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4); }
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+        /* RADAR SUB TABS */
+        .radar-sub-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .radar-sub-tab {
+            padding: 10px 18px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-gray);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .radar-sub-tab:hover {
+            color: var(--text-white);
+        }
+        .radar-sub-tab.active {
+            color: var(--accent-light);
+            border-bottom-color: var(--accent);
+            background: rgba(13, 148, 136, 0.08);
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* RADAR CARDS & TABLES */
+        .radar-card-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 14px;
+            transition: all 0.2s;
+        }
+        .radar-card-item:hover {
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+        }
+        .radar-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .radar-item-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-white);
+        }
+        .radar-item-code {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: monospace;
+            margin-top: 2px;
+        }
+        .radar-clue-box {
+            background: var(--bg-main);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 10px 0;
+            font-size: 12px;
+            line-height: 1.6;
+            border-right: 4px solid var(--border);
+        }
+        .clue-whale { border-right-color: var(--amber); background: rgba(245, 158, 11, 0.06); color: #fde68a; }
+        .clue-broad { border-right-color: var(--green); background: rgba(16, 185, 129, 0.06); color: #a7f3d0; }
+        .clue-season { border-right-color: var(--cyan); background: rgba(6, 182, 212, 0.06); color: #bae6fd; }
+        .clue-stockout { border-right-color: var(--red); background: rgba(239, 68, 68, 0.06); color: #fca5a5; }
+        .clue-lost-cust { border-right-color: var(--purple); background: rgba(139, 92, 246, 0.06); color: #ddd6fe; }
+
+        .radar-metrics-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+            padding: 10px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 12px;
+        }
+        .radar-metric-block {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .radar-metric-lbl { font-size: 10px; color: var(--text-gray); }
+        .radar-metric-val { font-size: 14px; font-weight: 700; color: var(--text-white); }
+
+        .radar-decision-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 8px;
+        }
+        .radar-saved-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .btn-decision {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-decision:hover {
+            border-color: var(--accent);
+            color: var(--accent-light);
+            background: rgba(13, 148, 136, 0.1);
+        }
+
+        /* RADAR DECISION MODAL */
+        .radar-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .radar-modal-overlay.show { display: flex; }
+        .radar-modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            padding: 24px;
+            color: var(--text-white);
+            animation: modalPop 0.25s ease;
+        }
+        .radar-quick-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .radar-tag-btn {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .radar-tag-btn:hover { border-color: var(--accent); color: var(--text-white); }
+        .radar-tag-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent-light); }
+        .radar-textarea {
+            width: 100%;
+            height: 90px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-white);
+            padding: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+            outline: none;
+            margin-top: 8px;
+        }
+        .radar-textarea:focus { border-color: var(--accent); }
+</style>
 </head>
 <body class="theme-dark">
 
@@ -299,7 +701,20 @@
                     <div class="logo-text-main" id="lbl-logo-main">صيدلية المتحدة</div>
                     <div class="logo-text-sub" id="lbl-logo-sub">لوحة مبيعات وإنتاجية الصيادلة</div>
                 </div>
-            </div>
+            
+        <!-- MAIN VIEW NAVIGATION TABS -->
+        <div class="topbar-nav">
+            <button class="topbar-nav-btn active" id="navBtnDashboard" onclick="switchMainView('dashboard')">
+                <span>📊</span>
+                <span id="lbl-nav-dash">لوحة المبيعات والتحليلات</span>
+            </button>
+            <button class="topbar-nav-btn" id="navBtnRadar" onclick="switchMainView('radar')">
+                <span>🎯</span>
+                <span id="lbl-nav-radar">رادار الحركة (عدّة الصيدلي ٢)</span>
+                <span class="nav-badge-pill">جديد ✨</span>
+            </button>
+        </div>
+</div>
         </div>
 
         <div class="topbar-right">
@@ -451,7 +866,184 @@
 
         </div>
 
-    </div>
+    
+        <!-- === MOVEMENT RADAR (عدّة الصيدلي الذكية: رادار الحركة) VIEW === -->
+        <div class="radar-view" id="radarView" style="display:none">
+            
+            <!-- Hero Banner -->
+            <div class="radar-hero">
+                <div class="radar-hero-content">
+                    <div class="radar-hero-tag">عدّة الصيدلي الذكية • الأداة 2</div>
+                    <h1 class="radar-hero-title">🎯 رادار الحركة (Movement Radar)</h1>
+                    <p class="radar-hero-desc">
+                        «متوسط آخر ٣ شهور» هو أكثر رقم نبني عليه الطلب في مخازننا وصيدلياتنا… وأكثر رقم يخدعنا.<br>
+                        صنف باع ضعف معتاده لأن عميلاً واحداً اشترى كمية كبيرة مرة واحدة، فيدخل الرقم في المتوسط، ونطلب كميات لن تُباع.<br>
+                        وصنف آخر بدأ يرتفع فعلاً عند عملاء كثيرين، فيشدّه المتوسط إلى الأسفل، فينفد من الرف. وعميل منتظم توقف بهدوء عن أصناف كان يطلبها بانتظام وهو ما زال يشتري غيرها.<br>
+                        <strong>الرادار يلتقط ويعرض القرائن، ولا يحسب كميات طلب. القرار يبقى لك ولخبرتك بالسوق.</strong>
+                    </p>
+                </div>
+                <div class="radar-hero-actions">
+                    <button class="btn btn-primary" onclick="exportRadarToExcel()" style="box-shadow:0 4px 15px var(--accent-glow)">
+                        📥 تصدير تقرير الرادار والقرارات إلى Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Radar Control Bar -->
+            <div class="radar-controls-card">
+                <div class="radar-control-group">
+                    <label class="radar-control-label">⏱️ نمط الكشف:</label>
+                    <div class="radar-toggle-pills">
+                        <button class="radar-pill active" id="btnRadarMonthly" onclick="setRadarMode('monthly')">شهري (Monthly)</button>
+                        <button class="radar-pill" id="btnRadarWeekly" onclick="setRadarMode('weekly')">أسبوعي (Weekly)</button>
+                    </div>
+                </div>
+
+                <div class="radar-control-group">
+                    <label class="radar-control-label">📅 فترة الكشف المستهدفة:</label>
+                    <select class="radar-select" id="radarPeriodSelect" onchange="onRadarPeriodChange(this.value)">
+                    </select>
+                </div>
+
+                <div class="radar-control-group">
+                    <label class="radar-control-label">📏 فترة الأساس للمقارنة:</label>
+                    <select class="radar-select" id="radarBaselineSelect" onchange="onRadarBaselineChange(this.value)">
+                        <option value="3" selected>متوسط آخر 3 فترات سابقة</option>
+                        <option value="6">متوسط آخر 6 فترات سابقة</option>
+                        <option value="all">كافة الفترات السابقة المتاحة</option>
+                    </select>
+                </div>
+
+                <div class="radar-control-group">
+                    <label class="radar-control-label">⚡ حساسية القفزة / الهبوط:</label>
+                    <select class="radar-select" id="radarSensitivitySelect" onchange="onRadarSensitivityChange(this.value)">
+                        <option value="30">حساسية مرتفعة (تغير 30% فأكثر)</option>
+                        <option value="50" selected>حساسية متوازنة (تغير 50% فأكثر)</option>
+                        <option value="100">حالات حادة فقط (تغير 100% فأكثر)</option>
+                    </select>
+                </div>
+
+                <div class="radar-control-group" style="flex:1;min-width:220px">
+                    <label class="radar-control-label">🔍 بحث في النتائج:</label>
+                    <input type="text" class="radar-search-input" id="radarSearchInput" placeholder="ابحث باسم الصنف، الكود، أو العميل..." oninput="onRadarSearch(this.value)">
+                </div>
+            </div>
+
+            <!-- Radar KPI Summary Cards -->
+            <div class="radar-kpi-grid">
+                <div class="radar-kpi-card" id="cardKpiSurges" onclick="switchRadarSubTab('surges')">
+                    <div class="radar-kpi-header">
+                        <span>🚨 قفزات المبيعات المرصودة</span>
+                        <span class="badge-pill badge-orange" id="badgeWhales">0 عميل واحد</span>
+                    </div>
+                    <div class="radar-kpi-val" style="color:var(--amber)" id="valSurgesCount">0</div>
+                    <div class="radar-kpi-sub">أصناف قفزت فوق المعدل (كشف العميل الواحد vs الطلب العام)</div>
+                </div>
+
+                <div class="radar-kpi-card" id="cardKpiDrops" onclick="switchRadarSubTab('drops')">
+                    <div class="radar-kpi-header">
+                        <span>📉 هبوط وانقطاع الرصيد</span>
+                        <span class="badge-pill badge-red" id="badgeStockouts">0 انقطاع أيام</span>
+                    </div>
+                    <div class="radar-kpi-val" style="color:var(--red)" id="valDropsCount">0</div>
+                    <div class="radar-kpi-sub">تفرقة بين نفاد الرصيد، هبوط الطلب، وتوقف عملاء منتظمين</div>
+                </div>
+
+                <div class="radar-kpi-card" id="cardKpiCustomers" onclick="switchRadarSubTab('customers')">
+                    <div class="radar-kpi-header">
+                        <span>👥 رادار العملاء والتوقف النوعي</span>
+                        <span class="badge-pill badge-purple" id="badgeCrossChurn">0 توقف نوعي</span>
+                    </div>
+                    <div class="radar-kpi-val" style="color:var(--purple)" id="valCustomersCount">0</div>
+                    <div class="radar-kpi-sub">من اختفى، من تراجع سحبه، ومن توقف عن أصناف معتادة وما زال يتردد!</div>
+                </div>
+
+                <div class="radar-kpi-card" id="cardKpiDecisions" onclick="switchRadarSubTab('decisions')">
+                    <div class="radar-kpi-header">
+                        <span>📝 سجل قرارات الصيدلي</span>
+                        <span class="badge-pill badge-green" id="badgeDecisions">محفوظ محلياً</span>
+                    </div>
+                    <div class="radar-kpi-val" style="color:var(--green)" id="valDecisionsCount">0</div>
+                    <div class="radar-kpi-sub">قرارات وتوصيات موثقة ومحفوظة بـ LocalStorage وجاهزة للتصدير</div>
+                </div>
+            </div>
+
+            <!-- Radar Sub Tabs Navigation -->
+            <div class="radar-sub-tabs">
+                <button class="radar-sub-tab active" id="subTabSurges" onclick="switchRadarSubTab('surges')">
+                    🚨 ١. رادار القفزات وتحليل العميل الواحد (<span id="tabCountSurges">0</span>)
+                </button>
+                <button class="radar-sub-tab" id="subTabDrops" onclick="switchRadarSubTab('drops')">
+                    📉 ٢. رادار الهبوط وتنبيهات نفاد الرصيد (<span id="tabCountDrops">0</span>)
+                </button>
+                <button class="radar-sub-tab" id="subTabCustomers" onclick="switchRadarSubTab('customers')">
+                    👥 ٣. رادار العملاء والتوقف النوعي عن أصناف معتادة (<span id="tabCountCustomers">0</span>)
+                </button>
+                <button class="radar-sub-tab" id="subTabDecisions" onclick="switchRadarSubTab('decisions')">
+                    📋 ٤. سجل قرارات وتوصيات الصيدلي (<span id="tabCountDecisions">0</span>)
+                </button>
+            </div>
+
+            <!-- Tab 1: Surges List -->
+            <div class="radar-tab-content" id="radarContentSurges">
+                <div id="radarSurgesList"></div>
+            </div>
+
+            <!-- Tab 2: Drops List -->
+            <div class="radar-tab-content" id="radarContentDrops" style="display:none">
+                <div id="radarDropsList"></div>
+            </div>
+
+            <!-- Tab 3: Customers List -->
+            <div class="radar-tab-content" id="radarContentCustomers" style="display:none">
+                <div id="radarCustomersList"></div>
+            </div>
+
+            <!-- Tab 4: Decisions Log -->
+            <div class="radar-tab-content" id="radarContentDecisions" style="display:none">
+                <div id="radarDecisionsList"></div>
+            </div>
+
+        </div>
+
+        <!-- RADAR DECISION MODAL -->
+        <div class="radar-modal-overlay" id="radarModal" onclick="if(event.target===this)closeRadarModal()">
+            <div class="radar-modal-box">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:12px">
+                    <div>
+                        <div style="font-size:11px;color:var(--accent-light);font-weight:700" id="radarModalCategory">رادار القفزات</div>
+                        <div style="font-size:18px;font-weight:800;color:var(--text-white);margin-top:4px" id="radarModalItemTitle">اسم الصنف</div>
+                        <div style="font-size:12px;color:var(--text-dim);font-family:monospace" id="radarModalItemCode">0000000000</div>
+                    </div>
+                    <button onclick="closeRadarModal()" style="background:transparent;border:none;color:var(--text-gray);font-size:20px;cursor:pointer">&times;</button>
+                </div>
+
+                <!-- Clues Summary inside modal -->
+                <div class="radar-clue-box" id="radarModalCluesBox" style="margin-bottom:16px">
+                    ملخص القرائن المرصودة...
+                </div>
+
+                <!-- Question Prompt -->
+                <div style="margin-bottom:12px">
+                    <label style="font-size:13px;font-weight:700;color:var(--text-white)">💡 ما هو السبب برأيك؟ (اختر سبباً أو اكتب ملاحظتك):</label>
+                    <div class="radar-quick-tags" id="radarModalQuickTags">
+                        <!-- populated based on item type -->
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px">
+                    <label style="font-size:13px;font-weight:700;color:var(--text-white)">📝 توصيتك وقرارك النهائي للمخزون والطلب:</label>
+                    <textarea class="radar-textarea" id="radarModalNotes" placeholder="مثلاً: لا تطلب كمية إضافية فالشراء لعميل عابر، أو: اطلب 30 علبة فوراً فالرصيد على الرف صفر..."></textarea>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;gap:10px">
+                    <button class="btn btn-danger" onclick="deleteRadarDecision()" id="btnDeleteRadarDecision" style="display:none;padding:8px 16px">حذف القرار</button>
+                    <button class="btn btn-lang" onclick="closeRadarModal()" style="padding:8px 16px">إلغاء</button>
+                    <button class="btn btn-primary" onclick="saveRadarDecision()" style="padding:8px 20px">💾 حفظ القرار والاعتماد</button>
+                </div>
+            </div>
+        </div>
+</div>
 </div>
 
 <!-- APPLICATION CODE -->
@@ -776,6 +1368,994 @@ function clearLoadedSheet() {
 }
 
 
+
+
+// =========================================================================
+// === MOVEMENT RADAR (الأداة ٢ من «عدّة الصيدلي الذكية»: رادار الحركة) ===
+// =========================================================================
+
+let currentMainView = 'dashboard';
+
+let radarState = {
+    mode: 'monthly', // 'monthly' | 'weekly'
+    targetPeriod: null,
+    baselinePeriodsCount: 3,
+    sensitivity: 50,
+    searchQuery: '',
+    activeSubTab: 'surges',
+    surges: [],
+    drops: [],
+    customers: [],
+    decisions: {},
+    activeModalItem: null
+};
+
+// Switch between Main Dashboard and Movement Radar
+function switchMainView(view) {
+    currentMainView = view;
+    const navDash = document.getElementById('navBtnDashboard');
+    const navRadar = document.getElementById('navBtnRadar');
+    const viewDash = document.getElementById('dashboard');
+    const viewRadar = document.getElementById('radarView');
+    const filterBar = document.getElementById('filterBar');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+
+    if (view === 'radar') {
+        if (navDash) navDash.classList.remove('active');
+        if (navRadar) navRadar.classList.add('active');
+        if (viewDash) viewDash.style.display = 'none';
+        if (filterBar) filterBar.style.display = 'none';
+        
+        if (currentDataset && currentDataset.allRows) {
+            if (welcomeScreen) welcomeScreen.style.display = 'none';
+            if (viewRadar) viewRadar.style.display = 'block';
+            initMovementRadar();
+        } else {
+            if (welcomeScreen) welcomeScreen.style.display = 'flex';
+            if (viewRadar) viewRadar.style.display = 'none';
+        }
+    } else {
+        if (navDash) navDash.classList.add('active');
+        if (navRadar) navRadar.classList.remove('active');
+        if (viewRadar) viewRadar.style.display = 'none';
+        
+        if (currentDataset && currentDataset.allRows) {
+            if (welcomeScreen) welcomeScreen.style.display = 'none';
+            if (viewDash) viewDash.style.display = 'block';
+            if (filterBar) filterBar.style.display = 'flex';
+            renderDashboard();
+        } else {
+            if (welcomeScreen) welcomeScreen.style.display = 'flex';
+            if (viewDash) viewDash.style.display = 'none';
+            if (filterBar) filterBar.style.display = 'none';
+        }
+    }
+}
+
+// Load and Save Decisions from LocalStorage
+function getRadarStorageKey() {
+    const dsName = currentDataset ? (currentDataset.fileName || 'default') : 'default';
+    return 'up_movement_radar_decisions_' + dsName;
+}
+
+function loadRadarDecisions() {
+    try {
+        const raw = localStorage.getItem(getRadarStorageKey());
+        radarState.decisions = raw ? JSON.parse(raw) : {};
+    } catch(e) {
+        radarState.decisions = {};
+    }
+}
+
+function persistRadarDecisions() {
+    try {
+        localStorage.setItem(getRadarStorageKey(), JSON.stringify(radarState.decisions));
+    } catch(e) {}
+}
+
+// Radar Mode Toggle (Monthly / Weekly)
+function setRadarMode(mode) {
+    radarState.mode = mode;
+    const btnM = document.getElementById('btnRadarMonthly');
+    const btnW = document.getElementById('btnRadarWeekly');
+    if (btnM && btnW) {
+        if (mode === 'monthly') {
+            btnM.classList.add('active');
+            btnW.classList.remove('active');
+        } else {
+            btnW.classList.add('active');
+            btnM.classList.remove('active');
+        }
+    }
+    initMovementRadar(true);
+}
+
+function onRadarPeriodChange(val) {
+    radarState.targetPeriod = val;
+    computeRadarAnalysis();
+}
+
+function onRadarBaselineChange(val) {
+    radarState.baselinePeriodsCount = val === 'all' ? 99 : parseInt(val) || 3;
+    computeRadarAnalysis();
+}
+
+function onRadarSensitivityChange(val) {
+    radarState.sensitivity = parseInt(val) || 50;
+    computeRadarAnalysis();
+}
+
+function onRadarSearch(val) {
+    radarState.searchQuery = (val || '').toLowerCase().trim();
+    renderAllRadarTabs();
+}
+
+function switchRadarSubTab(tab) {
+    radarState.activeSubTab = tab;
+    ['surges', 'drops', 'customers', 'decisions'].forEach(t => {
+        const btn = document.getElementById('subTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const content = document.getElementById('radarContent' + t.charAt(0).toUpperCase() + t.slice(1));
+        const card = document.getElementById('cardKpi' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) btn.classList.toggle('active', t === tab);
+        if (content) content.style.display = (t === tab) ? 'block' : 'none';
+        if (card) card.classList.toggle('active-tab-card', t === tab);
+    });
+}
+
+// Helpers for Date Formatting
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    const weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+    return d.getUTCFullYear() + '-W' + String(weekNo).padStart(2, '0');
+}
+
+function parseRowDate(r) {
+    const invDate = gv(r, 'InvoiceDate');
+    if (!invDate) return null;
+    if (typeof invDate === 'number') {
+        const dt = XLSX.SSF.parse_date_code(invDate);
+        if (dt) return new Date(dt.y, dt.m - 1, dt.d);
+    }
+    const s = invDate.toString().split('T')[0].split(' ')[0];
+    const parts = s.split('-');
+    if (parts.length === 3) {
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+    return new Date(s);
+}
+
+// Initialize Movement Radar
+function initMovementRadar(resetPeriod = false) {
+    if (!currentDataset || !currentDataset.allRows || currentDataset.allRows.length === 0) return;
+    loadRadarDecisions();
+
+    // Collect all periods
+    const periodsSet = new Set();
+    currentDataset.allRows.forEach(r => {
+        const dt = parseRowDate(r);
+        if (!dt || isNaN(dt.getTime())) return;
+        if (radarState.mode === 'monthly') {
+            const mKey = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+            periodsSet.add(mKey);
+        } else {
+            periodsSet.add(getWeekNumber(dt));
+        }
+    });
+
+    const sortedPeriods = Array.from(periodsSet).sort();
+    if (sortedPeriods.length === 0) return;
+
+    // Populate period selector
+    const sel = document.getElementById('radarPeriodSelect');
+    if (sel) {
+        sel.innerHTML = sortedPeriods.map((p, idx) => {
+            const isLast = idx === sortedPeriods.length - 1;
+            const label = radarState.mode === 'monthly' ? `شهر ${p}` : `أسبوع ${p}`;
+            return `<option value="${p}" ${isLast ? 'selected' : ''}>${label} ${isLast ? '(الأحدث)' : ''}</option>`;
+        }).join('');
+    }
+
+    if (!radarState.targetPeriod || resetPeriod || !periodsSet.has(radarState.targetPeriod)) {
+        radarState.targetPeriod = sortedPeriods[sortedPeriods.length - 1];
+    }
+
+    computeRadarAnalysis();
+}
+
+// Main Radar Computation Algorithm
+function computeRadarAnalysis() {
+    if (!currentDataset || !currentDataset.allRows || !radarState.targetPeriod) return;
+
+    const rows = currentDataset.allRows;
+    const mode = radarState.mode;
+    const targetPeriod = radarState.targetPeriod;
+
+    // 1. Group rows by period
+    const periodMap = {}; // period -> { items: {}, customers: {}, dates: Set() }
+
+    rows.forEach(r => {
+        const dt = parseRowDate(r);
+        if (!dt || isNaN(dt.getTime())) return;
+        const dateStr = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+        const pKey = (mode === 'monthly') ? `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}` : getWeekNumber(dt);
+
+        if (!periodMap[pKey]) {
+            periodMap[pKey] = { items: {}, customers: {}, dates: new Set() };
+        }
+        const pObj = periodMap[pKey];
+        pObj.dates.add(dateStr);
+
+        const prodName = (gv(r, 'Name') || 'Product').toString().trim();
+        const matNum = (gv(r, 'MaterialNumber') || '').toString().trim();
+        const itemKey = matNum ? matNum : prodName;
+        const qty = gn(r, 'Quantity') || 1;
+        const net = gn(r, 'NetTotal') || gn(r, 'ItemsNetPrice') || 0;
+        let cust = (gv(r, 'CustomerName') || '').toString().trim();
+        if (!cust || cust.toUpperCase() === 'N/A') {
+            const inv = gv(r, 'InvoiceNumber');
+            cust = inv ? `فاتورة #${inv}` : 'عميل عام';
+        }
+
+        // Item tracking in period
+        if (!pObj.items[itemKey]) {
+            pObj.items[itemKey] = {
+                itemKey: itemKey,
+                code: matNum,
+                name: prodName,
+                qty: 0,
+                net: 0,
+                customers: {},
+                datesSold: new Set(),
+                invoices: new Set()
+            };
+        }
+        const item = pObj.items[itemKey];
+        item.qty += qty;
+        item.net += net;
+        item.datesSold.add(dateStr);
+        item.customers[cust] = (item.customers[cust] || 0) + qty;
+        const invNum = gv(r, 'InvoiceNumber');
+        if (invNum) item.invoices.add(invNum);
+
+        // Customer tracking in period
+        if (!pObj.customers[cust]) {
+            pObj.customers[cust] = {
+                custName: cust,
+                totalNet: 0,
+                totalQty: 0,
+                items: {},
+                invoices: new Set()
+            };
+        }
+        const cObj = pObj.customers[cust];
+        cObj.totalNet += net;
+        cObj.totalQty += qty;
+        cObj.items[itemKey] = (cObj.items[itemKey] || 0) + qty;
+        if (invNum) cObj.invoices.add(invNum);
+    });
+
+    const sortedPeriods = Object.keys(periodMap).sort();
+    const targetIdx = sortedPeriods.indexOf(targetPeriod);
+    if (targetIdx === -1) return;
+
+    // 2. Identify Baseline Periods (prior to targetPeriod)
+    const basePeriodsCount = radarState.baselinePeriodsCount;
+    const startBaseIdx = Math.max(0, targetIdx - basePeriodsCount);
+    const baselinePeriods = sortedPeriods.slice(startBaseIdx, targetIdx);
+    const hasBaseline = baselinePeriods.length > 0;
+    const denom = hasBaseline ? baselinePeriods.length : 1;
+
+    // Check same period last year for seasonality
+    let samePeriodLastYear = null;
+    if (mode === 'monthly') {
+        const parts = targetPeriod.split('-');
+        const lastYearPeriod = `${parseInt(parts[0]) - 1}-${parts[1]}`;
+        if (periodMap[lastYearPeriod]) samePeriodLastYear = periodMap[lastYearPeriod];
+    }
+
+    const curPeriodData = periodMap[targetPeriod] || { items: {}, customers: {}, dates: new Set() };
+
+    // 3. SURGES RADAR (المحور 1: القفزات)
+    const surges = [];
+    let whaleCount = 0;
+
+    Object.values(curPeriodData.items).forEach(curItem => {
+        if (curItem.qty < 2) return; // Minimum meaningful threshold
+
+        let baseTotalQty = 0;
+        let baseActivePeriods = 0;
+        baselinePeriods.forEach(bp => {
+            const pData = periodMap[bp];
+            if (pData && pData.items[curItem.itemKey]) {
+                baseTotalQty += pData.items[curItem.itemKey].qty;
+                baseActivePeriods++;
+            }
+        });
+
+        const baseAvgQty = hasBaseline ? (baseTotalQty / denom) : 0;
+        const diffQty = curItem.qty - baseAvgQty;
+        const pctChange = baseAvgQty > 0 ? (diffQty / baseAvgQty * 100) : (curItem.qty >= 5 ? 200 : 0);
+
+        if (pctChange >= radarState.sensitivity && (curItem.qty >= 5 || diffQty >= 4)) {
+            // Clue 1: Whale / Concentration Analysis
+            const custEntries = Object.entries(curItem.customers).sort((a,b) => b[1] - a[1]);
+            const top1 = custEntries[0] || ['Unknown', 0];
+            const top2 = custEntries[1] || ['Unknown', 0];
+            const top1Share = (top1[1] / curItem.qty) * 100;
+            const top2Share = ((top1[1] + top2[1]) / curItem.qty) * 100;
+            const totalCustCount = custEntries.length;
+
+            const isWhale = top1Share >= 50 || (top2Share >= 70 && totalCustCount <= 3);
+            if (isWhale) whaleCount++;
+
+            // Clue 2: Seasonality Clue
+            let isSeasonal = false;
+            let seasonalNote = '';
+            if (samePeriodLastYear && samePeriodLastYear.items[curItem.itemKey]) {
+                const lyQty = samePeriodLastYear.items[curItem.itemKey].qty;
+                if (lyQty >= baseAvgQty * 1.4 && lyQty >= 5) {
+                    isSeasonal = true;
+                    seasonalNote = `تكرار سنوي مثبت: الصنف باع في نفس الفترة من العام الماضي (${fmtNumber(lyQty)} قطعة). قرينة قوية لموسم سنوي أو مناسبة هجرية.`;
+                }
+            }
+
+            surges.push({
+                itemKey: curItem.itemKey,
+                code: curItem.code,
+                name: curItem.name,
+                curQty: curItem.qty,
+                curNet: curItem.net,
+                baseAvgQty: baseAvgQty,
+                diffQty: diffQty,
+                pctChange: pctChange,
+                totalCustCount: totalCustCount,
+                topCustName: top1[0],
+                topCustQty: top1[1],
+                topCustShare: top1Share,
+                isWhale: isWhale,
+                isSeasonal: isSeasonal,
+                seasonalNote: seasonalNote,
+                topEntries: custEntries.slice(0, 3)
+            });
+        }
+    });
+
+    surges.sort((a,b) => b.diffQty - a.diffQty);
+    radarState.surges = surges;
+
+    // 4. DROPS & STOCKOUT RADAR (المحور 2: الهبوط والانقطاع)
+    const drops = [];
+    let stockoutCount = 0;
+
+    // Check all items that existed in baseline periods
+    const allBaselineItemKeys = new Set();
+    baselinePeriods.forEach(bp => {
+        if (periodMap[bp]) {
+            Object.keys(periodMap[bp].items).forEach(k => allBaselineItemKeys.add(k));
+        }
+    });
+
+    allBaselineItemKeys.forEach(itemKey => {
+        let baseTotalQty = 0;
+        let baseDaysTotal = 0;
+        let baseActivePeriods = 0;
+        const regularCusts = {}; // cust -> periods count
+
+        baselinePeriods.forEach(bp => {
+            const pData = periodMap[bp];
+            if (pData && pData.items[itemKey]) {
+                const bItem = pData.items[itemKey];
+                baseTotalQty += bItem.qty;
+                baseDaysTotal += bItem.datesSold.size;
+                baseActivePeriods++;
+                Object.keys(bItem.customers).forEach(c => {
+                    regularCusts[c] = (regularCusts[c] || 0) + 1;
+                });
+            }
+        });
+
+        const baseAvgQty = baseTotalQty / denom;
+        if (baseAvgQty < 4) return; // Only meaningful volume items
+
+        const baseDaysAvg = baseDaysTotal / denom;
+        const curItem = curPeriodData.items[itemKey];
+        const curQty = curItem ? curItem.qty : 0;
+        const curDaysSold = curItem ? curItem.datesSold.size : 0;
+        const dropQty = baseAvgQty - curQty;
+        const dropPct = (dropQty / baseAvgQty) * 100;
+
+        if (dropPct >= radarState.sensitivity) {
+            let dropType = 'organic'; // 'stockout' | 'lost_regulars' | 'organic'
+            let dropReason = '';
+
+            // Check Stockout Suspect (was sold in many days, now 0 or 1-2 days)
+            if (baseDaysAvg >= 6 && curDaysSold <= 2) {
+                dropType = 'stockout';
+                stockoutCount++;
+                dropReason = `شبهة نفاد رصيد (Stockout Alert): الصنف كان يباع بانتظام بمعدل (${fmtNumber(baseDaysAvg, 1)} يوم/فترة)، وفي هذه الفترة بيع في (${curDaysSold} أيام فقط) وانقطعت حركته! تأكد فوراً من الرصيد الفعلي على الرف.`;
+            }
+
+            // Check Lost Regular Customers
+            const lostRegulars = [];
+            Object.entries(regularCusts).forEach(([cName, count]) => {
+                if (count >= 2 && (!curItem || !curItem.customers[cName])) {
+                    lostRegulars.push(cName);
+                }
+            });
+
+            if (dropType !== 'stockout' && lostRegulars.length > 0) {
+                dropType = 'lost_regulars';
+                dropReason = `توقف عملاء منتظمون بالاسم: (${lostRegulars.slice(0, 3).join('، ')}${lostRegulars.length > 3 ? ' وغيرهم' : ''}) كانوا يسحبون الصنف بانتظام وتوقفوا في هذه الفترة.`;
+            } else if (dropType === 'organic') {
+                dropReason = `هبوط تدريجي عام في طلب عموم العملاء بنسبة (${fmtNumber(dropPct, 1)}%).`;
+            }
+
+            const itemName = curItem ? curItem.name : (periodMap[baselinePeriods[baselinePeriods.length-1]]?.items[itemKey]?.name || itemKey);
+            const itemCode = curItem ? curItem.code : (periodMap[baselinePeriods[baselinePeriods.length-1]]?.items[itemKey]?.code || '');
+
+            drops.push({
+                itemKey: itemKey,
+                code: itemCode,
+                name: itemName,
+                curQty: curQty,
+                baseAvgQty: baseAvgQty,
+                dropQty: dropQty,
+                dropPct: dropPct,
+                curDaysSold: curDaysSold,
+                baseDaysAvg: baseDaysAvg,
+                dropType: dropType,
+                dropReason: dropReason,
+                lostRegulars: lostRegulars
+            });
+        }
+    });
+
+    drops.sort((a,b) => b.dropQty - a.dropQty);
+    radarState.drops = drops;
+
+    // 5. CUSTOMER RADAR (المحور 3: رادار العملاء والتوقف النوعي)
+    const customerInsights = [];
+    let crossChurnCount = 0;
+
+    // Collect customers with baseline activity
+    const allBaselineCusts = {};
+    baselinePeriods.forEach(bp => {
+        if (periodMap[bp]) {
+            Object.entries(periodMap[bp].customers).forEach(([cName, cData]) => {
+                if (!allBaselineCusts[cName]) {
+                    allBaselineCusts[cName] = { totalNet: 0, periodsCount: 0, itemsCount: {} };
+                }
+                allBaselineCusts[cName].totalNet += cData.totalNet;
+                allBaselineCusts[cName].periodsCount++;
+                Object.entries(cData.items).forEach(([mKey, q]) => {
+                    allBaselineCusts[cName].itemsCount[mKey] = (allBaselineCusts[cName].itemsCount[mKey] || 0) + 1;
+                });
+            });
+        }
+    });
+
+    Object.entries(allBaselineCusts).forEach(([cName, baseCust]) => {
+        if (cName.startsWith('فاتورة #') || cName === 'عميل عام' || cName === 'N/A') return;
+        if (baseCust.periodsCount < 2) return; // Only regular customers
+
+        const baseAvgNet = baseCust.totalNet / denom;
+        const curCust = curPeriodData.customers[cName];
+
+        if (!curCust) {
+            // Lost Customer completely
+            customerInsights.push({
+                custName: cName,
+                type: 'lost',
+                typeLabel: 'اختفاء عميل دائم',
+                baseAvgNet: baseAvgNet,
+                curNet: 0,
+                evidence: `عميل منتظم كان يتردد بمعدل (${fmtSAR(baseAvgNet)}/فترة) واختفى تماماً في هذه الفترة دون أي حركة مشتريات.`
+            });
+        } else {
+            // Still buying from us! Check Selective Item Churn (Cross-Churn)
+            const curNet = curCust.totalNet;
+            const stoppedItems = [];
+
+            Object.entries(baseCust.itemsCount).forEach(([mKey, count]) => {
+                if (count >= 2 && !curCust.items[mKey]) {
+                    // Regular item that was stopped
+                    const prodName = curPeriodData.items[mKey]?.name || periodMap[baselinePeriods[baselinePeriods.length-1]]?.items[mKey]?.name || mKey;
+                    stoppedItems.push({ itemKey: mKey, name: prodName });
+                }
+            });
+
+            if (stoppedItems.length > 0) {
+                crossChurnCount++;
+                customerInsights.push({
+                    custName: cName,
+                    type: 'cross_churn',
+                    typeLabel: 'توقف نوعي عن أصناف معتادة',
+                    baseAvgNet: baseAvgNet,
+                    curNet: curNet,
+                    stoppedItems: stoppedItems,
+                    evidence: `العميل ما زال يشتري من الصيدلية في هذه الفترة (${fmtSAR(curNet)})، ولكنه توقف بهدوء عن (${stoppedItems.length}) أصناف كان يطلبها بانتظام: ` +
+                              stoppedItems.map(x => x.name).slice(0, 3).join('، ') + (stoppedItems.length > 3 ? ' وغيرها' : '') +
+                              ` (فرصة ذهبية للتحقق وسؤاله قبل أن يعتاد على صيدلية أخرى!).`
+                });
+            } else if (curNet < baseAvgNet * 0.5) {
+                // Declining spending
+                customerInsights.push({
+                    custName: cName,
+                    type: 'declining',
+                    typeLabel: 'تراجع حاد في السحب',
+                    baseAvgNet: baseAvgNet,
+                    curNet: curNet,
+                    evidence: `تراجع سحب العميل بنسبة (${fmtNumber(((baseAvgNet-curNet)/baseAvgNet)*100, 1)}%) مقارنة بمتوسطه السابق.`
+                });
+            }
+        }
+    });
+
+    customerInsights.sort((a,b) => (a.type === 'cross_churn' ? -1 : 1));
+    radarState.customers = customerInsights;
+
+    // Update Counter Badges
+    document.getElementById('valSurgesCount').textContent = fmtNumber(surges.length);
+    document.getElementById('badgeWhales').textContent = `${whaleCount} قفزة عميل واحد`;
+    document.getElementById('tabCountSurges').textContent = surges.length;
+
+    document.getElementById('valDropsCount').textContent = fmtNumber(drops.length);
+    document.getElementById('badgeStockouts').textContent = `${stockoutCount} انقطاع أيام`;
+    document.getElementById('tabCountDrops').textContent = drops.length;
+
+    document.getElementById('valCustomersCount').textContent = fmtNumber(customerInsights.length);
+    document.getElementById('badgeCrossChurn').textContent = `${crossChurnCount} توقف نوعي`;
+    document.getElementById('tabCountCustomers').textContent = customerInsights.length;
+
+    const decisionsCount = Object.keys(radarState.decisions).length;
+    document.getElementById('valDecisionsCount').textContent = fmtNumber(decisionsCount);
+    document.getElementById('tabCountDecisions').textContent = decisionsCount;
+
+    renderAllRadarTabs();
+}
+
+function renderAllRadarTabs() {
+    renderRadarSurges();
+    renderRadarDrops();
+    renderRadarCustomers();
+    renderRadarDecisions();
+}
+
+// 1. RENDER SURGES
+function renderRadarSurges() {
+    const container = document.getElementById('radarSurgesList');
+    if (!container) return;
+
+    let items = radarState.surges;
+    if (radarState.searchQuery) {
+        items = items.filter(x => x.name.toLowerCase().includes(radarState.searchQuery) || x.code.toLowerCase().includes(radarState.searchQuery));
+    }
+
+    if (items.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-gray)">لا توجد قفزات مبيعات مطابقة لمعايير البحث في هذه الفترة.</div>`;
+        return;
+    }
+
+    container.innerHTML = items.map(s => {
+        const decKey = `surge_${s.itemKey}_${radarState.targetPeriod}`;
+        const savedDec = radarState.decisions[decKey];
+
+        return `
+        <div class="radar-card-item">
+            <div class="radar-item-top">
+                <div>
+                    <div class="radar-item-title">${s.name}</div>
+                    <div class="radar-item-code">كود: ${s.code || 'N/A'}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    ${s.isWhale ? '<span class="badge-pill badge-orange">⚠️ قفزة عميل واحد (Whale)</span>' : '<span class="badge-pill badge-green">✅ طلب حقيقي واسع</span>'}
+                    ${s.isSeasonal ? '<span class="badge-pill badge-orange">🌙 تكرار سنوي</span>' : ''}
+                    <span style="font-size:16px;font-weight:800;color:var(--amber)">+${fmtNumber(s.pctChange, 0)}%</span>
+                </div>
+            </div>
+
+            <div class="radar-metrics-row">
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">كمية الفترة الحالية</span>
+                    <span class="radar-metric-val" style="color:var(--amber)">${fmtNumber(s.curQty)} قطعة</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">المتوسط السابق</span>
+                    <span class="radar-metric-val">${fmtNumber(s.baseAvgQty, 1)} قطعة</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">الزيادة المطلقة</span>
+                    <span class="radar-metric-val" style="color:var(--green)">+${fmtNumber(s.diffQty, 1)}</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">عدد المشترين</span>
+                    <span class="radar-metric-val">${s.totalCustCount} عميل/فاتورة</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">قيمة المبيعات</span>
+                    <span class="radar-metric-val">${fmtSAR(s.curNet)}</span>
+                </div>
+            </div>
+
+            <!-- Clue Box -->
+            <div class="radar-clue-box ${s.isWhale ? 'clue-whale' : 'clue-broad'}">
+                <strong>💡 قرينة الرادار:</strong> 
+                ${s.isWhale 
+                    ? `العميل <span style="font-weight:700;color:#fff">${s.topCustName}</span> اشترى بمفرده (${fmtNumber(s.topCustQty)} قطعة) بنسبة (${fmtNumber(s.topCustShare, 1)}%) من إجمالي مبيعات الصنف! إذا رفعت الطلب بناءً على المتوسط، ستتكدس الكميات كراكد بعد رحيل هذا العميل.` 
+                    : `الزيادة موزعة على (${s.totalCustCount}) عميل مختلف دون تركز، ما يشير إلى نمو حقيقي في الطلب على الرف يستوجب تأمين المخزون.`}
+                ${s.isSeasonal ? `<br>🌙 <em>${s.seasonalNote}</em>` : ''}
+            </div>
+
+            <!-- Decision Bar -->
+            <div class="radar-decision-bar">
+                <div>
+                    ${savedDec ? `
+                        <span class="radar-saved-tag">
+                            ✓ قرار معتمد: ${savedDec.tag} (${savedDec.notes || 'بدون ملاحظات'})
+                        </span>
+                    ` : '<span style="font-size:11px;color:var(--text-dim)">لم يسجل قرار بعد</span>'}
+                </div>
+                <button class="btn-decision" onclick='openRadarDecisionModal("surge", "${s.itemKey}", "${s.name.replace(/"/g, "&quot;")}", "${s.code}", "${s.isWhale ? 'قفزة عميل واحد: ' + s.topCustName : 'طلب حقيقي واسع'}")'>
+                    ✍️ ${savedDec ? 'تعديل القرار' : 'سجل قرارك ورأيك'}
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// 2. RENDER DROPS
+function renderRadarDrops() {
+    const container = document.getElementById('radarDropsList');
+    if (!container) return;
+
+    let items = radarState.drops;
+    if (radarState.searchQuery) {
+        items = items.filter(x => x.name.toLowerCase().includes(radarState.searchQuery) || x.code.toLowerCase().includes(radarState.searchQuery));
+    }
+
+    if (items.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-gray)">لا توجد حالات هبوط غير معتاد في هذه الفترة.</div>`;
+        return;
+    }
+
+    container.innerHTML = items.map(d => {
+        const decKey = `drop_${d.itemKey}_${radarState.targetPeriod}`;
+        const savedDec = radarState.decisions[decKey];
+
+        const isStockout = d.dropType === 'stockout';
+        const isLostReg = d.dropType === 'lost_regulars';
+
+        return `
+        <div class="radar-card-item">
+            <div class="radar-item-top">
+                <div>
+                    <div class="radar-item-title">${d.name}</div>
+                    <div class="radar-item-code">كود: ${d.code || 'N/A'}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    ${isStockout ? '<span class="badge-pill badge-red">🛑 شبهة نفاد رصيد (Stockout)</span>' : ''}
+                    ${isLostReg ? '<span class="badge-pill badge-purple">👥 توقف عملاء منتظمين</span>' : ''}
+                    ${!isStockout && !isLostReg ? '<span class="badge-pill" style="background:rgba(255,255,255,0.1);color:#fff">📉 هبوط تدريجي</span>' : ''}
+                    <span style="font-size:16px;font-weight:800;color:var(--red)">-${fmtNumber(d.dropPct, 0)}%</span>
+                </div>
+            </div>
+
+            <div class="radar-metrics-row">
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">كمية الفترة الحالية</span>
+                    <span class="radar-metric-val" style="color:var(--red)">${fmtNumber(d.curQty)} قطعة</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">المعدل السابق المعتاد</span>
+                    <span class="radar-metric-val">${fmtNumber(d.baseAvgQty, 1)} قطعة</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">حجم التراجع</span>
+                    <span class="radar-metric-val" style="color:var(--red)">-${fmtNumber(d.dropQty, 1)}</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">أيام البيع الحالية</span>
+                    <span class="radar-metric-val">${d.curDaysSold} أيام (سابقاً: ${fmtNumber(d.baseDaysAvg, 1)} يوم)</span>
+                </div>
+            </div>
+
+            <!-- Clue Box -->
+            <div class="radar-clue-box ${isStockout ? 'clue-stockout' : (isLostReg ? 'clue-lost-cust' : '')}">
+                <strong>💡 قرينة الرادار:</strong> ${d.dropReason}
+            </div>
+
+            <!-- Decision Bar -->
+            <div class="radar-decision-bar">
+                <div>
+                    ${savedDec ? `
+                        <span class="radar-saved-tag">
+                            ✓ قرار معتمد: ${savedDec.tag} (${savedDec.notes || 'بدون ملاحظات'})
+                        </span>
+                    ` : '<span style="font-size:11px;color:var(--text-dim)">لم يسجل قرار بعد</span>'}
+                </div>
+                <button class="btn-decision" onclick='openRadarDecisionModal("drop", "${d.itemKey}", "${d.name.replace(/"/g, "&quot;")}", "${d.code}", "${d.dropReason.replace(/"/g, "&quot;")}")'>
+                    ✍️ ${savedDec ? 'تعديل القرار' : 'سجل قرارك ورأيك'}
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// 3. RENDER CUSTOMERS
+function renderRadarCustomers() {
+    const container = document.getElementById('radarCustomersList');
+    if (!container) return;
+
+    let items = radarState.customers;
+    if (radarState.searchQuery) {
+        items = items.filter(x => x.custName.toLowerCase().includes(radarState.searchQuery) || x.evidence.toLowerCase().includes(radarState.searchQuery));
+    }
+
+    if (items.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-gray)">لا توجد تحولات عملاء ملحوظة في هذه الفترة.</div>`;
+        return;
+    }
+
+    container.innerHTML = items.map(c => {
+        const decKey = `cust_${c.custName}_${radarState.targetPeriod}`;
+        const savedDec = radarState.decisions[decKey];
+
+        const isCrossChurn = c.type === 'cross_churn';
+
+        return `
+        <div class="radar-card-item">
+            <div class="radar-item-top">
+                <div>
+                    <div class="radar-item-title">${c.custName}</div>
+                    <div style="font-size:12px;color:var(--accent-light);margin-top:2px">${c.typeLabel}</div>
+                </div>
+                <div>
+                    ${isCrossChurn ? '<span class="badge-pill badge-purple">🎯 توقف نوعي (Cross-Churn)</span>' : '<span class="badge-pill badge-red">⚠️ عميل متوقف</span>'}
+                </div>
+            </div>
+
+            <div class="radar-metrics-row">
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">المشتريات السابقة</span>
+                    <span class="radar-metric-val">${fmtSAR(c.baseAvgNet)}</span>
+                </div>
+                <div class="radar-metric-block">
+                    <span class="radar-metric-lbl">مشتريات الفترة الحالية</span>
+                    <span class="radar-metric-val" style="color:${c.curNet > 0 ? 'var(--green)' : 'var(--red)'}">${fmtSAR(c.curNet)}</span>
+                </div>
+            </div>
+
+            <div class="radar-clue-box ${isCrossChurn ? 'clue-lost-cust' : 'clue-stockout'}">
+                <strong>💡 قرينة الرادار:</strong> ${c.evidence}
+            </div>
+
+            <div class="radar-decision-bar">
+                <div>
+                    ${savedDec ? `
+                        <span class="radar-saved-tag">
+                            ✓ إجراء معتمد: ${savedDec.tag} (${savedDec.notes || ''})
+                        </span>
+                    ` : '<span style="font-size:11px;color:var(--text-dim)">لم يتخذ إجراء بعد</span>'}
+                </div>
+                <button class="btn-decision" onclick='openRadarDecisionModal("cust", "${c.custName.replace(/"/g, "&quot;")}", "${c.custName.replace(/"/g, "&quot;")}", "Customer", "${c.evidence.replace(/"/g, "&quot;")}")'>
+                    ✍️ ${savedDec ? 'تعديل الإجراء' : 'سجل إجراء العميل'}
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// 4. RENDER DECISIONS
+function renderRadarDecisions() {
+    const container = document.getElementById('radarDecisionsList');
+    if (!container) return;
+
+    const entries = Object.entries(radarState.decisions);
+    if (entries.length === 0) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-gray)">لم تسجل أي قرارات بعد. يمكنك النقر على «سجل قرارك ورأيك» في أي من التبويبات لتوثيق توصياتك.</div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:13px;color:var(--text-light);font-weight:700">القرارات المحفوظة في الذاكرة المحلية (${entries.length})</span>
+            <button class="btn btn-primary" onclick="exportRadarToExcel()" style="padding:6px 14px;font-size:12px">📥 تصدير الكل إلى Excel</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+            ${entries.map(([key, d]) => `
+                <div class="radar-card-item" style="padding:14px 18px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <div>
+                            <span style="font-weight:800;color:var(--text-white);font-size:15px">${d.title}</span>
+                            <span style="font-size:11px;color:var(--text-dim);margin-right:8px">(${d.code})</span>
+                        </div>
+                        <span class="badge-pill badge-green">${d.tag}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-light);margin-bottom:6px"><strong>توصية الصيدلي:</strong> ${d.notes || 'تم الاعتماد بدون ملاحظة إضافية'}</div>
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim)">
+                        <span>الفترة: ${d.period} • التاريخ: ${d.savedAt || 'اليوم'}</span>
+                        <a href="javascript:void(0)" onclick="removeSingleDecision('${key}')" style="color:var(--red);text-decoration:none">حذف القرار 🗑️</a>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function removeSingleDecision(key) {
+    if (confirm('هل أنت متأكد من حذف هذا القرار؟')) {
+        delete radarState.decisions[key];
+        persistRadarDecisions();
+        computeRadarAnalysis();
+    }
+}
+
+// DECISION MODAL HANDLING
+const DECISION_QUICK_TAGS = {
+    surge: [
+        'عميل عابر/جملة - لا تزد الطلب',
+        'طلب حقيقي - زد كمية الطلبية',
+        'موسم سنوي عابر (رمضان/شتاء/إلخ)',
+        'عرض ترويجي/تخفيض مؤقت',
+        'تم تدقيق الرصيد واكتفاء الصيدلية'
+    ],
+    drop: [
+        'نفاد رصيد من الرف - اطلب فوراً!',
+        'مقطوع من الوكيل/الشركة الموردة',
+        'تغيرت وصفة المريض المزمن',
+        'تم توفير صنف بديل للعملاء',
+        'هبوط طبيعي في الطلب'
+    ],
+    cust: [
+        'تم الاتصال والتواصل مع العميل',
+        'العميل مسافر أو أكمل العلاج',
+        'توفير الصنف الناقص خصيصاً له',
+        'تحويل العميل لمنتج بديل'
+    ]
+};
+
+function openRadarDecisionModal(cat, id, title, code, cluesText) {
+    radarState.activeModalItem = { cat, id, title, code, cluesText };
+
+    document.getElementById('radarModalCategory').textContent = 
+        cat === 'surge' ? '🚨 رادار القفزات • قرار الصيدلي' : 
+        cat === 'drop' ? '📉 رادار الهبوط والانقطاع • قرار الصيدلي' : '👥 رادار العملاء • إجراء الصيدلي';
+    document.getElementById('radarModalItemTitle').textContent = title;
+    document.getElementById('radarModalItemCode').textContent = code ? `كود: ${code}` : '';
+    document.getElementById('radarModalCluesBox').innerHTML = `<strong>💡 القرائن المعروضة:</strong> ${cluesText}`;
+
+    const tags = DECISION_QUICK_TAGS[cat] || DECISION_QUICK_TAGS.surge;
+    const tagsContainer = document.getElementById('radarModalQuickTags');
+
+    const decKey = `${cat}_${id}_${radarState.targetPeriod}`;
+    const savedDec = radarState.decisions[decKey];
+
+    tagsContainer.innerHTML = tags.map((t, idx) => `
+        <button type="button" class="radar-tag-btn ${(savedDec && savedDec.tag === t) || (!savedDec && idx === 0) ? 'selected' : ''}" onclick="selectRadarQuickTag(this, '${t}')">
+            ${t}
+        </button>
+    `).join('');
+
+    document.getElementById('radarModalNotes').value = savedDec ? (savedDec.notes || '') : '';
+    document.getElementById('btnDeleteRadarDecision').style.display = savedDec ? 'inline-block' : 'none';
+
+    document.getElementById('radarModal').classList.add('show');
+}
+
+function selectRadarQuickTag(btn, tagText) {
+    document.querySelectorAll('.radar-tag-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+}
+
+function closeRadarModal() {
+    document.getElementById('radarModal').classList.remove('show');
+    radarState.activeModalItem = null;
+}
+
+function saveRadarDecision() {
+    if (!radarState.activeModalItem) return;
+    const item = radarState.activeModalItem;
+    const decKey = `${item.cat}_${item.id}_${radarState.targetPeriod}`;
+
+    const selectedTagBtn = document.querySelector('.radar-tag-btn.selected');
+    const tag = selectedTagBtn ? selectedTagBtn.textContent.trim() : 'تم الاعتماد';
+    const notes = document.getElementById('radarModalNotes').value.trim();
+
+    radarState.decisions[decKey] = {
+        key: decKey,
+        cat: item.cat,
+        id: item.id,
+        title: item.title,
+        code: item.code,
+        period: radarState.targetPeriod,
+        tag: tag,
+        notes: notes,
+        savedAt: new Date().toLocaleDateString('ar-SA')
+    };
+
+    persistRadarDecisions();
+    closeRadarModal();
+    computeRadarAnalysis();
+}
+
+function deleteRadarDecision() {
+    if (!radarState.activeModalItem) return;
+    const item = radarState.activeModalItem;
+    const decKey = `${item.cat}_${item.id}_${radarState.targetPeriod}`;
+    delete radarState.decisions[decKey];
+    persistRadarDecisions();
+    closeRadarModal();
+    computeRadarAnalysis();
+}
+
+// EXPORT TO EXCEL FUNCTION
+function exportRadarToExcel() {
+    if (!radarState.surges || !radarState.drops) {
+        alert('يرجى تحميل ملف المبيعات أولاً لتصدير تقرير الرادار.');
+        return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Decisions Log
+    const decRows = Object.values(radarState.decisions).map(d => ({
+        'نوع الرادار': d.cat === 'surge' ? 'قفزة مبيعات' : (d.cat === 'drop' ? 'هبوط/انقطاع' : 'عملاء'),
+        'اسم الصنف / العميل': d.title,
+        'الكود': d.code,
+        'فترة الفحص': d.period,
+        'السبب / التصنيف': d.tag,
+        'توصية وقرار الصيدلي': d.notes,
+        'تاريخ التسجيل': d.savedAt
+    }));
+    const wsDec = XLSX.utils.json_to_sheet(decRows.length ? decRows : [{ 'ملاحظة': 'لم تسجل قرارات بعد' }]);
+    XLSX.utils.book_append_sheet(wb, wsDec, 'قرارات الصيدلي');
+
+    // Sheet 2: Surges
+    const surgeRows = radarState.surges.map(s => ({
+        'كود الصنف': s.code,
+        'اسم الصنف': s.name,
+        'كمية الفترة الحالية': s.curQty,
+        'المتوسط السابق': Math.round(s.baseAvgQty * 10) / 10,
+        'الزيادة المطلقة': Math.round(s.diffQty * 10) / 10,
+        'نسبة القفزة %': Math.round(s.pctChange) + '%',
+        'تصنيف القفزة': s.isWhale ? 'قفزة عميل واحد (Whale)' : 'طلب حقيقي واسع',
+        'أكبر عميل': s.topCustName,
+        'كمية أكبر عميل': s.topCustQty,
+        'نسبة أكبر عميل %': Math.round(s.topCustShare) + '%',
+        'تكرار سنوي؟': s.isSeasonal ? 'نعم' : 'لا'
+    }));
+    const wsSurges = XLSX.utils.json_to_sheet(surgeRows);
+    XLSX.utils.book_append_sheet(wb, wsSurges, 'رادار القفزات');
+
+    // Sheet 3: Drops
+    const dropRows = radarState.drops.map(d => ({
+        'كود الصنف': d.code,
+        'اسم الصنف': d.name,
+        'كمية الفترة الحالية': d.curQty,
+        'المعدل السابق': Math.round(d.baseAvgQty * 10) / 10,
+        'حجم التراجع': Math.round(d.dropQty * 10) / 10,
+        'نسبة التراجع %': Math.round(d.dropPct) + '%',
+        'تصنيف الهبوط': d.dropType === 'stockout' ? 'شبهة نفاد رصيد' : (d.dropType === 'lost_regulars' ? 'توقف عملاء منتظمين' : 'هبوط تدريجي'),
+        'قرينة الرادار': d.dropReason
+    }));
+    const wsDrops = XLSX.utils.json_to_sheet(dropRows);
+    XLSX.utils.book_append_sheet(wb, wsDrops, 'رادار الهبوط والانقطاع');
+
+    // Sheet 4: Customers
+    const custRows = radarState.customers.map(c => ({
+        'اسم العميل': c.custName,
+        'نوع التحول': c.typeLabel,
+        'المشتريات السابقة': Math.round(c.baseAvgNet),
+        'مشتريات الفترة الحالية': Math.round(c.curNet),
+        'قرينة الرادار': c.evidence
+    }));
+    const wsCust = XLSX.utils.json_to_sheet(custRows);
+    XLSX.utils.book_append_sheet(wb, wsCust, 'رادار العملاء');
+
+    XLSX.writeFile(wb, `رادار_الحركة_عدّة_الصيدلي_${radarState.targetPeriod}.xlsx`);
+}
 
 // Setup Drag & Drop
 function setupDropZone() {
