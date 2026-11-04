@@ -658,6 +658,116 @@
             margin-top: 8px;
         }
         .radar-textarea:focus { border-color: var(--accent); }
+
+        /* === TARGET & TARGET ACHIEVEMENT BAR STYLES === */
+        .target-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(59, 130, 246, 0.1));
+            border: 1px solid var(--accent-glow);
+            padding: 10px 18px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .target-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .target-input {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-white);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            width: 140px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .target-input:focus { border-color: var(--accent); }
+        .target-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .target-badge.achieved { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+        .target-badge.progress { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+        .target-badge.low { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+
+        /* RADAR NOPCO TOGGLE PILLS */
+        .radar-scope-pills {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .radar-scope-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .radar-scope-btn.active {
+            background: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+        .radar-scope-btn.active.wasfaty {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+        }
+
+        /* PHARM CARD TOP CATEGORIES MINI-BAR */
+        .pharm-cats-mini {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+            font-size: 11px;
+        }
+        .pharm-cats-title {
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .pharm-cats-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .pharm-cat-chip {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--text-light);
+            border: 1px solid rgba(255,255,255,0.06);
+            display: inline-flex;
+            gap: 4px;
+        }
+        .pharm-cat-chip strong { color: var(--accent-light); }
+
 </style>
 </head>
 <body class="theme-dark">
@@ -827,6 +937,23 @@
         <div class="dashboard" id="dashboard">
             
             <!-- KPI CARDS GRID -->
+            
+            <!-- TARGET & REAL-TIME ACHIEVEMENT BAR -->
+            <div class="target-bar-wrap" id="targetBarWrap">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-white)">
+                    <span>🎯 المستهدف البيعي (Target):</span>
+                </div>
+                <div class="target-input-group">
+                    <input type="number" class="target-input" id="branchTargetInput" placeholder="أدخل المستهدف (SAR)" oninput="updateBranchTarget(this.value)" />
+                    <span style="font-size:11px;color:var(--text-dim)">ريال</span>
+                </div>
+                <div id="targetAchievementBadge" class="target-badge progress" style="display:none">
+                    <span id="targetAchPct">0%</span>
+                    <span id="targetAchText">نسبة التحقيق</span>
+                </div>
+                <div id="targetGapInfo" style="font-size:12px;color:var(--text-dim);margin-right:auto"></div>
+            </div>
+
             <div class="kpi-grid" id="kpiGrid"></div>
 
             <!-- PHARMACIST CARDS SECTION -->
@@ -904,6 +1031,16 @@
                     <div class="radar-toggle-pills">
                         <button class="radar-pill active" id="btnRadarMonthly" onclick="setRadarMode('monthly')">شهري (Monthly)</button>
                         <button class="radar-pill" id="btnRadarWeekly" onclick="setRadarMode('weekly')">أسبوعي (Weekly)</button>
+                    </div>
+                </div>
+
+                
+                <div class="radar-control-group">
+                    <label class="radar-control-label">🏢 نطاق الرادار وعملاء وصفتي:</label>
+                    <div class="radar-scope-pills">
+                        <button class="radar-scope-btn active" id="btnScopeAll" onclick="setRadarScope('all')">🌐 كافة العمليات</button>
+                        <button class="radar-scope-btn wasfaty" id="btnScopeWasfaty" onclick="setRadarScope('wasfaty')">💊 NOPCO-Wasfaty فقط</button>
+                        <button class="radar-scope-btn" id="btnScopeNonWasfaty" onclick="setRadarScope('non_wasfaty')">🛒 عملاء الصيدلية الآخرين</button>
                     </div>
                 </div>
 
@@ -1276,6 +1413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('up_theme') || 'dark';
     setTheme(savedTheme);
     setupDropZone();
+    initTargetUI();
     // Start on clean welcome screen - NO stored data!
     showWelcome();
 });
@@ -1393,6 +1531,7 @@ let currentMainView = 'dashboard';
 
 let radarState = {
     mode: 'monthly', // 'monthly' | 'weekly'
+    scope: 'all', // 'all' | 'wasfaty' | 'non_wasfaty'
     targetPeriod: null,
     baselinePeriodsCount: 3,
     sensitivity: 50,
@@ -1469,6 +1608,20 @@ function persistRadarDecisions() {
 }
 
 // Radar Mode Toggle (Monthly / Weekly)
+
+function setRadarScope(scope) {
+    radarState.scope = scope;
+    ['all', 'wasfaty', 'non_wasfaty'].forEach(s => {
+        const btnId = s === 'all' ? 'btnScopeAll' : (s === 'wasfaty' ? 'btnScopeWasfaty' : 'btnScopeNonWasfaty');
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            if (s === scope) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+    });
+    initMovementRadar(false);
+}
+
 function setRadarMode(mode) {
     radarState.mode = mode;
     const btnM = document.getElementById('btnRadarMonthly');
@@ -1538,8 +1691,14 @@ function initMovementRadar(resetPeriod = false) {
 
     // Collect all periods
     const periodsSet = new Set();
-    currentDataset.allRows.forEach(r => {
-        const dt = parseRowDate(r);
+    const scope = radarState.scope || 'all';
+    for (let i = 0; i < currentDataset.allRows.length; i++) {
+        const r = currentDataset.allRows[i];
+        const nr = r._norm || normalizeRow(r);
+        if (scope === 'wasfaty' && !nr.isWasfaty) continue;
+        if (scope === 'non_wasfaty' && nr.isWasfaty) continue;
+
+        const dt = nr.dateObj ? nr.dateObj.date : parseRowDate(r);
         if (!dt || isNaN(dt.getTime())) return;
         if (radarState.mode === 'monthly') {
             const mKey = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
@@ -1547,7 +1706,7 @@ function initMovementRadar(resetPeriod = false) {
         } else {
             periodsSet.add(getWeekNumber(dt));
         }
-    });
+    }
 
     const sortedPeriods = Array.from(periodsSet).sort();
     if (sortedPeriods.length === 0) return;
@@ -1580,11 +1739,17 @@ function computeRadarAnalysis() {
     // 1. Group rows by period
     const periodMap = {}; // period -> { items: {}, customers: {}, dates: Set() }
 
-    rows.forEach(r => {
-        const dt = parseRowDate(r);
-        if (!dt || isNaN(dt.getTime())) return;
-        const dateStr = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-        const pKey = (mode === 'monthly') ? `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}` : getWeekNumber(dt);
+    const scope = radarState.scope || 'all';
+    for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const nr = r._norm || normalizeRow(r);
+        if (scope === 'wasfaty' && !nr.isWasfaty) continue;
+        if (scope === 'non_wasfaty' && nr.isWasfaty) continue;
+
+        const dt = nr.dateObj ? nr.dateObj.date : parseRowDate(r);
+        if (!dt || isNaN(dt.getTime())) continue;
+        const dateStr = nr.dateObj ? nr.dateObj.dayStr : `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+        const pKey = (mode === 'monthly') ? (nr.dateObj ? nr.dateObj.yearMonth : `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`) : getWeekNumber(dt);
 
         if (!periodMap[pKey]) {
             periodMap[pKey] = { items: {}, customers: {}, dates: new Set() };
@@ -1592,15 +1757,15 @@ function computeRadarAnalysis() {
         const pObj = periodMap[pKey];
         pObj.dates.add(dateStr);
 
-        const prodName = (gv(r, 'Name') || 'Product').toString().trim();
-        const matNum = (gv(r, 'MaterialNumber') || '').toString().trim();
+        const prodName = nr.prodName;
+        const matNum = nr.matNum;
         const itemKey = matNum ? matNum : prodName;
-        const qty = gn(r, 'Quantity') || 1;
-        const net = gn(r, 'NetTotal') || gn(r, 'ItemsNetPrice') || 0;
-        let cust = (gv(r, 'CustomerName') || '').toString().trim();
+        const qty = nr.qty;
+        const net = nr.net;
+        let cust = nr.custName;
         if (!cust || cust.toUpperCase() === 'N/A') {
-            const inv = gv(r, 'InvoiceNumber');
-            cust = inv ? `فاتورة #${inv}` : 'عميل عام';
+            const inv = nr.inv;
+            cust = inv ? `فاتورة #${inv}` : (nr.isWasfaty ? 'عميل وصفتي' : 'عميل عام');
         }
 
         // Item tracking in period
@@ -1639,7 +1804,7 @@ function computeRadarAnalysis() {
         cObj.totalQty += qty;
         cObj.items[itemKey] = (cObj.items[itemKey] || 0) + qty;
         if (invNum) cObj.invoices.add(invNum);
-    });
+    }
 
     const sortedPeriods = Object.keys(periodMap).sort();
     const targetIdx = sortedPeriods.indexOf(targetPeriod);
@@ -2359,7 +2524,8 @@ function exportRadarToExcel() {
     const wsCust = XLSX.utils.json_to_sheet(custRows);
     XLSX.utils.book_append_sheet(wb, wsCust, 'رادار العملاء');
 
-    XLSX.writeFile(wb, `رادار_الحركة_عدّة_الصيدلي_${radarState.targetPeriod}.xlsx`);
+    const scopeLabel = radarState.scope === 'wasfaty' ? 'NOPCO_Wasfaty' : (radarState.scope === 'non_wasfaty' ? 'عملاء_الفرع' : 'شامل');
+    XLSX.writeFile(wb, رادار_الحركة__.xlsx);
 }
 
 // Setup Drag & Drop
@@ -2548,9 +2714,10 @@ function processRawExcelRows(rows, fileName, sheetName) {
     const yearsSet = new Set();
     const ymMap = {}; // yearMonth -> { key, year, month, label, labelAr, shortLabel }
 
-    rows.forEach(r => {
-        let dt = null;
-        try { dt = parseRowDateDetails(r); } catch(e) {}
+    // Pre-normalize all rows in single pass for maximum speed across 280k+ records
+    for (let i = 0; i < rows.length; i++) {
+        const nr = normalizeRow(rows[i]);
+        const dt = nr.dateObj;
         if (dt) {
             yearsSet.add(dt.year);
             if (!ymMap[dt.yearMonth]) {
@@ -2567,7 +2734,7 @@ function processRawExcelRows(rows, fileName, sheetName) {
                 };
             }
         }
-    });
+    }
 
     currentDataset = {
         fileName: fileName,
@@ -2639,8 +2806,123 @@ function detectSalesType(r, isNearCare) {
     return 'Normal Cash (كاش عادي)';
 }
 
+
+// =========================================================================
+// === HIGH PERFORMANCE ROW NORMALIZATION & PRE-INDEXING ENGINE ===
+// =========================================================================
+function normalizeRow(r) {
+    if (r._norm) return r._norm;
+
+    // Fast column lookup map
+    const kMap = {};
+    for (let k of Object.keys(r)) {
+        kMap[k.trim().toUpperCase()] = r[k];
+    }
+    const g = (f) => kMap[f.toUpperCase()] ?? null;
+    const gnFast = (f) => {
+        const v = g(f);
+        return (v === null || v === undefined || v === '') ? 0 : (parseFloat(v) || 0);
+    };
+
+    const invTypeRaw = (g('InvoiceType') || g('Trans_Type') || 'Normal').toString().trim();
+    const invTypeLower = invTypeRaw.toLowerCase();
+    const custRaw = (g('CustomerName') || g('UserName') || '').toString().trim();
+    const custLower = custRaw.toLowerCase();
+
+    // Wasfaty / NOPCO detection
+    const isWasfaty = custLower.includes('wasfaty') || custLower.includes('nopco') ||
+                      invTypeLower.includes('wasfaty') || invTypeLower.includes('nopco') ||
+                      custRaw.includes('وصفتي') || custRaw.includes('نوبكو');
+
+    // NearCare detection
+    const isNearCare = (custLower.includes('near') && custLower.includes('care')) ||
+                       custLower.includes('نير') ||
+                       invTypeLower.includes('nearcare') ||
+                       (invTypeLower.includes('near') && invTypeLower.includes('care'));
+
+    // Check if Return transaction
+    const isReturn = invTypeLower.includes('return') ||
+                     gnFast('Return') > 0 ||
+                     gnFast('RETURN ONLY') > 0 ||
+                     (g('Trans_Type') || '').toString().toLowerCase().includes('return');
+
+    // Net Price without VAT (صافي المبيعات بدون ضريبة ومطروح منه المرتجع)
+    // Priority order: ItemsNetPrice (صافي البنود قبل الضريبة) -> Total_Sales -> (NetTotal - TotalVAT)
+    let net = 0;
+    if (g('ItemsNetPrice') !== null) {
+        net = gnFast('ItemsNetPrice');
+    } else if (g('Total_Sales') !== null) {
+        net = gnFast('Total_Sales');
+    } else if (g('NetTotal') !== null) {
+        const gross = gnFast('NetTotal');
+        const vat = gnFast('TotalVAT') || gnFast('VatAmountValue') || 0;
+        net = gross - vat;
+    } else if (g('full_price') !== null) {
+        net = gnFast('full_price') - gnFast('Total_Discount');
+    }
+
+    // If it's a return invoice/row, ensure net is negative if not already
+    if (isReturn && net > 0) {
+        net = -net;
+    }
+
+    // Also track return amount specifically
+    const returnVal = (isReturn || net < 0) ? Math.abs(net) : 0;
+
+    // Quantity
+    let qty = gnFast('Quantity') || gnFast('Qty') || 1;
+    if (isReturn && qty > 0) qty = -qty;
+
+    // Date parsing precomputed
+    const dt = parseRowDateDetails(r);
+
+    // Sales Type
+    let salesType = 'Normal Cash (كاش عادي)';
+    const explicitST = g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType');
+    if (explicitST) {
+        salesType = explicitST.toString().trim();
+    } else if (isWasfaty) {
+        salesType = 'NOPCO-Wasfaty (وصفتي)';
+    } else if (isNearCare) {
+        salesType = 'NearCare (نير كير)';
+    } else if (invTypeLower.includes('online')) {
+        salesType = 'Online (أونلاين وتطبيقات)';
+    } else if (invTypeLower.includes('insurance') || custLower.includes('bupa') || custLower.includes('tawuniya') || custLower.includes('medgulf') || custLower.includes('malaz')) {
+        salesType = 'Insurance (تأمين طبي)';
+    } else if (invTypeLower === 'creditcustomer' || custLower.includes('tamara') || custLower.includes('tabby')) {
+        salesType = 'Credit (آجل / تقسيط)';
+    } else if (invTypeLower.includes('return')) {
+        salesType = 'Return (مرتجع)';
+    }
+
+    const norm = {
+        salesName: (g('SalesName') || g('Pharmacist') || g('UserName') || 'Unknown').toString().trim(),
+        net: net,
+        vat: gnFast('TotalVAT') || gnFast('VatAmountValue') || 0,
+        returnVal: returnVal,
+        isReturn: isReturn,
+        qty: qty,
+        inv: g('InvoiceNumber') || g('TrxNO') || '',
+        invDate: g('InvoiceDate') || g('Date'),
+        invTime: g('InvoiceTime') || g('TrxTime') || '',
+        invType: invTypeRaw,
+        custName: custRaw,
+        isWasfaty: isWasfaty,
+        isNearCare: isNearCare,
+        salesType: salesType,
+        div: (g('DIVISION') || g('ZONE') || 'General').toString().trim(),
+        cat: (g('CATEGORY') || g('FORMAT') || 'General Care').toString().trim(),
+        prodName: (g('Name') || g('SAP_ITEM_CODE') || 'Product').toString().trim(),
+        matNum: (g('MaterialNumber') || g('SAP_ITEM_CODE') || '').toString().trim(),
+        dateObj: dt
+    };
+
+    r._norm = norm;
+    return norm;
+}
+
 function processRowsToSummary(rows) {
-    let totalSales = 0, totalQty = 0;
+    let totalSales = 0, totalQty = 0, totalVat = 0, totalReturns = 0;
     const invoices = new Set();
     const allActiveDates = new Set();
     const pharmMap = {};
@@ -2658,33 +2940,27 @@ function processRowsToSummary(rows) {
     let branchNearCareQty = 0;
     const branchNearCareInvoices = new Set();
 
-    rows.forEach(r => {
-        const salesName = gv(r, 'SalesName') || gv(r, 'Pharmacist') || 'Unknown';
-        const net = gn(r, 'NetTotal') || gn(r, 'ItemsNetPrice');
-        const qty = gn(r, 'Quantity') || 1;
-        const inv = gv(r, 'InvoiceNumber');
-        const invDate = gv(r, 'InvoiceDate');
-        const invTime = gv(r, 'InvoiceTime');
-        const invType = (gv(r, 'InvoiceType') || 'Normal').toString().trim();
-        const custName = (gv(r, 'CustomerName') || '').toString().trim();
-        const div = gv(r, 'DIVISION') || 'General';
-        const cat = gv(r, 'CATEGORY') || 'General Care';
-        const prodName = gv(r, 'Name') || 'Product';
-        const matNum = gv(r, 'MaterialNumber') || '';
+    // Fast single loop
+    for (let i = 0; i < rows.length; i++) {
+        const nr = normalizeRow(rows[i]);
+        const net = nr.net;
+        const qty = nr.qty;
+        const inv = nr.inv;
+        const salesName = nr.salesName;
+        const invType = nr.invType;
+        const salesType = nr.salesType;
+        const div = nr.div;
+        const cat = nr.cat;
+        const prodName = nr.prodName;
+        const matNum = nr.matNum;
         const isCi = CASH_INS_TYPES.has(invType);
-
-        // NearCare Identification
-        const custLower = custName.toLowerCase();
-        const invTypeLower = invType.toLowerCase();
-        const isNearCare = (custLower.includes('near') && custLower.includes('care')) ||
-                           custLower.includes('نير') ||
-                           invTypeLower.includes('nearcare') ||
-                           (invTypeLower.includes('near') && invTypeLower.includes('care'));
-
-        const salesType = detectSalesType(r, isNearCare);
+        const isNearCare = nr.isNearCare;
+        const dateObj = nr.dateObj;
 
         totalSales += net;
         totalQty += qty;
+        totalVat += nr.vat;
+        totalReturns += nr.returnVal;
         if (inv) invoices.add(inv);
 
         if (isCi) {
@@ -2699,7 +2975,6 @@ function processRowsToSummary(rows) {
             if (inv) branchNearCareInvoices.add(inv);
         }
 
-        const dateObj = parseRowDateDetails(r);
         const dateStr = dateObj ? dateObj.dayStr : '2026-01-01';
         const ymKey = dateObj ? dateObj.yearMonth : '2026-01';
         const ymLabel = dateObj ? (currentLang === 'ar' ? dateObj.shortYearLabelAr : dateObj.shortYearLabel) : ymKey;
@@ -2798,16 +3073,16 @@ function processRowsToSummary(rows) {
         pObj.InvoiceTypes[invType].Quantity += qty;
         if (inv) pObj.InvoiceTypes[invType].Invoices.add(inv);
 
-        if (invType.toLowerCase().includes('return')) {
-            pObj.ReturnSales += net;
+        if (nr.isReturn || nr.returnVal > 0) {
+            pObj.ReturnSales += nr.returnVal;
         }
 
         if (!pObj.DailyLogs[dateStr]) pObj.DailyLogs[dateStr] = { times: [] };
-        if (invTime) pObj.DailyLogs[dateStr].times.push(invTime.toString());
+        if (nr.invTime) pObj.DailyLogs[dateStr].times.push(nr.invTime.toString());
 
         let h = 12;
-        if (invTime) {
-            const parts = invTime.toString().split(':');
+        if (nr.invTime) {
+            const parts = nr.invTime.toString().split(':');
             if (parts.length > 0) h = parseInt(parts[0]) || 12;
         }
         if (h >= 8 && h < 16) pObj.Shifts.morning += net;
@@ -2819,12 +3094,9 @@ function processRowsToSummary(rows) {
         pObj.Products[prodName] = (pObj.Products[prodName] || 0) + net;
         pObj.MonthlySales[ymLabel] = (pObj.MonthlySales[ymLabel] || 0) + net;
         pObj.MonthlySales[ymKey] = (pObj.MonthlySales[ymKey] || 0) + net;
-    });
+    }
 
     const pharmArray = Object.values(pharmMap).map(p => {
-        const daysWorked = Object.keys(p.DailyLogs).length;
-
-
         const invCount = p.Invoices.size;
         const ciInvCount = p.CiInvoices.size;
         const apt = ciInvCount > 0 ? p.CiSales / ciInvCount : 0;
@@ -2846,7 +3118,7 @@ function processRowsToSummary(rows) {
             BSU: bsu,
             RSP: rsp,
             ReturnSales: p.ReturnSales,
-            ReturnRatePct: p.TotalNetSales > 0 ? (Math.abs(p.ReturnSales) / p.TotalNetSales * 100) : 0,
+            ReturnRatePct: p.TotalNetSales > 0 ? (Math.abs(p.ReturnSales) / (p.TotalNetSales + Math.abs(p.ReturnSales)) * 100) : 0,
             SalesSharePct: totalSales > 0 ? (p.TotalNetSales / totalSales * 100) : 0,
             Categories: p.Categories,
             Divisions: p.Divisions,
@@ -2881,6 +3153,8 @@ function processRowsToSummary(rows) {
         totalNetSales: totalSales,
         totalInvoices: invoices.size,
         totalQuantity: totalQty,
+        totalVat: totalVat,
+        totalReturns: totalReturns,
         totalActiveDays: allActiveDates.size,
         branchSalesPerDay: branchSalesPerDay,
         branchNearCareInvoices: branchNearCareInvoices.size,
@@ -2893,154 +3167,11 @@ function processRowsToSummary(rows) {
         branchCiQuantity: totalCiQty,
         pharmacists: pharmArray,
         monthlyTrend: mTrend,
-        salesTypeBreakdown: Object.entries(salesTypeMap).map(([k, v]) => ({
-            SalesType: k,
-            NetSales: v.NetSales,
-            Invoices: v.Invoices.size,
-            Quantity: v.Quantity
-        })).sort((a,b) => b.NetSales - a.NetSales),
-        invoiceTypeBreakdown: Object.entries(invoiceTypeMap).map(([k, v]) => ({
-            InvoiceType: k,
-            NetSales: v.NetSales,
-            Invoices: v.Invoices.size,
-            Quantity: v.Quantity
-        })).sort((a,b) => b.NetSales - a.NetSales),
-        divisionSales: Object.entries(divisionMap).map(([k, v]) => ({
-            DIVISION: k,
-            NetSales: v
-        })),
-        topProducts: Object.values(productsMap).map(p => ({
-            MaterialNumber: p.MaterialNumber,
-            Name: p.Name,
-            DIVISION: p.DIVISION,
-            NetSales: p.NetSales,
-            Quantity: p.Quantity,
-            Invoices: p.Invoices.size
-        })).sort((a,b) => b.NetSales - a.NetSales).slice(0, 50)
+        invoiceTypeBreakdown: Object.keys(invoiceTypeMap).map(k => ({ InvoiceType: k, NetSales: invoiceTypeMap[k].NetSales, Invoices: invoiceTypeMap[k].Invoices.size, Quantity: invoiceTypeMap[k].Quantity })),
+        salesTypeBreakdown: Object.keys(salesTypeMap).map(k => ({ SalesType: k, NetSales: salesTypeMap[k].NetSales, Invoices: salesTypeMap[k].Invoices.size, Quantity: salesTypeMap[k].Quantity })),
+        divisionSales: Object.keys(divisionMap).map(k => ({ DIVISION: k, NetSales: divisionMap[k] })),
+        topProducts: Object.values(productsMap).sort((a,b) => b.NetSales - a.NetSales).slice(0, 30)
     };
-}
-
-
-
-function showLoader() {
-    document.getElementById('welcomeScreen').style.display = 'none';
-    document.getElementById('dashboard').classList.remove('show');
-    document.getElementById('loader').classList.add('show');
-}
-function showWelcome() {
-    document.getElementById('welcomeScreen').style.display = 'flex';
-    document.getElementById('dashboard').classList.remove('show');
-    document.getElementById('loader').classList.remove('show');
-}
-function showDashboard() {
-    document.getElementById('welcomeScreen').style.display = 'none';
-    document.getElementById('loader').classList.remove('show');
-    document.getElementById('dashboard').classList.add('show');
-}
-
-// Multi-Year & Month Filter UI
-function buildYearButtons(years) {
-    const group = document.getElementById('yearFilterGroup');
-    const container = document.getElementById('yearBtnContainer');
-    if (!group || !container) return;
-
-    if (!years || years.length <= 1) {
-        group.style.display = 'none';
-        return;
-    }
-
-    group.style.display = 'flex';
-    container.innerHTML = '';
-
-    // 'All Years' button
-    const btnAll = document.createElement('button');
-    btnAll.className = 'filter-btn' + (selectedYear === 'All' ? ' active' : '');
-    btnAll.textContent = currentLang === 'ar' ? 'جميع السنوات' : 'All Years';
-    btnAll.onclick = function() { setYearFilter('All', this); };
-    container.appendChild(btnAll);
-
-    // Button per year
-    years.forEach(yr => {
-        const b = document.createElement('button');
-        b.className = 'filter-btn' + (String(selectedYear) === String(yr) ? ' active' : '');
-        b.textContent = yr;
-        b.onclick = function() { setYearFilter(yr, this); };
-        container.appendChild(b);
-    });
-}
-
-function setYearFilter(year, btn) {
-    selectedYear = year;
-    document.querySelectorAll('#yearBtnContainer .filter-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-
-    // Rebuild month buttons for the selected year
-    buildMonthButtons();
-    selectedYearMonths.clear();
-
-    document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
-    const btnAll = document.querySelector('#filterBar .filter-btn[data-filter="All"]');
-    if (btnAll) btnAll.classList.add('active');
-
-    renderDashboard();
-}
-
-function buildMonthButtons() {
-    const c = document.getElementById('monthBtns');
-    if (!c) return;
-    c.innerHTML = '';
-
-    let list = availableYearMonths;
-    if (selectedYear !== 'All') {
-        list = list.filter(ym => String(ym.year) === String(selectedYear));
-    }
-
-    const showYearLabel = (availableYears.length > 1 && selectedYear === 'All');
-
-    list.forEach(ym => {
-        const b = document.createElement('button');
-        b.className = 'filter-btn' + (selectedYearMonths.has(ym.key) ? ' active' : '');
-        b.textContent = showYearLabel 
-            ? (currentLang === 'ar' ? ym.shortLabelAr : ym.shortLabel) 
-            : (currentLang === 'ar' ? ym.labelAr.split(' ')[0] : ym.label.split(' ')[0]);
-        b.dataset.ym = ym.key;
-        b.title = currentLang === 'ar' ? ym.labelAr : ym.label;
-        b.onclick = function() { toggleMonthYear(ym.key, this); };
-        c.appendChild(b);
-    });
-}
-
-function setFilter(type, btn) {
-    document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
-    if (btn && btn.classList) btn.classList.add('active');
-    selectedYearMonths.clear();
-
-    const QUARTERS_MONTHS = { Q1:[1,2,3], Q2:[4,5,6], Q3:[7,8,9], Q4:[10,11,12] };
-    const HALVES_MONTHS = { H1:[1,2,3,4,5,6], H2:[7,8,9,10,11,12] };
-
-    if (type === 'All') {
-        // All
-    } else if (QUARTERS_MONTHS[type]) {
-        const targetMonths = new Set(QUARTERS_MONTHS[type]);
-        availableYearMonths.forEach(ym => {
-            if ((selectedYear === 'All' || String(ym.year) === String(selectedYear)) && targetMonths.has(ym.month)) {
-                selectedYearMonths.add(ym.key);
-                const mb = document.querySelector(`#monthBtns .filter-btn[data-ym="${ym.key}"]`);
-                if (mb) mb.classList.add('active');
-            }
-        });
-    } else if (HALVES_MONTHS[type]) {
-        const targetMonths = new Set(HALVES_MONTHS[type]);
-        availableYearMonths.forEach(ym => {
-            if ((selectedYear === 'All' || String(ym.year) === String(selectedYear)) && targetMonths.has(ym.month)) {
-                selectedYearMonths.add(ym.key);
-                const mb = document.querySelector(`#monthBtns .filter-btn[data-ym="${ym.key}"]`);
-                if (mb) mb.classList.add('active');
-            }
-        });
-    }
-
-    renderDashboard();
 }
 
 function toggleMonthYear(ymKey, btn) {
@@ -3066,24 +3197,22 @@ function getFilteredData() {
 
     let activeRows = currentDataset.allRows;
 
-    // Filter by Year
-    if (selectedYear !== 'All') {
-        activeRows = activeRows.filter(r => {
-            try { const dt = parseRowDateDetails(r); return dt && String(dt.year) === String(selectedYear); }
-            catch(e) { return false; }
-        });
-    }
+    const filterYear = (selectedYear !== 'All');
+    const filterYM = (selectedYearMonths.size > 0);
 
-    // Filter by Year-Month(s)
-    if (selectedYearMonths.size > 0) {
-        activeRows = activeRows.filter(r => {
-            try { const dt = parseRowDateDetails(r); return dt && selectedYearMonths.has(dt.yearMonth); }
-            catch(e) { return false; }
-        });
-    }
-
-    if (activeRows.length === 0 && currentDataset.allRows.length > 0) {
-        console.warn('getFilteredData: all rows filtered out! selectedYear=', selectedYear, 'selectedYearMonths=', [...selectedYearMonths]);
+    if (filterYear || filterYM) {
+        const yrStr = String(selectedYear);
+        const filteredList = [];
+        for (let i = 0; i < activeRows.length; i++) {
+            const r = activeRows[i];
+            const nr = r._norm || normalizeRow(r);
+            const dt = nr.dateObj;
+            if (!dt) continue;
+            if (filterYear && String(dt.year) !== yrStr) continue;
+            if (filterYM && !selectedYearMonths.has(dt.yearMonth)) continue;
+            filteredList.push(r);
+        }
+        activeRows = filteredList;
     }
 
     return processRowsToSummary(activeRows);
@@ -3098,11 +3227,60 @@ function fmtNumber(n, decimals = 0) {
     return Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
+
+// === TARGET & ACHIEVEMENT ENGINE ===
+let branchSalesTarget = parseFloat(localStorage.getItem('up_branch_target')) || 0;
+
+function initTargetUI() {
+    const input = document.getElementById('branchTargetInput');
+    if (input && branchSalesTarget > 0) {
+        input.value = branchSalesTarget;
+    }
+}
+
+function updateBranchTarget(val) {
+    branchSalesTarget = parseFloat(val) || 0;
+    if (branchSalesTarget > 0) {
+        localStorage.setItem('up_branch_target', branchSalesTarget);
+    } else {
+        localStorage.removeItem('up_branch_target');
+    }
+    const d = getFilteredData();
+    if (d) renderTargetAchievement(d.totalNetSales);
+}
+
+function renderTargetAchievement(actualSales) {
+    const badge = document.getElementById('targetAchievementBadge');
+    const pctEl = document.getElementById('targetAchPct');
+    const gapEl = document.getElementById('targetGapInfo');
+    if (!badge || !pctEl || !gapEl) return;
+
+    if (!branchSalesTarget || branchSalesTarget <= 0) {
+        badge.style.display = 'none';
+        gapEl.textContent = 'أدخل رقم التارجت لحساب نسبة التحقيق ومقدار الفجوة فوراً';
+        return;
+    }
+
+    const pct = (actualSales / branchSalesTarget) * 100;
+    pctEl.textContent = pct.toFixed(1) + '%';
+    badge.style.display = 'inline-flex';
+
+    badge.className = 'target-badge ' + (pct >= 100 ? 'achieved' : (pct >= 70 ? 'progress' : 'low'));
+
+    const diff = actualSales - branchSalesTarget;
+    if (diff >= 0) {
+        gapEl.innerHTML = `<span style="color:#10b981;font-weight:700">🎉 تم تجاوز المستهدف بفارق (+${fmtSAR(diff)})!</span>`;
+    } else {
+        gapEl.innerHTML = `المتبقي للوصول للهدف: <strong style="color:#f59e0b">${fmtSAR(Math.abs(diff))}</strong>`;
+    }
+}
+
 function renderDashboard() {
     try {
         const filtered = getFilteredData();
         if (!filtered) { console.warn('renderDashboard: getFilteredData returned null'); return; }
         renderKPIs(filtered);
+        renderTargetAchievement(filtered.totalNetSales);
         renderPharmacistCards(filtered);
         try { renderCharts(filtered); } catch(chartErr) { console.warn('Charts render error (non-fatal):', chartErr.message); }
         showDashboard();
@@ -3192,6 +3370,19 @@ function renderPharmacistCards(d) {
             <div class="pharm-stat">
                 <span>${currentLang === 'ar' ? 'الحصة من مبيعات الفرع' : 'Sales Share'}</span>
                 <span class="pharm-stat-val" style="color:var(--green);font-weight:700">${p.SalesSharePct.toFixed(1)}%</span>
+            </div>
+
+            <!-- Top Categories Breakdown for Pharmacist -->
+            <div class="pharm-cats-mini">
+                <div class="pharm-cats-title">
+                    <span>نسب المبيعات من الكاتيجوريز (Categories):</span>
+                </div>
+                <div class="pharm-cats-pills">
+                    ${Object.entries(p.Categories || {}).sort((a,b) => b[1] - a[1]).slice(0, 3).map(c => {
+                        const catPct = p.TotalNetSales > 0 ? ((c[1] / p.TotalNetSales) * 100).toFixed(1) : '0';
+                        return `<span class="pharm-cat-chip" title="${c[0]}: ${fmtSAR(c[1])}">${c[0]}: <strong>${catPct}%</strong></span>`;
+                    }).join('') || '<span style="color:var(--text-dim)">--</span>'}
+                </div>
             </div>
         </div>`;
     }).join('');
@@ -3303,9 +3494,28 @@ function openPharmModal(name) {
         <div class="tab-content" id="mTabCategories">
             <div class="modal-table-wrap">
                 <table>
-                    <thead><tr><th>#</th><th>القسم / التصنيف (Category / Division)</th><th>المبيعات (SAR)</th><th>النسبة %</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>القسم / التصنيف (Category / Division)</th>
+                            <th>صافي المبيعات (SAR)</th>
+                            <th>النسبة من مبيعات الصيدلي</th>
+                            <th>النسبة من إجمالي مبيعات القسم بالفرع</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        ${cats.map((c, i) => `<tr><td>${i+1}</td><td>${c[0]}</td><td>${fmtSAR(c[1])}</td><td>${((c[1]/p.TotalNetSales)*100).toFixed(1)}%</td></tr>`).join('')}
+                        ${cats.map((c, i) => {
+                            const pCatPct = p.TotalNetSales > 0 ? ((c[1]/p.TotalNetSales)*100).toFixed(1) : '0';
+                            const branchCatTotal = (d.divisionSales.find(ds => ds.DIVISION === c[0])?.NetSales) || (d.totalNetSales > 0 ? d.totalNetSales : 1);
+                            const branchShare = branchCatTotal > 0 ? ((c[1]/branchCatTotal)*100).toFixed(1) : '--';
+                            return `<tr>
+                                <td>${i+1}</td>
+                                <td><strong>${c[0]}</strong></td>
+                                <td style="color:var(--text-white);font-weight:700">${fmtSAR(c[1])}</td>
+                                <td style="color:var(--accent-light);font-weight:700">${pCatPct}%</td>
+                                <td style="color:var(--blue);font-weight:700">${branchShare}%</td>
+                            </tr>`;
+                        }).join('')}
                     </tbody>
                 </table>
             </div>
