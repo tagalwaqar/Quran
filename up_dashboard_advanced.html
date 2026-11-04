@@ -1409,12 +1409,25 @@ function getPharmProfile(name) {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const savedTheme = localStorage.getItem('up_theme') || 'dark';
     setTheme(savedTheme);
     setupDropZone();
     initTargetUI();
-    // Start on clean welcome screen - NO stored data!
+
+    // Auto-restore dataset on refresh from IndexedDB
+    try {
+        const cached = await loadDatasetFromIDB();
+        if (cached && cached.rows && cached.rows.length > 0) {
+            console.log('[Auto-Restore] Restoring previous session data (' + cached.rows.length + ' rows)...');
+            processRawExcelRows(cached.rows, cached.fileName, cached.sheetName);
+            return;
+        }
+    } catch (e) {
+        console.warn('[Auto-Restore] Failed to restore cached data:', e);
+    }
+
+    // Default: show welcome screen if no stored data
     showWelcome();
 });
 
@@ -1514,6 +1527,7 @@ function clearLoadedSheet() {
     const t = I18N[currentLang];
     if (!confirm(t.confirmClear)) return;
     currentDataset = null;
+    clearDatasetFromIDB();
     document.getElementById('dashboard').classList.remove('show');
     document.getElementById('fileInfo').classList.remove('show');
     document.getElementById('filterBar').classList.remove('show');
@@ -2553,6 +2567,84 @@ function setupDropZone() {
     });
 }
 
+
+// =========================================================================
+// === INDEXEDDB PERSISTENT STORAGE ENGINE ===
+// (Preserves loaded dataset across browser refresh & restarts)
+// =========================================================================
+const IDB_NAME = 'UP_SalesDB';
+const IDB_VERSION = 1;
+const IDB_STORE = 'active_dataset';
+
+function openIDB() {
+    return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+            console.warn('IndexedDB not supported in this environment');
+            return resolve(null);
+        }
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+                db.createObjectStore(IDB_STORE);
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => {
+            console.error('IndexedDB open error:', e);
+            resolve(null);
+        };
+    });
+}
+
+async function saveDatasetToIDB(fileName, sheetName, rows) {
+    try {
+        const db = await openIDB();
+        if (!db) return;
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        const store = tx.objectStore(IDB_STORE);
+        // Store metadata and raw rows (without non-serializable properties)
+        const cleanRows = rows.map(r => {
+            const clone = Object.assign({}, r);
+            delete clone._norm;
+            return clone;
+        });
+        store.put({ fileName, sheetName, rows: cleanRows, savedAt: Date.now() }, 'current_data');
+        console.log('[IndexedDB] Dataset saved successfully (' + cleanRows.length + ' rows)');
+    } catch (err) {
+        console.warn('[IndexedDB] Save failed:', err.message);
+    }
+}
+
+async function loadDatasetFromIDB() {
+    try {
+        const db = await openIDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const store = tx.objectStore(IDB_STORE);
+            const req = store.get('current_data');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+        });
+    } catch (err) {
+        console.warn('[IndexedDB] Load failed:', err.message);
+        return null;
+    }
+}
+
+async function clearDatasetFromIDB() {
+    try {
+        const db = await openIDB();
+        if (!db) return;
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).clear();
+        console.log('[IndexedDB] Dataset cleared from storage');
+    } catch (err) {
+        console.warn('[IndexedDB] Clear failed:', err.message);
+    }
+}
+
 // Handle Dynamic Excel Upload
 function handleUploadedFile(file) {
     if (!file) return;
@@ -2576,6 +2668,7 @@ function handleUploadedFile(file) {
             }
 
             processRawExcelRows(rawJson, file.name, sheetName);
+            saveDatasetToIDB(file.name, sheetName, rawJson);
         } catch (err) {
             console.error(err);
             alert('حدث خطأ أثناء قراءة ملف الإكسل: ' + err.message);
@@ -3172,6 +3265,141 @@ function processRowsToSummary(rows) {
         divisionSales: Object.keys(divisionMap).map(k => ({ DIVISION: k, NetSales: divisionMap[k] })),
         topProducts: Object.values(productsMap).sort((a,b) => b.NetSales - a.NetSales).slice(0, 30)
     };
+}
+
+
+// =========================================================================
+// === SCREEN & FILTER UI HELPERS ===
+// =========================================================================
+function showLoader() {
+    const ws = document.getElementById('welcomeScreen');
+    const db = document.getElementById('dashboard');
+    const ld = document.getElementById('loader');
+    if (ws) ws.style.display = 'none';
+    if (db) db.classList.remove('show');
+    if (ld) ld.classList.add('show');
+}
+
+function showWelcome() {
+    const ws = document.getElementById('welcomeScreen');
+    const db = document.getElementById('dashboard');
+    const ld = document.getElementById('loader');
+    if (ws) ws.style.display = 'flex';
+    if (db) db.classList.remove('show');
+    if (ld) ld.classList.remove('show');
+}
+
+function showDashboard() {
+    const ws = document.getElementById('welcomeScreen');
+    const db = document.getElementById('dashboard');
+    const ld = document.getElementById('loader');
+    if (ws) ws.style.display = 'none';
+    if (ld) ld.classList.remove('show');
+    if (db) db.classList.add('show');
+}
+
+function buildYearButtons(years) {
+    const group = document.getElementById('yearFilterGroup');
+    const container = document.getElementById('yearBtnContainer');
+    if (!group || !container) return;
+
+    if (!years || years.length <= 1) {
+        group.style.display = 'none';
+        return;
+    }
+
+    group.style.display = 'flex';
+    container.innerHTML = '';
+
+    // 'All Years' button
+    const btnAll = document.createElement('button');
+    btnAll.className = 'filter-btn' + (selectedYear === 'All' ? ' active' : '');
+    btnAll.textContent = currentLang === 'ar' ? 'جميع السنوات' : 'All Years';
+    btnAll.onclick = function() { setYearFilter('All', this); };
+    container.appendChild(btnAll);
+
+    // Button per year
+    years.forEach(yr => {
+        const b = document.createElement('button');
+        b.className = 'filter-btn' + (String(selectedYear) === String(yr) ? ' active' : '');
+        b.textContent = yr;
+        b.onclick = function() { setYearFilter(yr, this); };
+        container.appendChild(b);
+    });
+}
+
+function setYearFilter(year, btn) {
+    selectedYear = year;
+    document.querySelectorAll('#yearBtnContainer .filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    // Rebuild month buttons for the selected year
+    buildMonthButtons();
+    selectedYearMonths.clear();
+
+    document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+    const btnAll = document.querySelector('#filterBar .filter-btn[data-filter="All"]');
+    if (btnAll) btnAll.classList.add('active');
+
+    renderDashboard();
+}
+
+function buildMonthButtons() {
+    const c = document.getElementById('monthBtns');
+    if (!c) return;
+    c.innerHTML = '';
+
+    let list = availableYearMonths || [];
+    if (selectedYear !== 'All') {
+        list = list.filter(ym => String(ym.year) === String(selectedYear));
+    }
+
+    const showYearLabel = (availableYears && availableYears.length > 1 && selectedYear === 'All');
+
+    list.forEach(ym => {
+        const b = document.createElement('button');
+        b.className = 'filter-btn' + (selectedYearMonths.has(ym.key) ? ' active' : '');
+        b.textContent = showYearLabel 
+            ? (currentLang === 'ar' ? ym.shortLabelAr : ym.shortLabel) 
+            : (currentLang === 'ar' ? ym.labelAr.split(' ')[0] : ym.label.split(' ')[0]);
+        b.dataset.ym = ym.key;
+        b.title = currentLang === 'ar' ? ym.labelAr : ym.label;
+        b.onclick = function() { toggleMonthYear(ym.key, this); };
+        c.appendChild(b);
+    });
+}
+
+function setFilter(type, btn) {
+    document.querySelectorAll('#filterBar .filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+    if (btn && btn.classList) btn.classList.add('active');
+    selectedYearMonths.clear();
+
+    const QUARTERS_MONTHS = { Q1:[1,2,3], Q2:[4,5,6], Q3:[7,8,9], Q4:[10,11,12] };
+    const HALVES_MONTHS = { H1:[1,2,3,4,5,6], H2:[7,8,9,10,11,12] };
+
+    if (type === 'All') {
+        // All
+    } else if (QUARTERS_MONTHS[type]) {
+        const targetMonths = new Set(QUARTERS_MONTHS[type]);
+        (availableYearMonths || []).forEach(ym => {
+            if ((selectedYear === 'All' || String(ym.year) === String(selectedYear)) && targetMonths.has(ym.month)) {
+                selectedYearMonths.add(ym.key);
+                const mb = document.querySelector(`#monthBtns .filter-btn[data-ym="${ym.key}"]`);
+                if (mb) mb.classList.add('active');
+            }
+        });
+    } else if (HALVES_MONTHS[type]) {
+        const targetMonths = new Set(HALVES_MONTHS[type]);
+        (availableYearMonths || []).forEach(ym => {
+            if ((selectedYear === 'All' || String(ym.year) === String(selectedYear)) && targetMonths.has(ym.month)) {
+                selectedYearMonths.add(ym.key);
+                const mb = document.querySelector(`#monthBtns .filter-btn[data-ym="${ym.key}"]`);
+                if (mb) mb.classList.add('active');
+            }
+        });
+    }
+
+    renderDashboard();
 }
 
 function toggleMonthYear(ymKey, btn) {
