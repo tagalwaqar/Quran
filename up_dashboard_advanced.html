@@ -1223,12 +1223,12 @@ const I18N = {
         salesPerDaySub: 'مجموع كافة المبيعات ÷ أيام الفترة',
 
 
-        apt: 'متوسط الفاتورة (APT)',
-        aptSub: 'كاش وتأمين (Cash & Ins)',
-        rsp: 'متوسط سعر الصنف (RSP)',
-        rspSub: 'كاش وتأمين (Cash & Ins)',
-        avgItems: 'سلة الشراء (BSU)',
-        avgItemsSub: 'قطعة / فاتورة (كاش وتأمين)',
+        apt: 'متوسط الفاتورة (APT كاش)',
+        aptSub: 'فواتير الكاش فقط (Cash Only)',
+        rsp: 'متوسط سعر الصنف (RSP كاش)',
+        rspSub: 'مبيعات الكاش ÷ القطع',
+        avgItems: 'سلة الشراء (BSU كاش)',
+        avgItemsSub: 'قطعة / فاتورة (كاش فقط)',
         itemsSold: 'القطع المباعة',
         itemsSoldSub: 'إجمالي الوحدات',
         invoices: 'عدد الفواتير',
@@ -1255,9 +1255,9 @@ const I18N = {
         cardSales: 'المبيعات',
         cardNearCare: 'فواتير NearCare',
 
-        cardApt: 'APT (كاش وتأمين)',
+        cardApt: 'APT (كاش)',
         cardInvs: 'الفواتير',
-        cardBsu: 'BSU (كاش وتأمين)',
+        cardBsu: 'BSU (كاش)',
         cardReturns: 'المرتجعات',
         modalSubtitle: 'تحليل أداء ومبيعات الصيدلي',
         tabCharts: 'الرسوم البيانية',
@@ -1299,12 +1299,12 @@ const I18N = {
         salesPerDaySub: 'Total Sales / Period Days',
 
 
-        apt: 'APT (Cash & Ins)',
-        aptSub: 'Cash & Insurance Only',
-        rsp: 'RSP (Cash & Ins)',
-        rspSub: 'Cash & Insurance Only',
-        avgItems: 'Basket Size (BSU)',
-        avgItemsSub: 'Cash & Ins Items / Inv',
+        apt: 'APT (Cash Only)',
+        aptSub: 'Cash Invoices Only',
+        rsp: 'RSP (Cash Only)',
+        rspSub: 'Cash Sales ÷ Cash Units',
+        avgItems: 'Basket Size (BSU Cash)',
+        avgItemsSub: 'Cash Items / Cash Inv',
         itemsSold: 'Items Sold',
         itemsSoldSub: 'Total Quantity',
         invoices: 'Invoices',
@@ -1331,9 +1331,9 @@ const I18N = {
         cardSales: 'Sales',
         cardNearCare: 'NearCare Invoices',
 
-        cardApt: 'APT (Cash & Ins)',
+        cardApt: 'APT (Cash)',
         cardInvs: 'Invoices',
-        cardBsu: 'BSU (Cash & Ins)',
+        cardBsu: 'BSU (Cash)',
         cardReturns: 'Returns',
         modalSubtitle: 'Pharmacist Detailed Performance Analysis',
         tabCharts: 'Charts',
@@ -2921,6 +2921,7 @@ function normalizeRow(r) {
     const invTypeLower = invTypeRaw.toLowerCase();
     const custRaw = (g('CustomerName') || g('UserName') || '').toString().trim();
     const custLower = custRaw.toLowerCase();
+    const explicitST = (g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType') || '').toString().toLowerCase().trim();
 
     // Wasfaty / NOPCO detection
     const isWasfaty = custLower.includes('wasfaty') || custLower.includes('nopco') ||
@@ -2938,6 +2939,16 @@ function normalizeRow(r) {
                      gnFast('Return') > 0 ||
                      gnFast('RETURN ONLY') > 0 ||
                      (g('Trans_Type') || '').toString().toLowerCase().includes('return');
+
+    // Strict Cash Identification for APT/BSU calculation:
+    // Cash = Normal Cash, CashCustomer, or sales_type === 'cash'
+    // Excludes: Wasfaty, Insurance, Credit, Returns
+    const isInsurance = invTypeLower.includes('insurance') || custLower.includes('bupa') || custLower.includes('tawuniya') || custLower.includes('medgulf') || custLower.includes('malaz');
+    const isCredit = invTypeLower === 'creditcustomer' || custLower.includes('tamara') || custLower.includes('tabby');
+    const isCash = !isReturn && !isWasfaty && !isInsurance && !isCredit &&
+                   (invTypeLower === 'normal' || invTypeLower === 'cashcustomer' || invTypeLower === 'online' ||
+                    explicitST === 'cash' || explicitST.includes('كاش') || explicitST.includes('نقدي') ||
+                    custLower === 'cash customer' || custLower === 'عميل نقدي' || custLower === '' || custLower === 'n/a');
 
     // Net Price without VAT (صافي المبيعات بدون ضريبة ومطروح منه المرتجع)
     // Priority order: ItemsNetPrice (صافي البنود قبل الضريبة) -> Total_Sales -> (NetTotal - TotalVAT)
@@ -2971,9 +2982,9 @@ function normalizeRow(r) {
 
     // Sales Type
     let salesType = 'Normal Cash (كاش عادي)';
-    const explicitST = g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType');
-    if (explicitST) {
-        salesType = explicitST.toString().trim();
+    const rawSalesType = g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType');
+    if (rawSalesType) {
+        salesType = rawSalesType.toString().trim();
     } else if (isWasfaty) {
         salesType = 'NOPCO-Wasfaty (وصفتي)';
     } else if (isNearCare) {
@@ -2988,14 +2999,19 @@ function normalizeRow(r) {
         salesType = 'Return (مرتجع)';
     }
 
+    // Robust Invoice Identifier: InvoiceNumber -> TrxNO -> DocNo -> RecId
+    let rawInv = g('InvoiceNumber') ?? g('TrxNO') ?? g('InvoiceNo') ?? g('DocNo') ?? g('BillNo') ?? g('رقم الفاتورة') ?? '';
+    let invKey = rawInv ? String(rawInv).trim() : '';
+
     const norm = {
         salesName: (g('SalesName') || g('Pharmacist') || g('UserName') || 'Unknown').toString().trim(),
         net: net,
         vat: gnFast('TotalVAT') || gnFast('VatAmountValue') || 0,
         returnVal: returnVal,
         isReturn: isReturn,
+        isCash: isCash,
         qty: qty,
-        inv: g('InvoiceNumber') || g('TrxNO') || '',
+        inv: invKey,
         invDate: g('InvoiceDate') || g('Date'),
         invTime: g('InvoiceTime') || g('TrxTime') || '',
         invType: invTypeRaw,
@@ -3024,10 +3040,11 @@ function processRowsToSummary(rows) {
     const salesTypeMap = {};
     const divisionMap = {};
     const productsMap = {};
-    const CASH_INS_TYPES = new Set(['Normal', 'Online', 'Insurance', 'CreditCustomer', 'CashCustomer']);
-    let totalCiSales = 0;
-    let totalCiQty = 0;
-    const totalCiInvoices = new Set();
+
+    // Pure Cash Tracking for Branch APT / BSU / RSP
+    let totalCashSales = 0;
+    let totalCashQty = 0;
+    const totalCashInvoices = new Set();
 
     let branchNearCareSales = 0;
     let branchNearCareQty = 0;
@@ -3056,10 +3073,11 @@ function processRowsToSummary(rows) {
         totalReturns += nr.returnVal;
         if (inv) invoices.add(inv);
 
-        if (isCi) {
-            totalCiSales += net;
-            totalCiQty += qty;
-            if (inv) totalCiInvoices.add(inv);
+        // Cash Only Tracking for Branch APT / BSU
+        if (nr.isCash) {
+            totalCashSales += net;
+            totalCashQty += qty;
+            if (inv) totalCashInvoices.add(inv);
         }
 
         if (isNearCare) {
@@ -3088,7 +3106,7 @@ function processRowsToSummary(rows) {
         monthlyMap[ymKey].NetSales += net;
         if (inv) monthlyMap[ymKey].Invoices.add(inv);
         monthlyMap[ymKey].Days.add(dateStr);
-        if (isCi) {
+        if (nr.isCash) {
             monthlyMap[ymKey].CiSales += net;
             monthlyMap[ymKey].CiQuantity += qty;
             if (inv) monthlyMap[ymKey].CiInvoices.add(inv);
@@ -3122,9 +3140,9 @@ function processRowsToSummary(rows) {
                 TotalNetSales: 0,
                 TotalQuantity: 0,
                 Invoices: new Set(),
-                CiSales: 0,
-                CiQuantity: 0,
-                CiInvoices: new Set(),
+                CashSales: 0,
+                CashQuantity: 0,
+                CashInvoices: new Set(),
                 NearCareSales: 0,
                 NearCareQuantity: 0,
                 NearCareInvoices: new Set(),
@@ -3143,10 +3161,12 @@ function processRowsToSummary(rows) {
         pObj.TotalNetSales += net;
         pObj.TotalQuantity += qty;
         if (inv) pObj.Invoices.add(inv);
-        if (isCi) {
-            pObj.CiSales += net;
-            pObj.CiQuantity += qty;
-            if (inv) pObj.CiInvoices.add(inv);
+
+        // Pharmacist Cash Only tracking for APT
+        if (nr.isCash) {
+            pObj.CashSales += net;
+            pObj.CashQuantity += qty;
+            if (inv) pObj.CashInvoices.add(inv);
         }
 
         // Pharmacist NearCare
@@ -3191,10 +3211,11 @@ function processRowsToSummary(rows) {
 
     const pharmArray = Object.values(pharmMap).map(p => {
         const invCount = p.Invoices.size;
-        const ciInvCount = p.CiInvoices.size;
-        const apt = ciInvCount > 0 ? p.CiSales / ciInvCount : 0;
-        const bsu = ciInvCount > 0 ? p.CiQuantity / ciInvCount : 0;
-        const rsp = p.CiQuantity > 0 ? p.CiSales / p.CiQuantity : 0;
+        // APT & BSU calculated strictly on Cash Only as requested
+        const cashInvCount = p.CashInvoices.size;
+        const apt = cashInvCount > 0 ? (p.CashSales / cashInvCount) : (invCount > 0 ? p.TotalNetSales / invCount : 0);
+        const bsu = cashInvCount > 0 ? (p.CashQuantity / cashInvCount) : (invCount > 0 ? p.TotalQuantity / invCount : 0);
+        const rsp = p.CashQuantity > 0 ? (p.CashSales / p.CashQuantity) : (p.TotalQuantity > 0 ? p.TotalNetSales / p.TotalQuantity : 0);
 
         return {
             SalesName: p.SalesName,
@@ -3204,9 +3225,9 @@ function processRowsToSummary(rows) {
             NearCareInvoices: p.NearCareInvoices.size,
             NearCareSales: p.NearCareSales,
             NearCareQuantity: p.NearCareQuantity,
-            CiSales: p.CiSales,
-            CiQuantity: p.CiQuantity,
-            CiInvoices: ciInvCount,
+            CashSales: p.CashSales,
+            CashQuantity: p.CashQuantity,
+            CashInvoices: cashInvCount,
             APT: apt,
             BSU: bsu,
             RSP: rsp,
@@ -3252,12 +3273,13 @@ function processRowsToSummary(rows) {
         branchSalesPerDay: branchSalesPerDay,
         branchNearCareInvoices: branchNearCareInvoices.size,
         branchNearCareSales: branchNearCareSales,
-        branchAPT: totalCiInvoices.size > 0 ? totalCiSales / totalCiInvoices.size : (invoices.size > 0 ? totalSales / invoices.size : 0),
-        branchBSU: totalCiInvoices.size > 0 ? totalCiQty / totalCiInvoices.size : (invoices.size > 0 ? totalQty / invoices.size : 0),
-        branchRSP: totalCiQty > 0 ? totalCiSales / totalCiQty : (totalQty > 0 ? totalSales / totalQty : 0),
-        branchCiSales: totalCiSales,
-        branchCiInvoices: totalCiInvoices.size,
-        branchCiQuantity: totalCiQty,
+        // Branch APT & BSU on Cash Only
+        branchAPT: totalCashInvoices.size > 0 ? (totalCashSales / totalCashInvoices.size) : (invoices.size > 0 ? totalSales / invoices.size : 0),
+        branchBSU: totalCashInvoices.size > 0 ? (totalCashQty / totalCashInvoices.size) : (invoices.size > 0 ? totalQty / invoices.size : 0),
+        branchRSP: totalCashQty > 0 ? (totalCashSales / totalCashQty) : (totalQty > 0 ? totalSales / totalQty : 0),
+        branchCashSales: totalCashSales,
+        branchCashInvoices: totalCashInvoices.size,
+        branchCashQuantity: totalCashQty,
         pharmacists: pharmArray,
         monthlyTrend: mTrend,
         invoiceTypeBreakdown: Object.keys(invoiceTypeMap).map(k => ({ InvoiceType: k, NetSales: invoiceTypeMap[k].NetSales, Invoices: invoiceTypeMap[k].Invoices.size, Quantity: invoiceTypeMap[k].Quantity })),
