@@ -2573,7 +2573,7 @@ function setupDropZone() {
 // (Preserves loaded dataset across browser refresh & restarts)
 // =========================================================================
 const IDB_NAME = 'UP_SalesDB';
-const IDB_VERSION = 1;
+const IDB_VERSION = 2;
 const IDB_STORE = 'active_dataset';
 
 function openIDB() {
@@ -2941,14 +2941,22 @@ function normalizeRow(r) {
                      (g('Trans_Type') || '').toString().toLowerCase().includes('return');
 
     // Strict Cash Identification for APT/BSU calculation:
-    // Cash = Normal Cash, CashCustomer, or sales_type === 'cash'
-    // Excludes: Wasfaty, Insurance, Credit, Returns
-    const isInsurance = invTypeLower.includes('insurance') || custLower.includes('bupa') || custLower.includes('tawuniya') || custLower.includes('medgulf') || custLower.includes('malaz');
-    const isCredit = invTypeLower === 'creditcustomer' || custLower.includes('tamara') || custLower.includes('tabby');
-    const isCash = !isReturn && !isWasfaty && !isInsurance && !isCredit &&
-                   (invTypeLower === 'normal' || invTypeLower === 'cashcustomer' || invTypeLower === 'online' ||
-                    explicitST === 'cash' || explicitST.includes('كاش') || explicitST.includes('نقدي') ||
-                    custLower === 'cash customer' || custLower === 'عميل نقدي' || custLower === '' || custLower === 'n/a');
+    // User Specification: فواتير الكاش هى كل الكاش ما عدا:
+    // 1. فواتير وصفتي (Wasfaty / NOPCO)
+    // 2. فواتير التأمين الطبي (Insurance)
+    // 3. فواتير المرتجعات (Returns)
+    const isInsurance = invTypeLower.includes('insurance') || invTypeLower.includes('تأمين') ||
+                        custLower.includes('insurance') || custLower.includes('تأمين') ||
+                        custLower.includes('bupa') || custLower.includes('بوبا') ||
+                        custLower.includes('tawuniya') || custLower.includes('تعاونية') ||
+                        custLower.includes('medgulf') || custLower.includes('ميدغلف') ||
+                        custLower.includes('malaz') || custLower.includes('ملاذ') ||
+                        custLower.includes('almadallah') || custLower.includes('saico') ||
+                        custLower.includes('globemed') || custLower.includes('tcare') ||
+                        explicitST.includes('insurance') || explicitST.includes('تأمين');
+
+    // Any sale that is NOT Return, NOT Wasfaty/NOPCO, and NOT Insurance is counted as Cash (including Normal, CashCustomer, Credit, Online, etc.)
+    const isCash = !isReturn && !isWasfaty && !isInsurance;
 
     // Net Price without VAT (صافي المبيعات بدون ضريبة ومطروح منه المرتجع)
     // Priority order: ItemsNetPrice (صافي البنود قبل الضريبة) -> Total_Sales -> (NetTotal - TotalVAT)
