@@ -1389,7 +1389,10 @@ const PHARM_PROFILES = {
 
 function cleanRawName(str) {
     if (!str) return '';
-    return str.replace(/[ـ]/g, '').replace(/\s+/g, ' ').trim();
+    return str.replace(/[ـ]/g, '')
+              .replace(/^(?:صيدلي|الصيدلي|دكتور|الدكتور|د\.|ص\/|صيدلية)\s*[\/:\-–—]?\s*/gi, '')
+              .replace(/\s*[\/:\-–—]?\s*(?:صيدلي|الصيدلي)\s*$/gi, '')
+              .replace(/\s+/g, ' ').trim();
 }
 
 function getPharmProfile(name) {
@@ -1713,7 +1716,7 @@ function initMovementRadar(resetPeriod = false) {
         if (scope === 'non_wasfaty' && nr.isWasfaty) continue;
 
         const dt = nr.dateObj ? nr.dateObj.date : parseRowDate(r);
-        if (!dt || isNaN(dt.getTime())) return;
+        if (!dt || isNaN(dt.getTime())) continue;
         if (radarState.mode === 'monthly') {
             const mKey = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
             periodsSet.add(mKey);
@@ -2922,10 +2925,13 @@ function normalizeRow(r) {
     const custRaw = (g('CustomerName') || g('UserName') || '').toString().trim();
     const custLower = custRaw.toLowerCase();
     const explicitST = (g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType') || '').toString().toLowerCase().trim();
+    const custGroup = (g('CustomerGroup') || g('CustGroup') || g('Cust_Group') || '').toString().toLowerCase().trim();
 
-    // Wasfaty / NOPCO detection
+    // Wasfaty / NOPCO detection (covers NOPCO-W, NOPCO-Wasfaty, Wasfaty, etc.)
     const isWasfaty = custLower.includes('wasfaty') || custLower.includes('nopco') ||
                       invTypeLower.includes('wasfaty') || invTypeLower.includes('nopco') ||
+                      explicitST.includes('wasfaty') || explicitST.includes('nopco') ||
+                      custGroup.includes('wasfaty') || custGroup.includes('nopco') ||
                       custRaw.includes('وصفتي') || custRaw.includes('نوبكو');
 
     // NearCare detection
@@ -2953,6 +2959,7 @@ function normalizeRow(r) {
                         custLower.includes('malaz') || custLower.includes('ملاذ') ||
                         custLower.includes('almadallah') || custLower.includes('saico') ||
                         custLower.includes('globemed') || custLower.includes('tcare') ||
+                        custGroup.includes('insurance') || custGroup.includes('تأمين') ||
                         explicitST.includes('insurance') || explicitST.includes('تأمين');
 
     // Any sale that is NOT Return, NOT Wasfaty/NOPCO, and NOT Insurance is counted as Cash (including Normal, CashCustomer, Credit, Online, etc.)
@@ -3071,7 +3078,6 @@ function processRowsToSummary(rows) {
         const cat = nr.cat;
         const prodName = nr.prodName;
         const matNum = nr.matNum;
-        const isCi = CASH_INS_TYPES.has(invType);
         const isNearCare = nr.isNearCare;
         const dateObj = nr.dateObj;
 
@@ -3219,11 +3225,11 @@ function processRowsToSummary(rows) {
 
     const pharmArray = Object.values(pharmMap).map(p => {
         const invCount = p.Invoices.size;
-        // APT & BSU calculated strictly on Cash Only as requested
+        // APT & BSU calculated strictly on Cash Only as requested (All sales minus Wasfaty/NOPCO, Insurance, Returns)
         const cashInvCount = p.CashInvoices.size;
-        const apt = cashInvCount > 0 ? (p.CashSales / cashInvCount) : (invCount > 0 ? p.TotalNetSales / invCount : 0);
-        const bsu = cashInvCount > 0 ? (p.CashQuantity / cashInvCount) : (invCount > 0 ? p.TotalQuantity / invCount : 0);
-        const rsp = p.CashQuantity > 0 ? (p.CashSales / p.CashQuantity) : (p.TotalQuantity > 0 ? p.TotalNetSales / p.TotalQuantity : 0);
+        const apt = cashInvCount > 0 ? (p.CashSales / cashInvCount) : 0;
+        const bsu = cashInvCount > 0 ? (p.CashQuantity / cashInvCount) : 0;
+        const rsp = p.CashQuantity > 0 ? (p.CashSales / p.CashQuantity) : 0;
 
         return {
             SalesName: p.SalesName,
@@ -3281,10 +3287,10 @@ function processRowsToSummary(rows) {
         branchSalesPerDay: branchSalesPerDay,
         branchNearCareInvoices: branchNearCareInvoices.size,
         branchNearCareSales: branchNearCareSales,
-        // Branch APT & BSU on Cash Only
-        branchAPT: totalCashInvoices.size > 0 ? (totalCashSales / totalCashInvoices.size) : (invoices.size > 0 ? totalSales / invoices.size : 0),
-        branchBSU: totalCashInvoices.size > 0 ? (totalCashQty / totalCashInvoices.size) : (invoices.size > 0 ? totalQty / invoices.size : 0),
-        branchRSP: totalCashQty > 0 ? (totalCashSales / totalCashQty) : (totalQty > 0 ? totalSales / totalQty : 0),
+        // Branch APT & BSU strictly on Cash Only (Excluding Wasfaty/NOPCO, Insurance, Returns)
+        branchAPT: totalCashInvoices.size > 0 ? (totalCashSales / totalCashInvoices.size) : 0,
+        branchBSU: totalCashInvoices.size > 0 ? (totalCashQty / totalCashInvoices.size) : 0,
+        branchRSP: totalCashQty > 0 ? (totalCashSales / totalCashQty) : 0,
         branchCashSales: totalCashSales,
         branchCashInvoices: totalCashInvoices.size,
         branchCashQuantity: totalCashQty,
