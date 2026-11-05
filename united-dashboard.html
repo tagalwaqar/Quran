@@ -1064,11 +1064,7 @@
                 <span id="lbl-nav-radar">رادار الحركة (عدّة الصيدلي ٢)</span>
                 <span class="nav-badge-pill">جديد ✨</span>
             </button>
-            <button class="topbar-nav-btn" id="navBtnOpex" onclick="switchMainView('opex')">
-                <span>🏆</span>
-                <span id="lbl-nav-opex">OPEX &amp; المستهدفات</span>
-                <span class="nav-badge-pill">🆕</span>
-            </button>
+
         </div>
 </div>
         </div>
@@ -1516,11 +1512,11 @@ const I18N = {
 
 
         apt: 'متوسط الفاتورة (APT كاش)',
-        aptSub: 'فواتير الكاش فقط (Cash Only)',
+        aptSub: 'فواتير الكاش (بعد خصم المرتجعات والضريبة)',
         rsp: 'متوسط سعر الصنف (RSP كاش)',
         rspSub: 'مبيعات الكاش ÷ القطع',
         avgItems: 'سلة الشراء (BSU كاش)',
-        avgItemsSub: 'قطعة / فاتورة (كاش فقط)',
+        avgItemsSub: 'قطع الكاش ÷ فواتير الكاش',
         itemsSold: 'القطع المباعة',
         itemsSoldSub: 'إجمالي الوحدات',
         invoices: 'عدد الفواتير',
@@ -1858,33 +1854,15 @@ function switchMainView(view) {
     currentMainView = view;
     const navDash = document.getElementById('navBtnDashboard');
     const navRadar = document.getElementById('navBtnRadar');
-    const navOpex = document.getElementById('navBtnOpex');
     const viewDash = document.getElementById('dashboard');
     const viewRadar = document.getElementById('radarView');
-    const viewOpex = document.getElementById('opexView');
     const filterBar = document.getElementById('filterBar');
     const welcomeScreen = document.getElementById('welcomeScreen');
 
-    // Hide all views / deactivate all nav btns first
-    [navDash, navRadar, navOpex].forEach(b => b && b.classList.remove('active'));
-    [viewDash, viewRadar, viewOpex].forEach(v => v && (v.style.display = 'none'));
-
-    if (view === 'opex') {
-        if (navOpex) navOpex.classList.add('active');
-        if (filterBar) filterBar.style.display = 'flex';
-        if (currentDataset && currentDataset.allRows) {
-            if (welcomeScreen) welcomeScreen.style.display = 'none';
-            if (viewOpex) viewOpex.style.display = 'block';
-            opexLoadTargets();
-            renderOpexDashboard();
-        } else {
-            if (welcomeScreen) welcomeScreen.style.display = 'flex';
-        }
-        return;
-    }
+    if (navDash) navDash.classList.remove('active');
+    if (navRadar) navRadar.classList.remove('active');
 
     if (view === 'radar') {
-        if (navDash) navDash.classList.remove('active');
         if (navRadar) navRadar.classList.add('active');
         if (viewDash) viewDash.style.display = 'none';
         if (filterBar) filterBar.style.display = 'none';
@@ -1899,7 +1877,6 @@ function switchMainView(view) {
         }
     } else {
         if (navDash) navDash.classList.add('active');
-        if (navRadar) navRadar.classList.remove('active');
         if (viewRadar) viewRadar.style.display = 'none';
         
         if (currentDataset && currentDataset.allRows) {
@@ -3234,36 +3211,38 @@ function normalizeRow(r) {
 
     const invTypeRaw = (g('InvoiceType') || g('Trans_Type') || 'Normal').toString().trim();
     const invTypeLower = invTypeRaw.toLowerCase();
+    const transType = (g('Trans_Type') || g('InvoiceType') || '').toString().trim();
+    const transTypeLower = transType.toLowerCase();
     const custRaw = (g('CustomerName') || g('UserName') || '').toString().trim();
     const custLower = custRaw.toLowerCase();
     const explicitST = (g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType') || '').toString().toLowerCase().trim();
     const custGroup = (g('CustomerGroup') || g('CustGroup') || g('Cust_Group') || '').toString().toLowerCase().trim();
 
-    // Wasfaty / NOPCO detection (covers NOPCO-W, NOPCO-Wasfaty, Wasfaty, etc.)
-    const isWasfaty = custLower.includes('wasfaty') || custLower.includes('nopco') ||
+    // 1. Return row identification
+    const returnFlag = gnFast('Return');   // 1 = return row, 0 = sale row
+    const isReturn = returnFlag === 1 || returnFlag > 0 ||
+                     transTypeLower.includes('return') ||
+                     invTypeLower.includes('return') ||
+                     gnFast('RETURN ONLY') > 0;
+
+    // 2. Wasfaty / NOPCO detection (covers NOPCO-W, NOPCO-Wasfaty, Wasfaty, etc.)
+    const isWasfaty = transType === 'Wasfaty' || transTypeLower.includes('wasfaty') ||
+                      custLower.includes('wasfaty') || custLower.includes('nopco') ||
                       invTypeLower.includes('wasfaty') || invTypeLower.includes('nopco') ||
                       explicitST.includes('wasfaty') || explicitST.includes('nopco') ||
                       custGroup.includes('wasfaty') || custGroup.includes('nopco') ||
                       custRaw.includes('وصفتي') || custRaw.includes('نوبكو');
 
-    // NearCare detection
+    // 3. NearCare detection
     const isNearCare = (custLower.includes('near') && custLower.includes('care')) ||
                        custLower.includes('نير') ||
                        invTypeLower.includes('nearcare') ||
                        (invTypeLower.includes('near') && invTypeLower.includes('care'));
 
-    // Check if Return transaction
-    const isReturn = invTypeLower.includes('return') ||
-                     gnFast('Return') > 0 ||
-                     gnFast('RETURN ONLY') > 0 ||
-                     (g('Trans_Type') || '').toString().toLowerCase().includes('return');
-
-    // Strict Cash Identification for APT/BSU calculation:
-    // User Specification: فواتير الكاش هى كل الكاش ما عدا:
-    // 1. فواتير وصفتي (Wasfaty / NOPCO)
-    // 2. فواتير التأمين الطبي (Insurance)
-    // 3. فواتير المرتجعات (Returns)
-    const isInsurance = invTypeLower.includes('insurance') || invTypeLower.includes('تأمين') ||
+    // 4. Insurance detection (Medical Insurance & Polyclinic)
+    const isInsurance = transType === 'Insurance' || transType === 'Polyclinic' ||
+                        transTypeLower.includes('insurance') || transTypeLower.includes('polyclinic') ||
+                        invTypeLower.includes('insurance') || invTypeLower.includes('تأمين') ||
                         custLower.includes('insurance') || custLower.includes('تأمين') ||
                         custLower.includes('bupa') || custLower.includes('بوبا') ||
                         custLower.includes('tawuniya') || custLower.includes('تعاونية') ||
@@ -3274,16 +3253,25 @@ function normalizeRow(r) {
                         custGroup.includes('insurance') || custGroup.includes('تأمين') ||
                         explicitST.includes('insurance') || explicitST.includes('تأمين');
 
-    // Any sale that is NOT Return, NOT Wasfaty/NOPCO, and NOT Insurance is counted as Cash (including Normal, CashCustomer, Credit, Online, etc.)
-    const isCash = !isReturn && !isWasfaty && !isInsurance;
+    // 5. Cash Channel: All transactions of Cash, Normal, Online, Tabby, Tamara, CashCustomer, CreditCustomer
+    // Strictly excluding Wasfaty/NOPCO and Insurance/Polyclinic.
+    // Note: includes both Cash sales and Cash returns!
+    const isCashChannel = !isWasfaty && !isInsurance;
+    // Positive Cash Sale row (used for sales invoice counting)
+    const isCash = isCashChannel && !isReturn;
 
-    // Net Price without VAT (صافي المبيعات بدون ضريبة ومطروح منه المرتجع)
+    // 6. Net Price without VAT (صافي المبيعات بدون ضريبة ومطروح منه المرتجع)
     // Priority order: ItemsNetPrice (صافي البنود قبل الضريبة) -> Total_Sales -> (NetTotal - TotalVAT)
     let net = 0;
     if (g('ItemsNetPrice') !== null) {
         net = gnFast('ItemsNetPrice');
     } else if (g('Total_Sales') !== null) {
-        net = gnFast('Total_Sales');
+        // Total_Sales in POS includes VAT -> subtract VatAmountValue to get net
+        const vatAmt = gnFast('VatAmountValue') || gnFast('TotalVAT') || 0;
+        net = gnFast('Total_Sales') - vatAmt;
+    } else if (g('Total_Sales_with_Vat') !== null) {
+        const vatAmt = gnFast('VatAmountValue') || gnFast('TotalVAT') || 0;
+        net = gnFast('Total_Sales_with_Vat') - vatAmt;
     } else if (g('NetTotal') !== null) {
         const gross = gnFast('NetTotal');
         const vat = gnFast('TotalVAT') || gnFast('VatAmountValue') || 0;
@@ -3292,22 +3280,22 @@ function normalizeRow(r) {
         net = gnFast('full_price') - gnFast('Total_Discount');
     }
 
-    // If it's a return invoice/row, ensure net is negative if not already
+    // If it's a return row, ensure net is negative
     if (isReturn && net > 0) {
         net = -net;
     }
 
-    // Also track return amount specifically
     const returnVal = (isReturn || net < 0) ? Math.abs(net) : 0;
 
-    // Quantity
-    let qty = gnFast('Quantity') || gnFast('Qty') || 1;
+    // 7. Quantity (default to 1 only if field is null/undefined/empty string, preserve 0)
+    let rawQty = g('Quantity') ?? g('Qty');
+    let qty = (rawQty !== null && rawQty !== undefined && rawQty !== '') ? (parseFloat(rawQty) || 0) : 1;
     if (isReturn && qty > 0) qty = -qty;
 
     // Date parsing precomputed
     const dt = parseRowDateDetails(r);
 
-    // Sales Type
+    // Sales Type label
     let salesType = 'Normal Cash (كاش عادي)';
     const rawSalesType = g('sales_type') || g('SalesType') || g('General_sales_type') || g('OrderType');
     if (rawSalesType) {
@@ -3318,11 +3306,11 @@ function normalizeRow(r) {
         salesType = 'NearCare (نير كير)';
     } else if (invTypeLower.includes('online')) {
         salesType = 'Online (أونلاين وتطبيقات)';
-    } else if (invTypeLower.includes('insurance') || custLower.includes('bupa') || custLower.includes('tawuniya') || custLower.includes('medgulf') || custLower.includes('malaz')) {
+    } else if (isInsurance) {
         salesType = 'Insurance (تأمين طبي)';
     } else if (invTypeLower === 'creditcustomer' || custLower.includes('tamara') || custLower.includes('tabby')) {
         salesType = 'Credit (آجل / تقسيط)';
-    } else if (invTypeLower.includes('return')) {
+    } else if (isReturn) {
         salesType = 'Return (مرتجع)';
     }
 
@@ -3336,6 +3324,7 @@ function normalizeRow(r) {
         vat: gnFast('TotalVAT') || gnFast('VatAmountValue') || 0,
         returnVal: returnVal,
         isReturn: isReturn,
+        isCashChannel: isCashChannel,
         isCash: isCash,
         qty: qty,
         inv: invKey,
@@ -3357,7 +3346,6 @@ function normalizeRow(r) {
     r._norm = norm;
     return norm;
 }
-
 function processRowsToSummary(rows) {
     let totalSales = 0, totalQty = 0, totalVat = 0, totalReturns = 0;
     const invoices = new Set();
@@ -3410,15 +3398,20 @@ function processRowsToSummary(rows) {
         totalReturns += nr.returnVal;
         if (inv) invoices.add(inv);
 
-        // Cash Only Tracking for Branch APT / BSU
-        if (nr.isCash) {
-            totalCashSales += net;
-            totalCashQty += qty;
-            if (inv) totalCashInvoices.add(inv);
-        }
-
-        // Channel Tracking for OPEX
-        if (nr.isWasfaty) {
+        // Cash Channel Tracking (Cash, Normal, Online, Tabby, Tamara)
+        // User Specification: APT & BSU based on cash & normal & online & tabby & tamara
+        // with VAT and Returns deducted.
+        if (nr.isCashChannel) {
+            totalCashSales += net; // net has VAT deducted, and returns are negative so they are subtracted
+            totalCashQty += qty;   // returned quantities are negative so they are subtracted
+            if (nr.isReturn || net < 0) {
+                totalReturnSales += Math.abs(net);
+                if (inv) totalReturnInvoices.add(inv);
+            } else {
+                // Cash sales invoice (denominator for APT & BSU)
+                if (inv) totalCashInvoices.add(inv);
+            }
+        } else if (nr.isWasfaty) {
             totalWasfatySales += net;
             totalWasfatyQty += qty;
             if (inv) totalWasfatyInvoices.add(inv);
@@ -3426,15 +3419,6 @@ function processRowsToSummary(rows) {
             totalInsuranceSales += net;
             totalInsuranceQty += qty;
             if (inv) totalInsuranceInvoices.add(inv);
-        } else if (nr.isReturn) {
-            totalReturnSales += Math.abs(net);
-            totalReturnQty += Math.abs(qty);
-            if (inv) totalReturnInvoices.add(inv);
-        } else if (!nr.isCash && !nr.isWasfaty && !nr.isInsurance) {
-            // Credit / Online / Tabby / Tamara
-            totalCreditSales += net;
-            totalCreditQty += qty;
-            if (inv) totalCreditInvoices.add(inv);
         }
 
         if (isNearCare) {
@@ -3519,11 +3503,15 @@ function processRowsToSummary(rows) {
         pObj.TotalQuantity += qty;
         if (inv) pObj.Invoices.add(inv);
 
-        // Pharmacist Cash Only tracking for APT
-        if (nr.isCash) {
-            pObj.CashSales += net;
-            pObj.CashQuantity += qty;
-            if (inv) pObj.CashInvoices.add(inv);
+        // Pharmacist Cash Only tracking for APT & BSU (Cash, Normal, Online, Tabby, Tamara)
+        if (nr.isCashChannel) {
+            pObj.CashSales += net; // net of VAT, returns deducted
+            pObj.CashQuantity += qty; // returns deducted
+            if (nr.isReturn || net < 0) {
+                pObj.ReturnSales += Math.abs(net);
+            } else {
+                if (inv) pObj.CashInvoices.add(inv);
+            }
         }
 
         // Pharmacist NearCare
@@ -3899,10 +3887,6 @@ function renderDashboard() {
         renderTargetAchievement(filtered.totalNetSales);
         renderPharmacistCards(filtered);
         try { renderCharts(filtered); } catch(chartErr) { console.warn('Charts render error (non-fatal):', chartErr.message); }
-        // تحديث OPEX إذا كان المستخدم في تبويب OPEX
-        if (currentMainView === 'opex') {
-            try { renderOpexDashboard(); } catch(opexErr) { console.warn('OPEX render error (non-fatal):', opexErr.message); }
-        }
         showDashboard();
     } catch(e) {
         console.error('renderDashboard error:', e.message, e.stack);
