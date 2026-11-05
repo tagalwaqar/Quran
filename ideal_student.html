@@ -1886,11 +1886,18 @@ function wireVotingPhase() {
 
       try {
         const fp = getVoterFingerprint();
-        const { error } = await sb.from('ideal_student_votes').insert([{
+        let { error } = await sb.from('ideal_student_votes').insert([{
           candidate_id: id,
-          voter_fingerprint: fp,
-          voter_phone: null
+          voter_fingerprint: fp
         }]);
+
+        // إذا كان حقل بصمة الجهاز غير موجود في قاعدة البيانات، يتم المحاولة بدون إرساله
+        if (error && error.message && error.message.includes('voter_fingerprint')) {
+          const fallbackRes = await sb.from('ideal_student_votes').insert([{
+            candidate_id: id
+          }]);
+          error = fallbackRes.error;
+        }
 
         if (error) {
           if (error.message.includes('duplicate') || error.code === '23505') {
@@ -1903,7 +1910,7 @@ function wireVotingPhase() {
         }
 
         markVoted(id);
-        toast(`تم تسجيل صوتك بنجاح للمرشح: ${candidate.full_name}`, 'ok');
+        toast(`تم تسجيل صوتك بنجاح للمرشح: ${candidate.full_name} ✨`, 'ok');
         render();
         loadStats().then(renderStats);
       } catch (err) {
