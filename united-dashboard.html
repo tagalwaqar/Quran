@@ -3316,6 +3316,24 @@ function normalizeRow(r) {
         salesType = 'Return (مرتجع)';
     }
 
+    // Parse hour accurately for Shifts (06:00 - 17:00 morning, 17:00 - 04:00 evening/night)
+    let parsedHour = null;
+    const rawTimeCandidate = (g('InvoiceTime') || g('TrxTime') || g('Trx_open_time') || g('Time') || '').toString().trim();
+    if (rawTimeCandidate) {
+        let ts = rawTimeCandidate;
+        if (ts.includes('T')) ts = ts.split('T')[1];
+        else if (ts.includes(' ')) {
+            const parts = ts.split(/\s+/);
+            const cp = parts.find(p => p.includes(':'));
+            if (cp) ts = cp;
+            else ts = parts[parts.length - 1];
+        }
+        if (ts.includes(':')) {
+            const hp = parseInt(ts.split(':')[0], 10);
+            if (!isNaN(hp) && hp >= 0 && hp < 24) parsedHour = hp;
+        }
+    }
+
     // Robust Invoice Identifier: DAX DISTINCTCOUNT(InvoiceNumber)
     let rawInv = g('InvoiceNumber') ?? g('Invoice_Number') ?? g('Invoice No') ?? g('InvoiceNum') ?? g('TrxNO') ?? g('InvoiceNo') ?? g('Invoice_No') ?? g('DocNo') ?? g('BillNo') ?? g('رقم الفاتورة') ?? '';
     let invKey = rawInv ? String(rawInv).trim() : '';
@@ -3354,6 +3372,7 @@ function normalizeRow(r) {
         cat: (g('CATEGORY') || g('FORMAT') || 'General Care').toString().trim(),
         prodName: (g('Name') || g('SAP_ITEM_CODE') || 'Product').toString().trim(),
         matNum: (g('MaterialNumber') || g('SAP_ITEM_CODE') || '').toString().trim(),
+        hour: parsedHour,
         dateObj: dt
     };
 
@@ -3509,7 +3528,7 @@ function processRowsToSummary(rows) {
                 MonthlySales: {},
                 SalesTypes: {},
                 InvoiceTypes: {},
-                Shifts: { morning: 0, evening: 0, night: 0 }
+                Shifts: { morning: 0, evening: 0, morningSales: 0, eveningSales: 0, morningInvs: new Set(), eveningInvs: new Set() }
             };
         }
         const pObj = pharmMap[pKey];
@@ -3552,14 +3571,25 @@ function processRowsToSummary(rows) {
         if (!pObj.DailyLogs[dateStr]) pObj.DailyLogs[dateStr] = { times: [] };
         if (nr.invTime) pObj.DailyLogs[dateStr].times.push(nr.invTime.toString());
 
-        let h = 12;
-        if (nr.invTime) {
-            const parts = nr.invTime.toString().split(':');
-            if (parts.length > 0) h = parseInt(parts[0]) || 12;
+        // User Specification for Shifts:
+        // 1. Morning Shift: 06:00 AM to 05:00 PM (06:00 - 17:00) -> 6 <= h < 17
+        // 2. Evening / Night Shift: 05:00 PM to 04:00 AM (17:00 - 04:00) -> h >= 17 || h < 6
+        const h = nr.hour;
+        if (h !== null && h !== undefined) {
+            if (h >= 6 && h < 17) {
+                pObj.Shifts.morning += net;
+                pObj.Shifts.morningSales += net;
+                if (inv) pObj.Shifts.morningInvs.add(inv);
+            } else {
+                pObj.Shifts.evening += net;
+                pObj.Shifts.eveningSales += net;
+                if (inv) pObj.Shifts.eveningInvs.add(inv);
+            }
+        } else {
+            pObj.Shifts.morning += net;
+            pObj.Shifts.morningSales += net;
+            if (inv) pObj.Shifts.morningInvs.add(inv);
         }
-        if (h >= 8 && h < 16) pObj.Shifts.morning += net;
-        else if (h >= 16 && h < 24) pObj.Shifts.evening += net;
-        else pObj.Shifts.night += net;
 
         pObj.Categories[cat] = (pObj.Categories[cat] || 0) + net;
         pObj.Divisions[div] = (pObj.Divisions[div] || 0) + net;
@@ -4056,9 +4086,13 @@ function openPharmModal(name) {
     let prods = Object.entries(p.Products || {}).sort((a,b) => b[1] - a[1]).slice(0, 15);
     let divs = Object.entries(p.Divisions || {}).sort((a,b) => b[1] - a[1]);
 
-    let sMorning = p.Shifts?.morning || 0;
-    let sEvening = p.Shifts?.evening || 0;
-    let sNight = p.Shifts?.night || 0;
+    const sMorning = p.Shifts?.morningSales ?? p.Shifts?.morning ?? 0;
+    const sEvening = p.Shifts?.eveningSales ?? p.Shifts?.evening ?? 0;
+    const sMorningInvs = p.Shifts?.morningInvs instanceof Set ? p.Shifts.morningInvs.size : (p.Shifts?.morningInvs || 0);
+    const sEveningInvs = p.Shifts?.eveningInvs instanceof Set ? p.Shifts.eveningInvs.size : (p.Shifts?.eveningInvs || 0);
+    const totShiftSales = (sMorning + sEvening) || p.TotalNetSales || 1;
+    const pctMorning = (sMorning / totShiftSales) * 100;
+    const pctEvening = (sEvening / totShiftSales) * 100;
 
     document.getElementById('modalBody').innerHTML = `
         <div class="modal-kpi-grid">
@@ -4151,10 +4185,21 @@ function openPharmModal(name) {
         </div>
 
         <div class="tab-content" id="mTabShifts">
-            <div class="modal-kpi-grid" style="margin-top:10px">
-                <div class="modal-kpi"><div class="modal-kpi-label">وردية صباحية (08:00 - 16:00)</div><div class="modal-kpi-value" style="color:var(--amber)">${fmtSAR(sMorning)}</div></div>
-                <div class="modal-kpi"><div class="modal-kpi-label">وردية مسائية (16:00 - 00:00)</div><div class="modal-kpi-value" style="color:var(--green)">${fmtSAR(sEvening)}</div></div>
-                <div class="modal-kpi"><div class="modal-kpi-label">وردية ليلية (00:00 - 08:00)</div><div class="modal-kpi-value" style="color:var(--blue)">${fmtSAR(sNight)}</div></div>
+            <div class="modal-kpi-grid" style="margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+                <div class="modal-kpi" style="border-right:4px solid var(--amber);padding:14px">
+                    <div class="modal-kpi-label" style="font-weight:700">☀️ وردية صباحية (06:00 - 17:00)</div>
+                    <div class="modal-kpi-value" style="color:var(--amber);margin:8px 0">${fmtSAR(sMorning)}</div>
+                    <div style="font-size:12px;color:var(--text-gray)">
+                        ${fmtNumber(sMorningInvs)} فاتورة | ${pctMorning.toFixed(1)}% من المبيعات
+                    </div>
+                </div>
+                <div class="modal-kpi" style="border-right:4px solid var(--accent-light);padding:14px">
+                    <div class="modal-kpi-label" style="font-weight:700">🌙 وردية مسائية / ليلية (17:00 - 04:00)</div>
+                    <div class="modal-kpi-value" style="color:var(--accent-light);margin:8px 0">${fmtSAR(sEvening)}</div>
+                    <div style="font-size:12px;color:var(--text-gray)">
+                        ${fmtNumber(sEveningInvs)} فاتورة | ${pctEvening.toFixed(1)}% من المبيعات
+                    </div>
+                </div>
             </div>
         </div>
     `;
