@@ -3320,6 +3320,18 @@ function normalizeRow(r) {
     let rawInv = g('InvoiceNumber') ?? g('Invoice_Number') ?? g('Invoice No') ?? g('InvoiceNum') ?? g('TrxNO') ?? g('InvoiceNo') ?? g('Invoice_No') ?? g('DocNo') ?? g('BillNo') ?? g('رقم الفاتورة') ?? '';
     let invKey = rawInv ? String(rawInv).trim() : '';
 
+    // In POS systems (like United Pharmacy), TrxNO is a terminal sequence that repeats across transactions at different times.
+    // Qualifying with TrxTime / InvoiceTime / Date ensures distinct customer transactions are accurately distinguished:
+    const rawTime = (g('TrxTime') || g('InvoiceTime') || g('Trx_open_time') || '').toString().trim();
+    const rawDate = (g('Date') || g('InvoiceDate') || '').toString().trim();
+    if (invKey && (rawTime || rawDate)) {
+        // If invKey is a numeric POS sequence, append timestamp to separate distinct transactions
+        if (!invKey.includes(':') && !invKey.includes(' ') && !invKey.includes('/')) {
+            const timeTag = rawTime || rawDate;
+            invKey = invKey + '_' + timeTag;
+        }
+    }
+
     const norm = {
         salesName: (g('SalesName') || g('Pharmacist') || g('UserName') || 'Unknown').toString().trim(),
         net: net,
@@ -3908,7 +3920,7 @@ function renderKPIs(d) {
         { label: t.nearCareInvoices, value: fmtNumber(d.branchNearCareInvoices) + ' ' + (currentLang === 'ar' ? 'فاتورة' : 'invs'), sub: fmtSAR(d.branchNearCareSales), cls: 'kpi-green', icon: '🩺' },
         { label: t.salesPerDay, value: fmtSAR(d.branchSalesPerDay || 0), sub: t.salesPerDaySub, cls: 'kpi-blue', icon: '📅' },
         { label: t.apt, value: fmtSAR(d.branchAPT), sub: t.aptSub, cls: 'kpi-purple', icon: '🎯' },
-        { label: t.avgItems, value: (d.branchBSU || 2.4).toFixed(2), sub: t.avgItemsSub, cls: 'kpi-amber', icon: '🛒' },
+        { label: t.avgItems, value: (d.branchBSU || 0).toFixed(2), sub: t.avgItemsSub, cls: 'kpi-amber', icon: '🛒' },
         { label: t.rsp, value: fmtSAR(d.branchRSP), sub: t.rspSub, cls: 'kpi-cyan', icon: '🏷️' },
         { label: t.invoices, value: fmtNumber(d.totalInvoices), sub: t.invoicesSub, cls: 'kpi-pink', icon: '🧾' },
         { label: t.itemsSold, value: fmtNumber(d.totalQuantity), sub: t.itemsSoldSub, cls: 'kpi-teal', icon: '🛍️' },
