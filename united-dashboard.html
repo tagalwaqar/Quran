@@ -3260,11 +3260,13 @@ function normalizeRow(r) {
     // Positive Cash Sale row (used for sales invoice counting)
     const isCash = isCashChannel && !isReturn;
 
-    // 6. Net Price without VAT (صافي المبيعات بدون ضريبة ومطروح منه المرتجع)
-    // Priority order: ItemsNetPrice (صافي البنود قبل الضريبة) -> Total_Sales -> (NetTotal - TotalVAT)
+    // 6. Net Price without VAT (DAX: SUM(ItemsNetPrice) with VAT & Returns handled)
+    // Priority order: ItemsNetPrice -> Total_Sales (minus VAT) -> NetTotal (minus VAT)
     let net = 0;
-    if (g('ItemsNetPrice') !== null) {
-        net = gnFast('ItemsNetPrice');
+    const inpField = ['ItemsNetPrice', 'ItemNetPrice', 'Items_Net_Price', 'NetPrice', 'ItemsNet', 'صافي القيمة', 'صافي السعر'].find(f => g(f) !== null);
+    if (inpField) {
+        // Exact DAX column: ItemsNetPrice (صافي البنود قبل الضريبة)
+        net = gnFast(inpField);
     } else if (g('Total_Sales') !== null) {
         // Total_Sales in POS includes VAT -> subtract VatAmountValue to get net
         const vatAmt = gnFast('VatAmountValue') || gnFast('TotalVAT') || 0;
@@ -3287,8 +3289,8 @@ function normalizeRow(r) {
 
     const returnVal = (isReturn || net < 0) ? Math.abs(net) : 0;
 
-    // 7. Quantity (default to 1 only if field is null/undefined/empty string, preserve 0)
-    let rawQty = g('Quantity') ?? g('Qty');
+    // 7. Quantity (DAX: SUM(Quantity))
+    let rawQty = g('Quantity') ?? g('Qty') ?? g('QTY') ?? g('ItemQty') ?? g('QuantitySold') ?? g('الكمية');
     let qty = (rawQty !== null && rawQty !== undefined && rawQty !== '') ? (parseFloat(rawQty) || 0) : 1;
     if (isReturn && qty > 0) qty = -qty;
 
@@ -3314,8 +3316,8 @@ function normalizeRow(r) {
         salesType = 'Return (مرتجع)';
     }
 
-    // Robust Invoice Identifier: InvoiceNumber -> TrxNO -> DocNo -> RecId
-    let rawInv = g('InvoiceNumber') ?? g('TrxNO') ?? g('InvoiceNo') ?? g('DocNo') ?? g('BillNo') ?? g('رقم الفاتورة') ?? '';
+    // Robust Invoice Identifier: DAX DISTINCTCOUNT(InvoiceNumber)
+    let rawInv = g('InvoiceNumber') ?? g('Invoice_Number') ?? g('Invoice No') ?? g('InvoiceNum') ?? g('TrxNO') ?? g('InvoiceNo') ?? g('Invoice_No') ?? g('DocNo') ?? g('BillNo') ?? g('رقم الفاتورة') ?? '';
     let invKey = rawInv ? String(rawInv).trim() : '';
 
     const norm = {
