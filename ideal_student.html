@@ -813,18 +813,28 @@ function toast(msg, type = 'info') {
 
 // ===== بصمة الجهاز ومنع التكرار =====
 function getVoterFingerprint() {
-  let fp = localStorage.getItem('ideal_voter_fp');
+  try {
+    let fp = localStorage.getItem('ideal_voter_fp');
+    if (fp && fp !== 'null' && fp !== 'undefined' && fp.trim().length >= 8) {
+      return fp.trim();
+    }
+  } catch(e) {}
+
+  let fp = '';
+  try {
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+      fp = crypto.randomUUID();
+    }
+  } catch(e) {}
+
   if (!fp) {
-    const parts = [
-      navigator.userAgent,
-      screen.width + 'x' + screen.height,
-      new Date().getTimezoneOffset(),
-      navigator.language,
-      Date.now() + '_' + Math.random().toString(36).slice(2)
-    ];
-    fp = btoa(parts.join('|')).slice(0, 48);
-    localStorage.setItem('ideal_voter_fp', fp);
+    fp = 'vfp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   }
+
+  try {
+    localStorage.setItem('ideal_voter_fp', fp);
+  } catch(e) {}
+
   return fp;
 }
 
@@ -1886,21 +1896,18 @@ function wireVotingPhase() {
 
       try {
         const fp = getVoterFingerprint();
-        let { error } = await sb.from('ideal_student_votes').insert([{
+        if (!fp) {
+          throw new Error('تعذر تحديد بصمة الجهاز، يرجى تحديث الصفحة');
+        }
+
+        const { error } = await sb.from('ideal_student_votes').insert([{
           candidate_id: id,
           voter_fingerprint: fp
         }]);
 
-        // إذا كان حقل بصمة الجهاز غير موجود في قاعدة البيانات، يتم المحاولة بدون إرساله
-        if (error && error.message && error.message.includes('voter_fingerprint')) {
-          const fallbackRes = await sb.from('ideal_student_votes').insert([{
-            candidate_id: id
-          }]);
-          error = fallbackRes.error;
-        }
-
         if (error) {
-          if (error.message.includes('duplicate') || error.code === '23505') {
+          const msg = (error.message || '').toLowerCase();
+          if (msg.includes('duplicate') || error.code === '23505' || msg.includes('unique') || msg.includes('voter_fingerprint')) {
             markVoted(id);
             toast('لقد قمت بالتصويت مسبقاً من هذا الجهاز', 'err');
             render();
@@ -2105,7 +2112,8 @@ function renderAdmin() {
           <h2 class="font-amiri text-3xl text-emeraldTheme-950 font-bold">إدارة مسابقة الطالب المثالي</h2>
           <p class="text-xs text-sandTheme-800/70 font-tajawal">التحكم في مراحل المسابقة، الشروط، الفريق، التنبيهات والطلبات</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="resetMyTestVote()" class="btn-action !bg-amber-50 !text-amber-800 !border-amber-300 hover:!bg-amber-100 !py-2 !px-3 !text-xs font-bold" title="يتيح لك إعادة تجربة التصويت من هذا المتصفح كأنك زائر جديد">🔄 تصفير تصويت هذا المتصفح (للتجربة)</button>
           <a href="#/" class="btn-action btn-outline-gold !py-2 !px-3.5 !text-xs">👁️ معاينة الواجهة</a>
           <button onclick="adminLogout()" class="btn-action !bg-rose-50 !text-rose-700 !border-rose-200 hover:!bg-rose-100 !py-2 !px-3.5 !text-xs">🚪 خروج</button>
         </div>
@@ -2903,6 +2911,18 @@ function wireTeamMemberForm() {
   });
 }
 window.wireTeamMemberForm = wireTeamMemberForm;
+
+// تصفير تصويت المتصفح الحالي لتسهيل تجربة التصويت للإدارة
+function resetMyTestVote() {
+  localStorage.removeItem('ideal_voted');
+  localStorage.removeItem('ideal_voted_for');
+  localStorage.removeItem('ideal_voter_fp');
+  S.voterVoted = false;
+  S.votedCandidateId = null;
+  toast('تم تصفير تصويت هذا المتصفح بنجاح! يمكنك الآن تجربة التصويت مجدداً كأنك جهاز جديد ✨', 'ok');
+  render();
+}
+window.resetMyTestVote = resetMyTestVote;
 
 // ===== إدارة شارة ومراحل المسابقة وفترات الانتظار =====
 function currentPhaseBadgeAdmin() {
