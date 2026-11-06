@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0a1628">
+<meta name="theme-color" content="#1a1205">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <title>المسابقة الكبرى لحفظ القرآن الكريم — بوابة المتسابقين ولجان التحكيم</title>
 <meta name="description" content="منصة المسابقة الكبرى لحفظ القرآن الكريم — تسجيل المتسابقين، بوابة المشايخ الممتحنين، وتسجيل الفيديو المرئي">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='18' fill='%231a3a64' transform='rotate(45 16 16)'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23C9A227' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='7' width='18' height='18' fill='%234d3612' transform='rotate(45 16 16)'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23C9A227' transform='rotate(45 16 16)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,11 +24,11 @@ tailwind.config = {
     extend: {
       colors: {
         pine: {
-          950: '#0a1628',
-          900: 'rgb(var(--pine-900-rgb,15 30 56)/<alpha-value>)',
-          800: 'rgb(var(--pine-800-rgb,26 58 100)/<alpha-value>)',
-          700: 'rgb(var(--pine-700-rgb,30 77 127)/<alpha-value>)',
-          600: 'rgb(var(--pine-600-rgb,42 96 153)/<alpha-value>)'
+          950: '#1a1205',
+          900: 'rgb(var(--pine-900-rgb,44 30 10)/<alpha-value>)',
+          800: 'rgb(var(--pine-800-rgb,77 54 18)/<alpha-value>)',
+          700: 'rgb(var(--pine-700-rgb,105 73 24)/<alpha-value>)',
+          600: 'rgb(var(--pine-600-rgb,140 98 32)/<alpha-value>)'
         },
         gold: {
           600: 'rgb(var(--gold-600-rgb,196 131 18)/<alpha-value>)',
@@ -42,7 +42,7 @@ tailwind.config = {
           100: 'rgb(var(--cream-100-rgb,247 243 232)/<alpha-value>)',
           200: 'rgb(var(--cream-200-rgb,239 231 210)/<alpha-value>)'
         },
-        ink: 'rgb(var(--ink-rgb,26 39 68)/<alpha-value>)'
+        ink: 'rgb(var(--ink-rgb,44 30 10)/<alpha-value>)'
       },
       fontFamily: {
         amiri: ['Amiri', 'serif'],
@@ -51,7 +51,7 @@ tailwind.config = {
       },
       boxShadow: {
         'glow-gold': '0 0 25px rgba(223,155,26,0.35)',
-        'glow-pine': '0 0 30px rgba(26,58,100,0.35)'
+        'glow-pine': '0 0 30px rgba(77,54,18,0.45)'
       }
     }
   }
@@ -78,10 +78,10 @@ tailwind.config = {
 </style>
 
 <style>
-:root{--pine:#1a3a64;--gold:#DF9B1A}
+:root{--pine:#4d3612;--gold:#DF9B1A}
 html{scroll-behavior:smooth}
 .pat-gold{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84'%3E%3Cg fill='none' stroke='%23DF9B1A'%3E%3Crect x='22' y='22' width='40' height='40'/%3E%3Crect x='22' y='22' width='40' height='40' transform='rotate(45 42 42)'/%3E%3C/g%3E%3C/svg%3E");opacity:.08}
-.gold-strip{height:6px;background:linear-gradient(90deg,#152a4d,#C48312,#FBD263,#C48312,#152a4d)}
+.gold-strip{height:6px;background:linear-gradient(90deg,#2c1e0a,#C48312,#FBD263,#C48312,#2c1e0a)}
 .frame{position:relative}.frame::before{content:'';position:absolute;inset:8px;border:1px solid rgba(223,155,26,.32);pointer-events:none}
 .corner{position:absolute;width:26px;height:26px;border:0 solid var(--gold)}
 .c-tl{top:-2px;left:-2px;border-top-width:3px;border-left-width:3px}.c-tr{top:-2px;right:-2px;border-top-width:3px;border-right-width:3px}
@@ -118,33 +118,33 @@ html{scroll-behavior:smooth}
 .tag{display:inline-flex;align-items:center;padding:.2rem .8rem;border-radius:9999px;font-size:.78rem;font-weight:700}
 .tag-pending{background:#FBF3D9;color:#8A6D1C;border:1px solid #D9C27A}.tag-approved{background:#EAF5EE;color:#14532D;border:1px solid #A9D3B8}.tag-rejected{background:#FBEDEC;color:#991B1B;border:1px solid #E3B4AE}
 .ibtn{width:2.2rem;height:2.2rem;border-radius:.6rem;border:1px solid #EFE7D2;background:#fff;color:#5C6350;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0}
-.ibtn:hover{border-color:#1e4d7f;color:var(--pine);transform:scale(1.05)}.ibtn-red:hover{border-color:#991B1B;color:#991B1B}
+.ibtn:hover{border-color:#df9b1a;color:var(--pine);transform:scale(1.05)}.ibtn-red:hover{border-color:#991B1B;color:#991B1B}
 .link-out{direction:ltr;text-align:left;background:#fff;border:1px dashed var(--gold);border-radius:.6rem;padding:.6rem .9rem;font-size:.8rem;word-break:break-all;font-family:ui-monospace,Consolas,monospace}
 .theme-swatch{display:flex;flex-direction:column;align-items:center;gap:.2rem;background:#fff;border:2px solid #EFE7D2;border-radius:1rem;padding:1rem .5rem;cursor:pointer;transition:.15s;font-size:.85rem;text-align:center}
 .theme-swatch:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
 .theme-swatch.sel{box-shadow:0 0 0 3px rgba(223,155,26,.4)}
 .qr-box{display:inline-block;background:#fff;border:1px solid #EFE7D2;border-radius:.8rem;padding:.6rem;line-height:0}.qr-box img{max-width:100%;height:auto;display:block}
-.committee-card{position:relative;border-radius:1rem;padding:1rem 1.15rem;border:1.5px solid rgba(223,155,26,.55);background:rgb(var(--pine-800-rgb,15 61 44));overflow:hidden}
+.committee-card{position:relative;border-radius:1rem;padding:1rem 1.15rem;border:1.5px solid rgba(223,155,26,.55);background:rgb(var(--pine-800-rgb,77 54 18));overflow:hidden}
 .examiner-name{font-family:Amiri,serif;font-size:1.45rem;line-height:1.8;color:#FBD263;font-weight:700;position:relative;padding-inline-start:.35rem}
-.drawer-sec-h{display:flex;align-items:center;gap:.5rem;font-family:Amiri,serif;font-size:1.05rem;font-weight:700;color:rgb(var(--pine-800-rgb,15 61 44));margin-bottom:.85rem;padding-bottom:.45rem;border-bottom:1px solid #EFE7D2}
+.drawer-sec-h{display:flex;align-items:center;gap:.5rem;font-family:Amiri,serif;font-size:1.05rem;font-weight:700;color:rgb(var(--pine-800-rgb,77 54 18));margin-bottom:.85rem;padding-bottom:.45rem;border-bottom:1px solid #EFE7D2}
 .dl2{display:grid;grid-template-columns:auto 1fr;gap:.5rem 1rem;font-size:.85rem}
 .dl2 dt{color:#5C6350;font-weight:500;white-space:nowrap}.dl2 dt::after{content:':'}
 .dl2 dd{font-weight:600;word-break:break-word}
 .file-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;background:#fff;border:1px solid #EFE7D2;border-radius:1rem;padding:.7rem .8rem}
 
 /* Camera Video Recorder Box */
-.record-box{position:relative;border-radius:1.25rem;overflow:hidden;background:#0a1628;border:2px solid #DF9B1A}
+.record-box{position:relative;border-radius:1.25rem;overflow:hidden;background:#1a1205;border:2px solid #DF9B1A}
 .record-live-dot{display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:50%;animation:livePulse 1s infinite}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.2)}}
 
 /* Quran player floating */
-.qcp-btn{position:fixed;bottom:1.2rem;inset-inline-end:1.2rem;z-index:70;width:3.6rem;height:3.6rem;border-radius:9999px;border:2px solid #DF9B1A;background:rgb(var(--pine-800-rgb,15 61 44));color:#FBD263;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
+.qcp-btn{position:fixed;bottom:1.2rem;inset-inline-end:1.2rem;z-index:70;width:3.6rem;height:3.6rem;border-radius:9999px;border:2px solid #DF9B1A;background:rgb(var(--pine-800-rgb,77 54 18));color:#FBD263;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:.2s}
 .qcp-btn:hover{transform:translateY(-2px) scale(1.05)}
 .qcp-btn.playing{animation:qcpPulse 2s infinite}
 @keyframes qcpPulse{0%,100%{box-shadow:0 0 0 0 rgba(223,155,26,.5)}50%{box-shadow:0 0 0 14px rgba(223,155,26,0)}}
 .qcp-panel{position:fixed;bottom:1.2rem;inset-inline-end:1.2rem;z-index:75;width:min(380px,calc(100vw - 2.4rem));background:#F7F3E8;border:1px solid #EFE7D2;border-top:4px solid #DF9B1A;border-radius:1.25rem;box-shadow:0 20px 55px rgba(0,0,0,.4);display:none;flex-direction:column;overflow:hidden;max-height:min(80vh,660px)}
 .qcp-panel.open{display:flex}
-.qcp-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.85rem 1.1rem;background:rgb(var(--pine-800-rgb,15 61 44));color:#F7F3E8}
+.qcp-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.85rem 1.1rem;background:rgb(var(--pine-800-rgb,77 54 18));color:#F7F3E8}
 .qcp-head h3{font-family:Amiri,serif;font-size:1.15rem;font-weight:700}
 .qcp-head small{display:block;color:#FBD263;font-size:.72rem}
 .qcp-close{width:2rem;height:2rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.3);background:transparent;color:#F7F3E8;cursor:pointer;flex-shrink:0}
@@ -154,7 +154,7 @@ html{scroll-behavior:smooth}
 .qcp-list{overflow-y:auto;padding:.5rem .6rem .7rem;flex:1}
 .qcp-item{display:flex;align-items:center;gap:.6rem;width:100%;padding:.5rem .6rem;border:none;background:transparent;font:inherit;font-size:.9rem;text-align:start;border-radius:.6rem;cursor:pointer;color:#26301F;transition:.12s}
 .qcp-item:hover{background:#EFE7D2}.qcp-item.active{background:rgba(223,155,26,.18);font-weight:700}
-.qcp-num{width:1.7rem;height:1.7rem;border-radius:9999px;border:1px solid #DF9B1A;color:rgb(var(--pine-800-rgb,15 61 44));font-family:Amiri,serif;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qcp-num{width:1.7rem;height:1.7rem;border-radius:9999px;border:1px solid #DF9B1A;color:rgb(var(--pine-800-rgb,77 54 18));font-family:Amiri,serif;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .qcp-item.active .qcp-num{background:#DF9B1A;color:#fff}
 
 @media (max-width:767px){
@@ -452,16 +452,16 @@ async function openSharedExam(path, kind) {
   } else window.open(url, '_blank', 'noopener');
 }
 
-const MUSHAF_SVG = '<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="60" cy="60" r="57" fill="#1a3a64" stroke="#DF9B1A" stroke-width="2.5"/><circle cx="60" cy="60" r="52" fill="none" stroke="#DF9B1A" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/><g transform="translate(51.4 6.9) scale(0.72)"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#FBD263"/></g><path d="M69 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#FBD263"/><g fill="#DF9B1A"><line x1="38" y1="15" x2="38" y2="23.5"/><rect x="35" y="24" width="6" height="8" rx="2"/><rect x="37" y="26.5" width="2" height="4" rx="1" fill="#1a3a64"/><circle cx="38" cy="33.5" r="1"/><line x1="82" y1="15" x2="82" y2="23.5"/><rect x="79" y="24" width="6" height="8" rx="2"/><rect x="81" y="26.5" width="2" height="4" rx="1" fill="#1a3a64"/><circle cx="82" cy="33.5" r="1"/></g><g fill="#DF9B1A"><path d="M60 30C49 40 47.5 48 47.5 54h25C72.5 48 71 40 60 30z"/><rect x="45.5" y="54" width="29" height="3" rx="1"/><rect x="52" y="57" width="16" height="18" rx="1"/><rect x="35.5" y="50" width="3.5" height="27" rx="1"/><rect x="34.75" y="57" width="5" height="2.5" rx="1"/><circle cx="37.25" cy="48" r="2.6"/><path d="M35.5 46.5h3.5l-1.75-4z"/><rect x="81" y="50" width="3.5" height="27" rx="1"/><rect x="80.25" y="57" width="5" height="2.5" rx="1"/><circle cx="82.75" cy="48" r="2.6"/><path d="M81 46.5h3.5l-1.75-4z"/></g><path d="M57 75v-7q3-5 6 0v7z" fill="#1a3a64"/><rect x="53.5" y="61" width="2" height="4" rx="1" fill="#1a3a64"/><rect x="64.5" y="61" width="2" height="4" rx="1" fill="#1a3a64"/><path d="M32 86c8-4.5 19-4.5 28 0 9-4.5 20-4.5 28 0v7c-8-4.5-19-4.5-28 0-9-4.5-20-4.5-28 0z" fill="#FBD263"/><path d="M60 86v7" stroke="#1a3a64" stroke-width="1.3"/><g fill="#DF9B1A"><rect x="58.2" y="99.2" width="3.6" height="3.6" transform="rotate(45 60 101)"/><rect x="48" y="99.9" width="2.2" height="2.2" transform="rotate(45 49.1 101)"/><rect x="69.8" y="99.9" width="2.2" height="2.2" transform="rotate(45 70.9 101)"/><line x1="31" y1="101" x2="45" y2="101"/><line x1="75" y1="101" x2="89" y2="101"/></g></svg>';
+const MUSHAF_SVG = '<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="60" cy="60" r="57" fill="#3b290d" stroke="#DF9B1A" stroke-width="2.5"/><circle cx="60" cy="60" r="52" fill="none" stroke="#DF9B1A" stroke-width="1" stroke-dasharray="2 3" opacity=".8"/><g transform="translate(51.4 6.9) scale(0.72)"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#FBD263"/></g><path d="M69 7l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#FBD263"/><g fill="#DF9B1A"><line x1="38" y1="15" x2="38" y2="23.5"/><rect x="35" y="24" width="6" height="8" rx="2"/><rect x="37" y="26.5" width="2" height="4" rx="1" fill="#3b290d"/><circle cx="38" cy="33.5" r="1"/><line x1="82" y1="15" x2="82" y2="23.5"/><rect x="79" y="24" width="6" height="8" rx="2"/><rect x="81" y="26.5" width="2" height="4" rx="1" fill="#3b290d"/><circle cx="82" cy="33.5" r="1"/></g><g fill="#DF9B1A"><path d="M60 30C49 40 47.5 48 47.5 54h25C72.5 48 71 40 60 30z"/><rect x="45.5" y="54" width="29" height="3" rx="1"/><rect x="52" y="57" width="16" height="18" rx="1"/><rect x="35.5" y="50" width="3.5" height="27" rx="1"/><rect x="34.75" y="57" width="5" height="2.5" rx="1"/><circle cx="37.25" cy="48" r="2.6"/><path d="M35.5 46.5h3.5l-1.75-4z"/><rect x="81" y="50" width="3.5" height="27" rx="1"/><rect x="80.25" y="57" width="5" height="2.5" rx="1"/><circle cx="82.75" cy="48" r="2.6"/><path d="M81 46.5h3.5l-1.75-4z"/></g><path d="M57 75v-7q3-5 6 0v7z" fill="#3b290d"/><rect x="53.5" y="61" width="2" height="4" rx="1" fill="#3b290d"/><rect x="64.5" y="61" width="2" height="4" rx="1" fill="#3b290d"/><path d="M32 86c8-4.5 19-4.5 28 0 9-4.5 20-4.5 28 0v7c-8-4.5-19-4.5-28 0-9-4.5-20-4.5-28 0z" fill="#FBD263"/><path d="M60 86v7" stroke="#3b290d" stroke-width="1.3"/><g fill="#DF9B1A"><rect x="58.2" y="99.2" width="3.6" height="3.6" transform="rotate(45 60 101)"/><rect x="48" y="99.9" width="2.2" height="2.2" transform="rotate(45 49.1 101)"/><rect x="69.8" y="99.9" width="2.2" height="2.2" transform="rotate(45 70.9 101)"/><line x1="31" y1="101" x2="45" y2="101"/><line x1="75" y1="101" x2="89" y2="101"/></g></svg>';
 
 let THEME_PENDING = null;
 const THEME_BASE = {
   '--gold-600-rgb': '196 131 18', '--gold-500-rgb': '223 155 26', '--gold-400-rgb': '240 184 50',
   '--gold-100-rgb': '254 243 204', '--cream-50-rgb': '251 248 240', '--cream-100-rgb': '247 243 232',
-  '--cream-200-rgb': '239 231 210', '--ink-rgb': '26 39 68', '--gold': '#DF9B1A'
+  '--cream-200-rgb': '239 231 210', '--ink-rgb': '44 30 10', '--gold': '#DF9B1A'
 };
 const THEMES = {
-  taqwa: { name: 'التقوى — الكحلي', pine: '#1a3a64', v: { '--pine-900-rgb': '15 30 56', '--pine-800-rgb': '26 58 100', '--pine-700-rgb': '30 77 127', '--pine-600-rgb': '42 96 153', '--pine': '#1a3a64' } },
+  taqwa: { name: 'الذهبي الإمبراطوري', pine: '#4d3612', v: { '--pine-900-rgb': '44 30 10', '--pine-800-rgb': '77 54 18', '--pine-700-rgb': '105 73 24', '--pine-600-rgb': '140 98 32', '--pine': '#4d3612' } },
   fajr: { name: 'الفجر — التركواز', pine: '#0E4245', v: { '--pine-900-rgb': '10 46 48', '--pine-800-rgb': '14 66 69', '--pine-700-rgb': '19 90 94', '--pine-600-rgb': '26 115 120', '--pine': '#0E4245' } },
   malik: { name: 'الملك — الكحلي', pine: '#102244', v: { '--pine-900-rgb': '11 24 48', '--pine-800-rgb': '16 34 68', '--pine-700-rgb': '22 48 99', '--pine-600-rgb': '29 62 128', '--pine': '#102244' } },
   izz: { name: 'العز — العنابي', pine: '#3D141C', v: { '--pine-900-rgb': '43 15 20', '--pine-800-rgb': '61 20 28', '--pine-700-rgb': '88 32 43', '--pine-600-rgb': '107 42 56', '--pine': '#3D141C' } },
@@ -477,7 +477,7 @@ function applyThemeVars(key) {
   Object.entries(t.v).forEach(([k, v]) => r.setProperty(k, v));
 }
 
-const LEVEL_COLORS = ['#1a3a64', '#0E7490', '#1E40AF', '#B45309', '#86198F', '#047857', '#7C3AED'];
+const LEVEL_COLORS = ['#4d3612', '#B45309', '#92400E', '#78350F', '#86198F', '#1E40AF', '#7C3AED'];
 const hexA = (hex, a) => {
   const n = parseInt(hex.slice(1), 16);
   return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
@@ -527,7 +527,7 @@ const SITE_DEFAULTS = {
 };
 
 const LEVELS_DEFAULT = [
-  { id: 1, name: 'المستوى الأول', desc: 'حفظ القرآن الكريم كاملًا مجوّدًا ومرتّلًا بالقراءات والتجويد', max_age: 20, color: '#1a3a64', image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80' },
+  { id: 1, name: 'المستوى الأول', desc: 'حفظ القرآن الكريم كاملًا مجوّدًا ومرتّلًا بالقراءات والتجويد', max_age: 20, color: '#4d3612', image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80' },
   { id: 2, name: 'المستوى الثاني', desc: 'حفظ القرآن الكريم كاملًا مرتّلًا بحسن الصوت والتلاوة', max_age: 18, color: '#0E7490', image: 'https://images.unsplash.com/photo-1584286595398-a59f21d313f5?auto=format&fit=crop&w=800&q=80' },
   { id: 3, name: 'المستوى الثالث', desc: 'حفظ ثلاثة أرباع القرآن الكريم (٢٢٫٥ جزءًا)', max_age: 16, color: '#1E40AF', image: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=800&q=80' },
   { id: 4, name: 'المستوى الرابع', desc: 'حفظ نصف القرآن الكريم (١٥ جزءًا)', max_age: 15, color: '#B45309', image: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?auto=format&fit=crop&w=800&q=80' },
@@ -1087,7 +1087,7 @@ function pubShell(content) {
    1. الصفحة الرئيسية مع فيديو القرآن التفاعلي في المدخل
    ══════════════════════════════════════════════════════════════════════════════ */
 function levelCard(l, idx, total) {
-  const color = l.color || LEVEL_COLORS[idx % LEVEL_COLORS.length] || '#1a3a64';
+  const color = l.color || LEVEL_COLORS[idx % LEVEL_COLORS.length] || '#4d3612';
   const imgUrl = l.image || (LEVELS_DEFAULT[idx] && LEVELS_DEFAULT[idx].image) || 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80';
   const isCenteredLast = (total === 7 && idx === 6) ? 'lg:col-start-2' : '';
 
@@ -3627,7 +3627,7 @@ function renderLevelsTab() {
       name: `المستوى ${arNum(S.levels.length + 1)}`,
       desc: 'مقدار الحفظ المطلوب...',
       max_age: 18,
-      color: LEVEL_COLORS[(S.levels.length) % LEVEL_COLORS.length] || '#1a3a64',
+      color: LEVEL_COLORS[(S.levels.length) % LEVEL_COLORS.length] || '#4d3612',
       image: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?auto=format&fit=crop&w=800&q=80'
     });
     paintLevels();
